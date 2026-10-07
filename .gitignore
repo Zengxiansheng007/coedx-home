@@ -1,0 +1,6 @@
+.scratch/
+.develop-system/
+__pycache__/
+*.pyc
+.venv/
+.env

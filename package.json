@@ -1,0 +1,7 @@
+{
+  "private": true,
+  "scripts": {
+    "check": "python -B tools/checks.py",
+    "check:local": "python -B tools/checks.py --installed"
+  }
+}
