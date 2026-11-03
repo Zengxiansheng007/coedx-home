@@ -110,4 +110,9 @@ def prepare_product_change(catalog, result, changes):
         'status': 'downstream_retest_pending_not_executed'}
     # The existing feedback path preserves prior decisions, updates one common
     # version only after summary agreement, and requires separate final review.
-    return prepare_feedback(scoped, 'chat', actual_reply=result['formal_conclusion']['actual_reply'], changes=changes)
+    pending = prepare_feedback(scoped, 'chat', actual_reply=result['formal_conclusion']['actual_reply'], changes=changes)
+    # This explicit reconciliation applies only to this agreed proposal; a
+    # later ordinary feedback round must not reuse an old product conclusion.
+    pending['product_resolution'] = copy.deepcopy(result['formal_conclusion'])
+    pending['proposal_digest'] = _digest({k: pending[k] for k in ('changes', 'deletions', 'product_resolution')})
+    return pending

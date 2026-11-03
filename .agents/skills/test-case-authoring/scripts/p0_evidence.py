@@ -112,7 +112,8 @@ def check_extension(catalog, baseline, reports, request, *, mode='production', _
                      'semantic_version': case['semantic_version'], 'data_version': case['data_version'],
                      'tested_version': report.get('tested_version') if report else None,
                      'report_ref': report.get('report_ref') if report else None,
-                     'provisional_conditions': case.get('rule_decisions', [])})
+                     'provisional_conditions': [d for d in case.get('active_rule_decisions', case.get('rule_decisions', []))
+                                                if d['reply']['decision'] == 'provisional']})
     if _result_scope:
         return {'baseline_id': baseline['id'], 'round_id': baseline['round_id'],
                 'evidence_nature': 'simulated' if mode == 'simulation' else 'actual_report_contents',

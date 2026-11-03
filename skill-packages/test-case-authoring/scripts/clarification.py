@@ -141,7 +141,8 @@ def _patch(batch, update):
     if type(path[1]) is not int or not 0 <= path[1] < len(batch[path[0]]):
         raise ValueError('Unknown content identity')
     if path[2] in ('id', 'review_status', 'rule_status', 'merge_status', 'execution_status',
-                    'semantic_version', 'data_version', 'final_review', 'rule_decisions'):
+                    'semantic_version', 'data_version', 'final_review', 'rule_decisions',
+                    'active_rule_decisions', 'rule_decision_history', 'feedback_rule_history'):
         raise ValueError('Workflow and identity fields cannot be edited as business answers')
     if any(str(key).startswith('_') for key in path):
         raise ValueError('Invalid business content path')
@@ -159,7 +160,7 @@ def _validate_content(batch):
         if ('value' in item) == ('credential_ref' in item):
             raise ValueError('Data requires value or credential reference')
     for case in batch['cases']:
-        if not case['title'] or len(case['module_path']) != 5 or not case['steps']:
+        if not case['title'] or len(case['module_path']) < 5 or not case['steps']:
             raise ValueError('Incomplete candidate case')
         for group in ('steps', 'common_preconditions', 'special_preconditions', 'special_postconditions'):
             for step in case.get(group, []):
@@ -169,6 +170,43 @@ def _validate_content(batch):
                     if any(not claim.get('text') or not claim.get('source') for claim in step[field]):
                         raise ValueError('Invalid business claim')
     _credential_guard(batch)
+
+
+def _apply_rule_decisions(case, decisions, *, blocked=False, supplied=False, product=None):
+    """Keep historical answers; aggregate only the latest decision per rule/field.
+
+    A title answer cannot discharge a save-policy condition. Legacy unscoped
+    conditions stay active until an explicit, unambiguous product reconciliation.
+    """
+    def key(d):
+        return d.get('field') or d.get('rule_id') or d.get('question_id') or '__unscoped__'
+    active = copy.deepcopy(case.get('active_rule_decisions',
+                                   case.get('rule_decisions', []) + case.get('feedback_rule_history', [])))
+    indexed = {key(d): d for d in active}
+    if not indexed and case['rule_status'] in ('provisional', 'deferred'):
+        indexed['__unscoped__'] = {'reply': {'decision': case['rule_status'],
+            'actual_reply': 'Existing rule decision requires clarification',
+            'product_check': 'Existing product verification condition requires clarification'}}
+    for d in decisions:
+        indexed[key(d)] = copy.deepcopy(d)
+    if product and decisions and all(d['reply']['decision'] == 'formal' for d in decisions) and not blocked:
+        rule = product['rule_id']
+        for identity, d in list(indexed.items()):
+            # Explicit rule links identify the condition. Older unscoped cases
+            # may only resolve when exactly this one product rule is referenced.
+            if (d.get('rule_id') == rule or d.get('question_id') == rule or
+                    (identity == '__unscoped__' and case.get('rule_refs') == [rule])):
+                indexed[identity] = dict(d, reply={'decision': 'formal',
+                    'actual_reply': product['actual_reply'], 'source_ref': product['source_ref']})
+    if indexed or 'active_rule_decisions' in case:
+        case['active_rule_decisions'] = list(indexed.values())
+    if decisions:
+        case.setdefault('rule_decisions', copy.deepcopy(decisions))
+        case.setdefault('rule_decision_history', []).extend(copy.deepcopy(decisions))
+    states = [d['reply']['decision'] for d in indexed.values()]
+    case['rule_status'] = ('deferred' if blocked or 'deferred' in states else
+                           'provisional' if 'provisional' in states else
+                           'formal' if decisions or supplied else case['rule_status'])
 
 
 def apply_summary(session, confirmation):
@@ -196,8 +234,6 @@ def apply_summary(session, confirmation):
     for case in batch['cases']:
         old = next(c for c in before['cases'] if c['id'] == case['id'])
         decisions = [d for d in current['decisions'] if d['case_id'] == case['id']]
-        if decisions:
-            case['rule_decisions'] = copy.deepcopy(decisions)
         # A complete supplied case has no clarification question to answer.
         # Only this explicit current-summary agreement can confirm that content;
         # initial conversion and a final-review request alone confer no approval.
@@ -205,9 +241,8 @@ def apply_summary(session, confirmation):
             q['case_id'] == case['id'] for q in result['questions']) and old['rule_status'] == 'unconfirmed'
         if supplied_confirmation:
             case['supplied_content_confirmation'] = copy.deepcopy(confirmation)
-        case['rule_status'] = ('deferred' if case['id'] in current['blocked_cases'] else
-                               'provisional' if any(d['reply']['decision'] == 'provisional' for d in decisions) else
-                               'formal' if decisions or supplied_confirmation else old['rule_status'])
+        _apply_rule_decisions(case, decisions, blocked=case['id'] in current['blocked_cases'],
+                              supplied=supplied_confirmation)
         case['data_version'] = batch['data_version']
         def semantic(value):
             return {k: v for k, v in value.items() if k not in ('semantic_version', 'review_status', 'final_review', 'review_history', 'merge_status', 'execution_status')}

@@ -54,6 +54,14 @@ Each returned change is compared three ways: first displayed value, latest
 accepted candidate value, proposed value. Unchanged first-display fields preserve
 later accepted edits. Already applied changes are no-ops; conflicts require
 clarification rather than reversion. Both views come from the latest candidate.
+Current-version Markdown binds its edits to the current candidate, allowing a
+second edit of an accepted field to enter grill. For an explicit chat revision
+of an already accepted field, pass `source_version=batch['content_version']`
+and `before` with the current field value in each change. The skill obtains
+these from the current display and the user's explicit correction. Stale version,
+mismatched `before`, unbound overwrites and unknown structure remain rejected.
+Initial values and earlier accepted proposals remain in their existing history;
+the revised field still needs summary agreement and a new final review.
 Final review may add workflow prose without changing the semantic version. A
 pre-approval displayed file remains eligible: the reader ignores only exact
 trusted same-version final-review/history prose and normalizes its pending versus
@@ -76,11 +84,15 @@ Changes remain proposals during grill. `apply_feedback` applies one agreed
 summary, saves feedback history, preserves the initial baseline, updates common
 data and affected case versions, archives prior final approvals and marks affected
 cases pending review. Provisional answers retain their product-check condition
-in feedback rule history. Deferred cases remain unapplied. An affected existing
-case's agreed decisions set its rule state just as in batch clarification:
-deferred scope stays deferred, otherwise any provisional answer keeps provisional
-state and its product-check condition, otherwise explicit formal decisions set
-formal state (including previously unconfirmed or provisional candidates).
+in feedback rule history. Deferred cases remain unapplied. Shared clarification
+and feedback maintain `active_rule_decisions` separately from historical answers.
+The latest agreed answer for the same field/rule supersedes its active predecessor;
+unrelated conditions remain active. Any active deferred rule blocks the case;
+otherwise any active provisional rule keeps it provisional. Only with all active
+conditions resolved can it become formal. An unscoped legacy condition remains
+pending clarification rather than being cleared by an unrelated field answer.
+Explicit product-change reconciliation resolves the identified product rule in
+that proposal only, preserving unrelated rules and historical conditions.
 Recording an answer alone changes no candidate state; exact-summary agreement
 and application are required. Existing decisions and conditions remain history.
 An affected existing

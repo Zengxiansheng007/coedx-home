@@ -78,7 +78,9 @@ class FeedbackTests(unittest.TestCase):
                 with self.subTest(prior=prior, decision=decision):
                     full = catalog()
                     full['cases'][0]['rule_status'] = prior
-                    full['cases'][0]['rule_decisions'] = [{'reply': {'decision': 'provisional',
+                    # Same-field revision resolves this title condition; an
+                    # unrelated active condition is covered by review regressions.
+                    full['cases'][0]['rule_decisions'] = [{'field': 'title', 'reply': {'decision': 'provisional',
                         'actual_reply': 'SIMULATED: historical provisional authorization',
                         'product_check': 'SIMULATED: historical product condition'}}]
                     batch = build_scoped_review(full, 'synthetic-new-candidate', [

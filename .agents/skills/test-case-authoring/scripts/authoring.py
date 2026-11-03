@@ -119,7 +119,7 @@ def _view_one(batch):
         indent += '  '
     case_heading = indent + f'- {case["id"]} { _cell(case["title"])} [{case["priority"]}；{case["rule_status"]}；{case["review_status"]}；{case["merge_status"]}；{case["execution_status"]}]'
     context_nodes = []
-    for decision in case.get('rule_decisions', []):
+    for decision in case.get('active_rule_decisions', case.get('rule_decisions', [])):
         reply = decision['reply']
         if reply['decision'] == 'provisional':
             note = '暂定，待产品核实：' + reply['product_check']

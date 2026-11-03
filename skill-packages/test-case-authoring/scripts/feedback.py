@@ -3,13 +3,14 @@ import copy
 import html
 
 from authoring import _credential_guard, _digest, _cell
-from clarification import start_grill, summarize, review, _validate_content
+from clarification import start_grill, summarize, review, _validate_content, _apply_rule_decisions
 from scoped_review import _render, _references, _business_lines, GROUPS, TECHNICAL_FIELDS
 
 
 PROTECTED = TECHNICAL_FIELDS | frozenset(('module_path', 'data_refs', 'credential_ref',
     'review_status', 'rule_status', 'merge_status', 'execution_status', 'final_review',
-    'review_history', 'rule_decisions', 'supplied_content_confirmation'))
+    'review_history', 'rule_decisions', 'active_rule_decisions', 'rule_decision_history',
+    'feedback_rule_history', 'supplied_content_confirmation'))
 
 
 def _leaves(value, path=()):
@@ -163,16 +164,20 @@ def _question(qid, cid, field, reason, checks):
 
 
 def prepare_feedback(batch, channel, *, actual_reply, changes=None, markdown=None,
-                     removed_case_ids=None, deletion_decisions=None):
+                     removed_case_ids=None, deletion_decisions=None, source_version=None):
     """Locate proposed changes against first display and later accepted content."""
     _credential_guard([batch, actual_reply, changes, markdown, deletion_decisions])
     if not actual_reply or channel not in ('chat', 'markdown'):
         raise ValueError('Actual feedback and supported channel required')
     initial = _initial(batch)
+    if source_version is not None and source_version != batch['content_version']:
+        raise ValueError('Feedback source version is not current')
+    current_source = source_version == batch['content_version']
     if channel == 'markdown':
         if changes or removed_case_ids or markdown is None:
             raise ValueError('Read Markdown itself, not a substituted interpretation')
         changes, removed_case_ids = _markdown_changes(batch, markdown)
+        current_source = markdown.splitlines()[1] == '- 版本：' + batch['content_version']
     normalized, affected = [], set()
     for change in changes or []:
         collection, identity, path = change['collection'], change['id'], change['path']
@@ -185,9 +190,11 @@ def prepare_feedback(batch, channel, *, actual_reply, changes=None, markdown=Non
         old, accepted, new = _get(base, path), _get(current, path), change['value']
         if not isinstance(new, str) or not new.strip():
             raise ValueError('Nonempty business text required')
-        if old == new or accepted == new:
+        if current_source and channel == 'chat' and change.get('before') != accepted:
+            raise ValueError('Explicit current field value required for a revision')
+        if accepted == new or (old == new and not current_source):
             continue
-        if accepted != old:
+        if accepted != old and not current_source:
             raise ValueError('Feedback conflicts with an accepted later change; clarify')
         normalized.append(dict(change, before=old, accepted=accepted))
         affected.update([identity] if collection == 'cases' else
@@ -215,8 +222,11 @@ def prepare_feedback(batch, channel, *, actual_reply, changes=None, markdown=Non
     proposal_digest = _digest({'changes': normalized, 'deletions': deletions})
     for index, change in enumerate(normalized):
         ids = [change['id']] if change['collection'] == 'cases' else [c['id'] for c in batch['cases'] if change['id'] in _references(c)]
+        field = '/'.join(map(str, change['path']))
+        if change['collection'] == 'data':
+            field = 'data/' + change['id'] + '/' + field
         for cid in ids:
-            questions.append(_question(f'feedback-{proposal_digest}-{index}-{cid}', cid, '/'.join(map(str, change['path'])),
+            questions.append(_question(f'feedback-{proposal_digest}-{index}-{cid}', cid, field,
                                        'Review business change: ' + repr(change['before']) + ' → ' + repr(change['value']) +
                                        '; accepted current value: ' + repr(change['accepted']), []))
     for q in questions:
@@ -240,7 +250,12 @@ def apply_feedback(pending, confirmation, deletion_decisions=None):
     """Apply one explicitly agreed summary atomically; all effects stay candidate-side."""
     _credential_guard([pending, confirmation, deletion_decisions])
     current = summarize(pending['grill'])['summary']
-    if pending['proposal_digest'] != _digest({'changes': pending['changes'], 'deletions': pending['deletions']}):
+    proposal = {'changes': pending['changes'], 'deletions': pending['deletions']}
+    if pending.get('product_resolution'):
+        proposal['product_resolution'] = pending['product_resolution']
+        if pending['product_resolution'] != pending['batch'].get('product_reconciliation', {}).get('formal_conclusion'):
+            raise ValueError('Product conclusion differs from the reconciled proposal')
+    if pending['proposal_digest'] != _digest(proposal):
         raise ValueError('Feedback proposal changed after presentation')
     if (pending['grill'].get('summary') != current or confirmation.get('confirmed') is not True or
             not confirmation.get('actual_reply') or confirmation.get('summary_id') != current['id'] or
@@ -279,12 +294,7 @@ def apply_feedback(pending, confirmation, deletion_decisions=None):
             case['feedback_disposition'] = 'excluded_this_round'
         else:
             case.pop('feedback_disposition', None)
-    validation = copy.deepcopy(batch)
-    for case in validation['cases']:
-        if len(case['module_path']) < 5:
-            raise ValueError('Complete module path required')
-        case['module_path'] = case['module_path'][:5]
-    _validate_content(validation)
+    _validate_content(batch)
     batch['data_version'] = _digest(batch['data'])
     for case in batch['cases']:
         if case['id'] not in affected | blocked:
@@ -294,12 +304,8 @@ def apply_feedback(pending, confirmation, deletion_decisions=None):
         if 'final_review' in case:
             case.setdefault('review_history', []).append(case.pop('final_review'))
         decisions = [d for d in current['decisions'] if d['case_id'] == case['id']]
-        if case['id'] in blocked:
-            case['rule_status'] = 'deferred'
-        elif any(d['reply']['decision'] == 'provisional' for d in decisions):
-            case['rule_status'] = 'provisional'
-        elif decisions:
-            case['rule_status'] = 'formal'
+        product = pending.get('product_resolution')
+        _apply_rule_decisions(case, decisions, blocked=case['id'] in blocked, product=product)
         case.setdefault('feedback_rule_history', []).extend(copy.deepcopy(decisions))
         case['semantic_version'] = _digest({k: v for k, v in case.items() if k != 'semantic_version'})
     for check in batch.get('coverage', []):

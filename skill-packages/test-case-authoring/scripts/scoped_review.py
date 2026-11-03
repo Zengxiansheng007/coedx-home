@@ -24,7 +24,9 @@ BUSINESS_LABELS = {
     'input': '输入', 'inputs': '输入', 'output': '产出', 'outputs': '产出',
     'value': '值', 'credential_ref': '凭据引用', 'validity': '有效性',
     'reuse_policy': '复用策略', 'invalidation_action': '失效处理',
-    'rule_decisions': '规则决定', 'reply': '答复', 'decision': '决定',
+    'rule_decisions': '初始规则决定（历史）', 'active_rule_decisions': '当前有效规则决定',
+    'rule_decision_history': '规则决定历史', 'feedback_rule_history': '反馈规则历史',
+    'reply': '答复', 'decision': '决定',
     'actual_reply': '实际答复', 'product_check': '待产品核实',
 }
 

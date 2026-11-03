@@ -12,8 +12,8 @@ from clarification import _validate_content
 
 
 def _provisional_conditions(case):
-    return [d['reply'] for key in ('rule_decisions', 'feedback_rule_history')
-            for d in case.get(key, []) if d.get('reply', {}).get('decision') == 'provisional'
+    active = case.get('active_rule_decisions', case.get('rule_decisions', []) + case.get('feedback_rule_history', []))
+    return [d['reply'] for d in active if d.get('reply', {}).get('decision') == 'provisional'
             and d['reply'].get('actual_reply') and d['reply'].get('product_check')]
 
 
@@ -21,7 +21,7 @@ def _business_content(case):
     return {k: v for k, v in (case or {}).items() if k not in (
         'semantic_version', 'data_version', 'review_status', 'final_review', 'review_history',
         'merge_status', 'execution_status', 'rule_status', 'rule_decisions',
-        'supplied_content_confirmation', 'feedback_rule_history')}
+        'supplied_content_confirmation', 'feedback_rule_history', 'active_rule_decisions', 'rule_decision_history')}
 
 
 def _apply_delta(current, data, candidates, candidate_data, selected, actions, instruction, eligible):
@@ -113,7 +113,6 @@ def merge_reviewed(catalog, batch, instruction, *, target_kind):
             reasons[cid] = reason
         else:
             validation = copy.deepcopy(c)
-            validation['module_path'] = validation['module_path'][:5]
             try:
                 _validate_content(dict(cases=[validation], data=batch['data']))
                 if any(not s.get('expected') or not s.get('verification')
