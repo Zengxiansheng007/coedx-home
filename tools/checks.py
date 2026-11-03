@@ -9,6 +9,7 @@ import uuid
 
 ROOT = Path(__file__).resolve().parents[1]
 SKILLS = ('develop-system', 'grill-with-docs')
+REPOSITORY_SKILLS = (*SKILLS, 'test-case-authoring')
 SCRIPTS = ROOT / '.agents/skills/develop-system/scripts'
 sys.path.insert(0, str(SCRIPTS))
 from record_check import run_record
@@ -48,7 +49,7 @@ def stage(name, installed):
         if installed:
             roots.append(Path(installed))
         for root in roots:
-            for skill in SKILLS:
+            for skill in (SKILLS if installed and root == Path(installed) else REPOSITORY_SKILLS):
                 valid, message = validate_skill(root / skill)
                 if not valid:
                     raise ValueError(f'{root / skill}: {message}')
@@ -66,10 +67,10 @@ def stage(name, installed):
                 raise ValueError('; '.join(errors))
             print(f'VALID: {path}: {len(data["skills"])} skills')
     elif name == 'copies':
-        for skill in SKILLS:
+        for skill in REPOSITORY_SKILLS:
             source = ROOT / '.agents/skills' / skill
             compare_copies(source, ROOT / 'skill-packages' / skill)
-            if installed:
+            if installed and skill in SKILLS:
                 compare_copies(source, Path(installed) / skill)
 
 
@@ -93,6 +94,7 @@ def main():
         ('dependencies', stage_command('dependencies')),
         ('workflow-tests', [sys.executable, '-B', '-m', 'unittest', 'discover', '-s', str(SCRIPTS), '-p', 'test_*.py', '-v']),
         ('verification-tests', [sys.executable, '-B', '-m', 'unittest', 'discover', '-s', str(ROOT / 'tools/verification'), '-p', 'test_*.py', '-v']),
+        ('authoring-tests', [sys.executable, '-B', '-m', 'unittest', 'discover', '-s', str(ROOT / '.agents/skills/test-case-authoring/scripts'), '-p', 'test_*.py', '-v']),
         ('skill-format', stage_command('format')),
         ('registry', stage_command('registry')),
         ('copies', stage_command('copies')),
