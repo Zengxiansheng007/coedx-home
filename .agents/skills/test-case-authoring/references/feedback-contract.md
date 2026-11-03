@@ -46,7 +46,9 @@ scope copy, not arbitrary Markdown or native XMind. Edit business scalar leaves
 labels, hierarchy, order, header/version, IDs and row counts. Whole-case removals
 include their full module subtree. Repeated projections of one data leaf must
 agree. Unsupported structural edits fail closed and return to chat clarification.
-Markup entities use the renderer's escaping. Native XMind parsing remains separate.
+Markup entities use the renderer's escaping. For native returns use
+[the XMind adapter](xmind-feedback-contract.md), which reads the file before
+entering this same feedback workflow.
 
 Each returned change is compared three ways: first displayed value, latest
 accepted candidate value, proposed value. Unchanged first-display fields preserve

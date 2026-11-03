@@ -10,6 +10,14 @@ from xmind_feedback import prepare_xmind_feedback
 
 
 class XmindFeedbackTests(unittest.TestCase):
+    def test_generated_steps_do_not_become_nested_ordered_lists_in_client(self):
+        from authoring import build_batch
+        from test_authoring import sample
+        recording, draft = sample()
+        for markdown in (scope()['xmind_markdown'], build_batch(recording, draft)['xmind_markdown']):
+            self.assertIn('- 步骤 1：Enter notice title', markdown)
+            self.assertNotIn('- 1. Enter notice title', markdown)
+
     def test_native_scalar_edits_use_existing_summary_and_both_views(self):
         original = scope()
         lines = original['xmind_markdown'].splitlines()

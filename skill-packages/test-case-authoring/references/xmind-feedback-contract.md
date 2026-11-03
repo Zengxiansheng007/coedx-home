@@ -32,6 +32,9 @@ module paths, case IDs, labels and topology correspond to the generated scoped
 review Markdown. Scalar edits and whole-case removal follow the Markdown
 feedback rules, including repeated shared-data agreement and three-way conflict
 checks. Native topic IDs are storage identities, never business case identities.
+Generated operation topics use `步骤 1：...` rather than a Markdown numbered-list
+marker: the target client otherwise creates an empty wrapper above operation,
+data and expectation, changing the required parent/child relationship.
 Legacy XML, multiple sheets, detached topics, additional notes/markers/images or
 unsupported annotations, changed identity/path and structural ambiguities remain
 pending. Input and expanded archive bounds limit parsing; no ZIP is extracted.

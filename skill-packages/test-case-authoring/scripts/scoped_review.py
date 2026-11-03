@@ -98,7 +98,7 @@ def _render(batch):
                 expected = _business_lines(step.get('expected', [])) or ['待核对']
                 checks = _business_lines(step.get('verification', [])) or ['待核对']
                 operation = step.get('operation', '待核对')
-                tree.extend([indent + f'  - {i}. ' + _cell(operation), indent + '    - 参数/数据'])
+                tree.extend([indent + f'  - 步骤 {i}：' + _cell(operation), indent + '    - 参数/数据'])
                 tree.extend(indent + '      - ' + _cell(v) for v in values)
                 tree.append(indent + '    - 预期')
                 tree.extend(indent + '      - ' + _cell(v) for v in expected)

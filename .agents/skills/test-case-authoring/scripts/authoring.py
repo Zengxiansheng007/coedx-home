@@ -159,7 +159,7 @@ def _view_one(batch):
             verification = [c['text'] for c in step['verification']] or ['待澄清']
             outcome = '预期：' + '；'.join(expected) + '；验证点：' + '；'.join(verification)
             human.append(f"| {i} | {_cell(step['operation'])} | {_cell('；'.join(values) or '无')} | {_cell(outcome)} |")
-            tree.extend([indent + f"  - {i}. {_cell(step['operation'])}", indent + '    - 参数/数据'])
+            tree.extend([indent + f"  - 步骤 {i}：{_cell(step['operation'])}", indent + '    - 参数/数据'])
             tree.extend(indent + '      - ' + _cell(v) for v in (values or ['无']))
             tree.append(indent + '    - 预期')
             tree.extend(indent + '      - ' + _cell(v) for v in expected)
