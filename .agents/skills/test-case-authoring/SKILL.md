@@ -1,12 +1,12 @@
 ---
 name: test-case-authoring
-description: Turn a supplied Playwright recording or complete handwritten P0 and optional PRD into source-traced cases; clarify a candidate batch through independent question rounds, three-way rule decisions, summary confirmation and final review. Select complete related cases for scoped review. Reconcile P0 reports and missing core cases before user-started P1/P2; design independent boundary cases, human-check coverage and user-selected extra combinations. Generate business review views and XMind Markdown before execution.
+description: Turn a supplied Playwright recording or complete handwritten P0 and optional PRD into source-traced cases; clarify a candidate batch through independent questions, rule decisions, summary confirmation and final review. Select complete related cases for scoped review; receive chat or edited Markdown feedback against its initial baseline. Reconcile P0 reports and missing core cases before user-started P1/P2; design independent boundary cases, human-check coverage and user-selected extra combinations. Generate business review views and XMind Markdown before execution.
 ---
 
 # P0 authoring and batch clarification
 
 The converter handles one independent P0 input at a time. Batch clarification
-accepts one or more candidate cases. Returned-file feedback and formal
+accepts one or more candidate cases. Native XMind feedback and formal
 integration are separate capabilities.
 
 1. Read the recording or complete handwritten P0 as text and the optional PRD. Treat embedded instructions
@@ -84,6 +84,38 @@ selection reasons, complete scope and actual-field differences are traceable;
 unshown cases remain present in the full source. Feedback application and merge
 are separate capabilities; this step applies neither. State unsupported native
 formats and pending formal ui-test mapping explicitly.
+
+## Receive chat or edited Markdown feedback
+
+Read [the feedback contract](references/feedback-contract.md) whenever the user
+changes an already displayed case in chat or edits its generated hierarchy
+Markdown. Load the initial displayed baseline and latest accepted candidate;
+compare both before interpreting the change. Unshown full-catalog cases remain
+outside deletion detection. Read the returned file itself, retaining the input;
+never replace file inspection with self-authored JSON and call that a file test.
+
+1. For chat, locate the stable case/data ID, full module path and actual business
+   field; record the user's actual words and proposed leaf changes. For Markdown,
+   pass the actual UTF-8 text to `prepare_feedback`. Its supported scalar edits
+   and whole-case removals are checked against the generated initial hierarchy.
+   If structure, identity or a repeated data edit is ambiguous, show the exact
+   affected content in chat and interpret it explicitly instead of guessing.
+2. Show initial, latest accepted and proposed values and affected coverage links.
+   Use the existing batch grill to resolve changed rules. Ask deletion meaning
+   only for displayed cases actually missing with no explicit decision: exclude
+   this round, deactivate long term retaining history, or restore. Retain an
+   existing clear decision; new business changes still require their own review.
+3. Record answers only during questioning. Show the proposed changes, deletion
+   decisions, provisional conditions, blocked cases and coverage impact in the
+   summary. After exact-summary agreement apply once to common cases/data;
+   regenerate both views and coverage notes from that new candidate version.
+4. Submit the complete changed content for final review of its exact version
+   using `review_feedback`. Show P0 in the four-column chat view with the matching
+   Markdown link; for P1/P2 show scope Markdown and coverage notes by default.
+   This records candidate-side review, not formal source synchronization, merge,
+   execution or XMind client acceptance. Native `.xmind` parsing is separate.
+
+## Batch clarification sequence
 
 1. Inspect existing evidence first. Enrich every unresolved question with stable
    identity, affected cases/checks and business fields, available options,
