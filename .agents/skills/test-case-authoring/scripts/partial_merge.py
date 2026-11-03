@@ -118,9 +118,38 @@ def merge_reviewed(catalog, batch, instruction, *, target_kind):
                    for owner in current.values()):
                 reasons[cid] = 'shared_data_affects_unapproved_content'
                 continue
-            stack, visited = [(candidates[cid], set())], set()
+            effective = dict(target, cases=[copy.deepcopy(candidates.get(key, value))
+                if key in requested and key not in reasons else copy.deepcopy(value)
+                for key, value in current.items()], data=list(dict(data, **candidate_data).values()))
+            effective['cases'].extend(copy.deepcopy(candidates[key]) for key in requested
+                if key not in current and key not in reasons)
+            stack, visited = [(candidates[cid], set(), False)], set()
             while stack:
-                owner, ancestors = stack.pop()
+                owner, ancestors, leaving = stack.pop()
+                if leaving:
+                    visited.add(owner['id'])
+                    continue
+                if owner['id'] in visited:
+                    continue
+                # Check every owner's outgoing contracts, including owners that
+                # remain unchanged in the target; root approval cannot supply a
+                # missing descendant data or complete-reference decision.
+                if owner.get('dependencies'):
+                    proposals = [dict(edge, id='merge-dep-' + str(index), current_case_id=owner['id'],
+                        decision=edge.get('scope_decision', {}),
+                        final_state_matches=edge.get('final_state_matches', True),
+                        applicability_basis=edge.get('applicability_basis', edge.get('basis')))
+                        for index, edge in enumerate(owner['dependencies'])]
+                    try:
+                        checked = review_dependencies(effective, 'merge-dependency-check', [owner['id']], proposals,
+                            batch.get('approved_validation_scope', []))
+                        if checked['blockers'] or any(p['decision'].get('include') is not True for p in proposals):
+                            reasons[cid] = 'dependency_data_or_scope_incomplete:' + owner['id']
+                            break
+                    except (ValueError, KeyError, TypeError):
+                        reasons[cid] = 'dependency_data_or_scope_incomplete:' + owner['id']
+                        break
+                stack.append((owner, ancestors, True))
                 for edge in owner.get('dependencies', []):
                     dep_id = edge['case_id']
                     dep = candidates.get(dep_id, current.get(dep_id))
@@ -146,27 +175,9 @@ def merge_reviewed(catalog, batch, instruction, *, target_kind):
                         reasons[cid] = 'dependency_incomplete:' + dep_id
                         break
                     if dep_id not in visited:
-                        visited.add(dep_id)
-                        stack.append((dep, ancestors | {owner['id']}))
+                        stack.append((dep, ancestors | {owner['id']}, False))
                 if cid in reasons:
                     break
-            if cid not in reasons and candidates[cid].get('dependencies'):
-                effective = dict(target, cases=[copy.deepcopy(candidates.get(key, value))
-                    if key in requested and key not in reasons else copy.deepcopy(value)
-                    for key, value in current.items()], data=list(dict(data, **candidate_data).values()))
-                effective['cases'].extend(copy.deepcopy(candidates[key]) for key in requested
-                    if key not in current and key not in reasons)
-                proposals = [dict(edge, id='merge-dep-' + str(index), current_case_id=cid,
-                    decision=edge.get('scope_decision', {}), final_state_matches=True,
-                    applicability_basis=edge.get('basis'))
-                    for index, edge in enumerate(candidates[cid]['dependencies'])]
-                try:
-                    checked = review_dependencies(effective, 'merge-dependency-check', [cid], proposals,
-                        batch.get('approved_validation_scope', []))
-                    if checked['blockers']:
-                        reasons[cid] = 'dependency_data_or_scope_incomplete'
-                except (ValueError, KeyError, TypeError):
-                    reasons[cid] = 'dependency_data_or_scope_incomplete'
         if previous == reasons:
             break
     results = []

@@ -36,7 +36,92 @@ def fixture():
     return full, batch, instruction
 
 
+def transitive_fixture(variant='exclusive_missing', independent=False):
+    """Build/approve public candidates only after configuring synthetic sources."""
+    from test_dependencies import fixture as dependency_fixture
+    from dependencies import review_dependencies
+    full, proposal = dependency_fixture()
+    full['cases'][0]['priority'] = 'P1'
+    for c in full['cases']:
+        c.update(priority_basis='Synthetic risk', rule_status='formal', review_status='approved')
+    nested = copy.deepcopy(full['cases'][1])
+    nested.update(id='NESTED', module_path=['Example', 'Workspace', 'Web', 'Nested', 'Save'])
+    full['cases'].append(nested)
+    d = copy.deepcopy(full['data'][0])
+    d.update(id='NESTED-DATA', reuse_policy='exclusive', exclusive_case_id='LINK')
+    d.pop('subsequent_use', None)
+    if variant != 'exclusive_missing':
+        d['subsequent_use'] = dict(choice='reuse_if_valid', actual_reply='SIMULATED: same owner may reuse')
+    if variant == 'expiry':
+        d.update(reuse_policy='time_limited', valid_until='synthetic-end', downstream_window='synthetic-window', covers_downstream_window=False)
+    if variant == 'rebuild':
+        d['invalidation_action'] = 'rebuild_complete_precondition'
+        d.pop('rebuild_decision', None)
+    full['data'].append(d)
+    edge = {key: copy.deepcopy(proposal[key]) for key in ('case_id', 'module_path', 'direction',
+        'purpose', 'required_state', 'inputs', 'outputs', 'object_binding', 'data_refs', 'basis')}
+    edge.update(case_id='NESTED', module_path=nested['module_path'], data_refs=['NESTED-DATA'],
+        object_binding={'object_id': 'NESTED-DATA'}, complete_case=variant != 'incomplete',
+        scope_decision=dict(include=True, actual_reply='SIMULATED: nested required'))
+    if variant == 'excluded':
+        edge['scope_decision']['include'] = False
+    full['cases'][1]['dependencies'] = [edge]
+    proposals = [proposal]
+    if variant in ('cycle', 'branch_cycle'):
+        reverse = {key: copy.deepcopy(proposal[key]) for key in ('case_id', 'module_path', 'direction',
+            'purpose', 'required_state', 'inputs', 'outputs', 'object_binding', 'data_refs', 'basis')}
+        reverse.update(complete_case=True, scope_decision=dict(include=True, actual_reply='SIMULATED: reverse required'))
+        nested['dependencies'] = [reverse]
+        if variant == 'branch_cycle':
+            proposals.append(dict(proposal, id='ROOT-NESTED', case_id='NESTED', module_path=nested['module_path']))
+    result = review_dependencies(full, 'synthetic-transitive', ['EDIT'], proposals)
+    approved_ids = ['EDIT']
+    if independent:
+        full['cases'][2]['priority'] = 'P1'
+        other = copy.deepcopy(full['cases'][2])
+        other['title'] = 'Synthetic independent update'
+        result = build_scoped_review(full, 'synthetic-transitive', [
+            dict(case_id='EDIT', action='modify', reason='Reference review', basis='synthetic://rule', coverage_impact='CHECK-1'),
+            dict(case_id='OTHER', action='modify', reason='Independent update', basis='synthetic://rule', coverage_impact='CHECK-2'),
+            dict(case_id='LINK', action='related', reason='Unchanged prerequisite')],
+            candidates=[result['batch']['cases'][0], other])
+        approved_ids.append('OTHER')
+    session = summarize(start_grill(result['batch'], []))
+    session = apply_summary(session, dict(confirmed=True, actual_reply='SIMULATED: agree supplied rules', summary_id=session['summary']['id']))
+    session = review(session, dict(approved=True, actual_reply='SIMULATED: final approve',
+        content_version=session['batch']['content_version'], case_ids=approved_ids))
+    batch = session['batch']
+    instruction = dict(kind='merge_instruction', actual_reply='SIMULATED: merge EDIT',
+        content_version=batch['content_version'], baseline_version=full['content_version'], case_ids=approved_ids)
+    return full, batch, instruction
+
+
 class PartialMergeTests(unittest.TestCase):
+    def test_transitive_exclusive_data_decision_blocks_approved_root(self):
+        full, batch, instruction = transitive_fixture()
+        before = copy.deepcopy((full, batch, instruction))
+        r = merge_reviewed(full, batch, instruction, target_kind='isolated')
+        self.assertEqual(r['cases'][0]['status'], 'pending', r['cases'])
+        self.assertEqual(r['catalog'], full)
+        self.assertEqual((full, batch, instruction), before)
+
+    def test_all_transitive_contracts_are_checked_without_blocking_independent_scope(self):
+        for variant in ('exclusive_missing', 'expiry', 'rebuild', 'incomplete', 'excluded', 'cycle', 'branch_cycle', 'valid'):
+            with self.subTest(variant=variant):
+                full, batch, instruction = transitive_fixture(variant, independent=True)
+                before = copy.deepcopy((full, batch, instruction))
+                r = merge_reviewed(full, batch, instruction, target_kind='isolated')
+                rows = {row['case_id']: row for row in r['cases']}
+                self.assertEqual(rows['EDIT']['status'], 'applied' if variant == 'valid' else 'pending', rows)
+                self.assertEqual(rows['OTHER']['status'], 'applied')
+                if variant in ('cycle', 'branch_cycle'):
+                    self.assertTrue(rows['EDIT']['reason'].startswith('dependency_incomplete:'), rows)
+                self.assertEqual(r['catalog']['cases'][1], full['cases'][1])
+                self.assertEqual(r['catalog']['cases'][3], full['cases'][3])
+                self.assertEqual(r['catalog']['data'], full['data'])
+                self.assertEqual(r['catalog']['cases'][2]['title'], 'Synthetic independent update')
+                self.assertEqual((full, batch, instruction), before)
+
     def test_dependency_contract_accepts_preparation_without_claiming_functional_pass(self):
         from test_dependencies import fixture as dependency_fixture
         from dependencies import review_dependencies

@@ -34,6 +34,10 @@ unapproved or deactivated prerequisites block their dependents. Complete
 preparation references and data policies are rechecked with the dependency
 contract, including exclusive/expiry decisions. Preparation reuse never claims
 functional execution or reduces the independently approved P0 validation scope.
+These checks cover every necessary owner/edge in the dependency closure, using
+the effective complete target and approved candidate data. A final approval on a
+root case cannot fill missing descendant decisions. Existing prerequisites are
+read and checked without expanding merge scope or rewriting their records.
 
 Only authorized deltas are applied to the complete target. Changed shared data
 is blocked if it would alter any unapproved, pending or retained original case;
