@@ -104,19 +104,31 @@ def _validate(draft, sources):
                     check_source(claim)
 
 
-def _views(batch):
+def _view_one(batch):
     case = batch['cases'][0]
     data = {item['id']: item for item in batch['data']}
     version = batch['content_version']
     human = [f"# {case['id']} {case['title']}", f"版本：{version}",
-             '模块：' + ' / '.join(case['module_path']), '候选；待评审；未合并；未执行']
+             '模块：' + ' / '.join(case['module_path']),
+             '优先级：' + case['priority'] + '；依据：' + case['priority_basis'],
+             f"规则：{case['rule_status']}；评审：{case['review_status']}；合并：{case['merge_status']}；执行：{case['execution_status']}"]
     tree = [f'# 候选批次 {batch["id"]}', f'- 版本：{version}']
     indent = ''
     for part in case['module_path']:
         tree.append(indent + '- ' + _cell(part))
         indent += '  '
-    case_heading = indent + f'- {case["id"]} { _cell(case["title"])} [P0；候选；待评审；未执行]'
+    case_heading = indent + f'- {case["id"]} { _cell(case["title"])} [{case["priority"]}；{case["rule_status"]}；{case["review_status"]}；{case["merge_status"]}；{case["execution_status"]}]'
     context_nodes = []
+    for decision in case.get('rule_decisions', []):
+        reply = decision['reply']
+        if reply['decision'] == 'provisional':
+            note = '暂定，待产品核实：' + reply['product_check']
+        elif reply['decision'] == 'deferred':
+            note = '搁置依据：' + reply['actual_reply']
+        else:
+            continue
+        human.append(_cell(note))
+        context_nodes.append(indent + '  - ' + _cell(note))
     for field, label in [('role', '角色'), ('initial_state', '初始状态')]:
         text = '；'.join(c['text'] for c in case['context'].get(field, [])) or '待澄清'
         human.append(label + '：' + _cell(text))
@@ -158,6 +170,20 @@ def _views(batch):
             human.append('- ' + _cell(q['field']) + '：' + q['reason'])
             tree.append('  - ' + _cell(q['field']) + '：' + q['reason'])
     return '\n'.join(human) + '\n', '\n'.join(tree) + '\n'
+
+
+def _views(batch):
+    views = []
+    for case in batch['cases']:
+        single = dict(batch, cases=[case], questions=[q for q in batch['questions'] if q['case_id'] == case['id']])
+        views.append(_view_one(single))
+    return '\n'.join(v[0] for v in views), '\n'.join(v[1] for v in views)
+
+
+def render_batch(batch):
+    """Render same-version candidates without changing their content."""
+    human, tree = _views(batch)
+    return {'batch': copy.deepcopy(batch), 'human_view': human, 'xmind_markdown': tree}
 
 
 def build_batch(recording, interpretation, prd=None):

@@ -74,6 +74,12 @@ Technical hashes and internal assertion syntax stay outside business columns.
 Special pre/postconditions and cross-module references are reserved for later
 extensions, rather than silently synthesized here.
 
+For multi-case clarification, versioned rule decisions, confirmed updates and
+independent final review, continue with [the clarification contract](clarification-contract.md).
+The recording converter's single-scenario boundary does not restrict the batch
+clarification API to one case. Candidate cases keep stable identities and data
+references when collected into a review batch.
+
 Run synthetic behavioral checks:
 
 ```text
