@@ -1,6 +1,6 @@
 ---
 name: test-case-authoring
-description: Turn a supplied Playwright recording or complete handwritten P0 and optional PRD into source-traced cases; clarify a candidate batch through independent question rounds, three-way rule decisions, summary confirmation and final review. Select complete related cases from a full local catalog for a scoped review copy, and receive chat or edited Markdown feedback against its initial baseline. Generate matching business and XMind Markdown views before execution.
+description: Turn a supplied Playwright recording or complete handwritten P0 and optional PRD into source-traced cases; clarify a candidate batch through independent question rounds, three-way rule decisions, summary confirmation and final review. Select complete related cases from a full local catalog for a scoped review copy, and receive chat or edited Markdown feedback against its initial baseline. Reconcile P0 reports and missing core cases before user-started P1/P2. Generate matching four-column business and XMind Markdown views before execution.
 ---
 
 # P0 authoring and batch clarification
@@ -160,3 +160,18 @@ or data invalidates affected prior final approval; request review of the new
 complete content. Keep old decisions, reviews and provisional conditions as
 history. Synthetic test replies must carry an explicit simulated label and must
 never become real business confirmation or execution evidence.
+
+## Enter P1/P2 after P0
+
+When the user requests P1/P2, read [the P0 evidence contract](references/p0-evidence-contract.md).
+Bind the complete approved P0 validation scope independently of review selection
+and partial merges. Read actual reports and necessary evidence; reconcile every
+case's identity, module, versions and functional result through the public batch
+entry. Show passed, failed, not run and pending checks with their evidence basis.
+Keep manual start and the user's decision to continue under provisional product
+conditions separate. Then actively propose suspected P0 omissions from the human
+points and supplementary materials, using the batch clarification workflow for
+the user's supplement-P0, extension or exclusion decisions. Supplemented P0
+returns to review and user-started downstream validation/merge. Finish only when
+the full scope, explicit decisions and gap review support the reported entry
+state; otherwise show specific blockers. This step performs no tests or merges.
