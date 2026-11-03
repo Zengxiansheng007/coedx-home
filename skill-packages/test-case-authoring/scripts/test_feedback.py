@@ -32,6 +32,46 @@ def confirm(pending):
 
 
 class FeedbackTests(unittest.TestCase):
+    def test_agreed_rule_transitions_from_unconfirmed_provisional_and_deferred(self):
+        from feedback import review_feedback
+        for prior in ('unconfirmed', 'provisional', 'deferred'):
+            for decision in ('formal', 'provisional', 'deferred'):
+                with self.subTest(prior=prior, decision=decision):
+                    full = catalog()
+                    full['cases'][0]['rule_status'] = prior
+                    full['cases'][0]['rule_decisions'] = [{'reply': {'decision': 'provisional',
+                        'actual_reply': 'SIMULATED: historical provisional authorization',
+                        'product_check': 'SIMULATED: historical product condition'}}]
+                    batch = build_scoped_review(full, 'synthetic-new-candidate', [
+                        {'case_id': 'EDIT', 'action': 'reuse', 'reason': 'Synthetic new candidate'}])['batch']
+                    old_title = batch['cases'][0]['title']
+                    pending = prepare_feedback(batch, 'chat', actual_reply='SIMULATED: use revised title', changes=[
+                        {'collection': 'cases', 'id': 'EDIT', 'path': ['title'], 'value': 'New confirmed title'}])
+                    replies = [{'question_id': q['id'], 'decision': decision,
+                                'actual_reply': 'SIMULATED: ' + decision,
+                                **({'product_check': 'SIMULATED: verify revised product rule'} if decision == 'provisional' else {})}
+                               for q in pending['grill']['round_questions']]
+                    pending['grill'] = respond(pending['grill'], replies)
+                    self.assertEqual(pending['grill']['batch']['cases'][0]['rule_status'], prior)
+                    self.assertEqual(pending['grill']['batch']['cases'][0]['title'], old_title)
+                    pending['grill'] = summarize(pending['grill'])
+                    result = apply_feedback(pending, {'confirmed': True, 'actual_reply': 'SIMULATED: agree to summary',
+                        'summary_id': pending['grill']['summary']['id']})
+                    case = result['batch']['cases'][0]
+                    self.assertEqual(case['rule_status'], decision)
+                    self.assertEqual(case['title'], old_title if decision == 'deferred' else 'New confirmed title')
+                    self.assertEqual(case['rule_decisions'][0]['reply']['product_check'], 'SIMULATED: historical product condition')
+                    final = {'approved': True, 'actual_reply': 'SIMULATED: reviewed complete updated case',
+                             'case_ids': ['EDIT'], 'content_version': result['batch']['content_version']}
+                    if decision == 'deferred':
+                        with self.assertRaises(ValueError):
+                            review_feedback(result, final)
+                    else:
+                        self.assertEqual(review_feedback(result, final)['batch']['cases'][0]['review_status'], 'approved')
+                    if decision == 'provisional':
+                        self.assertTrue(all(d['reply']['product_check'] == 'SIMULATED: verify revised product rule'
+                                            for d in case['feedback_rule_history']))
+
     def test_new_final_review_is_required_against_updated_complete_content(self):
         from feedback import review_feedback
         batch = scope()['batch']

@@ -69,6 +69,13 @@ summary, saves feedback history, preserves the initial baseline, updates common
 data and affected case versions, archives prior final approvals and marks affected
 cases pending review. Provisional answers retain their product-check condition
 in feedback rule history. Deferred cases remain unapplied. An affected existing
+case's agreed decisions set its rule state just as in batch clarification:
+deferred scope stays deferred, otherwise any provisional answer keeps provisional
+state and its product-check condition, otherwise explicit formal decisions set
+formal state (including previously unconfirmed or provisional candidates).
+Recording an answer alone changes no candidate state; exact-summary agreement
+and application are required. Existing decisions and conditions remain history.
+An affected existing
 coverage mapping uses `{check_id, case_ids, expected_summary,
 verification_summary, status}`; associations are retained, summaries regenerated
 from complete linked cases, data references refreshed and status set to

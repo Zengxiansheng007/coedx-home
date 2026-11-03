@@ -281,6 +281,8 @@ def apply_feedback(pending, confirmation, deletion_decisions=None):
             case['rule_status'] = 'deferred'
         elif any(d['reply']['decision'] == 'provisional' for d in decisions):
             case['rule_status'] = 'provisional'
+        elif decisions:
+            case['rule_status'] = 'formal'
         case.setdefault('feedback_rule_history', []).extend(copy.deepcopy(decisions))
         case['semantic_version'] = _digest({k: v for k, v in case.items() if k != 'semantic_version'})
     for check in batch.get('coverage', []):
