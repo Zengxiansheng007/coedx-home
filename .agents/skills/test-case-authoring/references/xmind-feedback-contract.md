@@ -39,6 +39,9 @@ Legacy XML, multiple sheets, detached topics, additional notes/markers/images or
 unsupported annotations, changed identity/path and structural ambiguities remain
 pending. Input and expanded archive bounds limit parsing; no ZIP is extracted.
 This adapter does not claim compatibility with every historical XMind format.
+The verified client is XMind 26.4.1327.202606142039: local Markdown import,
+single-sheet native save, scalar data/expected edits and a distinct native return.
+Other clients or additional editing features require their own file validation.
 
 Development acceptance requires the generated Markdown to be imported in the
 target client, checked for complete hierarchy/content, saved before edits, edited
