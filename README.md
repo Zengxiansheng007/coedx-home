@@ -5,6 +5,8 @@
 
 这里保存当前定制版本：develop-system 调度器、20 个注册执行技能，以及 ask-matt、writing-for-agents、wait-what、handoff，合计 25 个技能目录。相关引用、脚本、调用策略和许可证随目录保存。
 
+另外提供独立的 [test-case-authoring](.agents/skills/test-case-authoring/README.md)，用于录制或完整手写 P0 的编写、按批澄清、评审和用户启动的 P1/P2 隔离增量合并。它不属于 develop-system 的 20 个注册执行技能；加上它，仓库共有 26 个技能目录。使用 `$test-case-authoring` 直接进入，详见包内使用说明。正式 ui-test 接收、同步、P0 合并与真实联合验收仍待后续接入。
+
 - 导航：ask-matt。只推荐流程与技能。
 - 准备：setup-matt-pocock-skills。
 - 需求与设计：triage、grill-with-docs、grilling、research、domain-modeling、wayfinder、prototype、codebase-design、improve-codebase-architecture、to-spec、to-tickets。
