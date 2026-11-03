@@ -296,6 +296,8 @@ def apply_feedback(pending, confirmation, deletion_decisions=None):
         check['data_refs'] = sorted(set().union(*[_references(c) for c in linked]))
     batch.setdefault('feedback_history', []).append({'channel': pending['channel'], 'actual_reply': pending['actual_reply'],
         'summary': current, 'confirmation': confirmation, 'changes': pending['changes'], 'deletions': pending['deletions']})
+    if pending.get('returned_source'):
+        batch['feedback_history'][-1]['returned_source'] = copy.deepcopy(pending['returned_source'])
     # Keep enriched original doubts and their actual answer history so the
     # existing grill can reuse identical decisions on later feedback rounds.
     batch['questions'] = [copy.deepcopy(q) for q in pending['grill']['questions']
