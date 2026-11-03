@@ -220,20 +220,28 @@ def prepare_feedback(batch, channel, *, actual_reply, changes=None, markdown=Non
             q['example'] = 'SIMULATED: exclude this round; keep the existing record active'
             questions.append(q)
     proposal_digest = _digest({'changes': normalized, 'deletions': deletions})
+    scope_identity = {'batch_id': batch['id'], 'copy_version': batch['initial_copy_baseline']['copy_version']}
+    question_proposal = _digest(dict(scope_identity, proposal=proposal_digest))
     for index, change in enumerate(normalized):
         ids = [change['id']] if change['collection'] == 'cases' else [c['id'] for c in batch['cases'] if change['id'] in _references(c)]
         field = '/'.join(map(str, change['path']))
         if change['collection'] == 'data':
             field = 'data/' + change['id'] + '/' + field
         for cid in ids:
-            questions.append(_question(f'feedback-{proposal_digest}-{index}-{cid}', cid, field,
+            questions.append(_question(f'feedback-{question_proposal}-{index}-{cid}', cid, field,
                                        'Review business change: ' + repr(change['before']) + ' → ' + repr(change['value']) +
                                        '; accepted current value: ' + repr(change['accepted']), []))
+            if change.get('rule_id'):
+                questions[-1]['rule_id'] = change['rule_id']
     for q in questions:
         if q['field'] == 'deletion':
-            q['id'] += '-' + proposal_digest
+            q['id'] += '-' + question_proposal
     for index, doubt in enumerate(batch['questions']):
-        questions.append(_question('existing-' + str(index), doubt['case_id'], doubt['field'], doubt['reason'], []))
+        origin = doubt.get('feedback_origin') or _digest(dict(scope_identity, question={
+            k: v for k, v in doubt.items() if k not in ('history', 'stale')}))
+        q = _question('existing-' + origin, doubt['case_id'], doubt['field'], doubt['reason'], [])
+        q['feedback_origin'] = origin
+        questions.append(q)
     return {'batch': copy.deepcopy(batch), 'channel': channel, 'actual_reply': actual_reply,
             'base_version': batch['content_version'], 'changes': normalized, 'deletions': deletions,
             'affected_case_ids': sorted(affected), 'proposal_digest': proposal_digest,

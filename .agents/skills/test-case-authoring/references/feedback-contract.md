@@ -86,13 +86,21 @@ data and affected case versions, archives prior final approvals and marks affect
 cases pending review. Provisional answers retain their product-check condition
 in feedback rule history. Deferred cases remain unapplied. Shared clarification
 and feedback maintain `active_rule_decisions` separately from historical answers.
-The latest agreed answer for the same field/rule supersedes its active predecessor;
-unrelated conditions remain active. Any active deferred rule blocks the case;
+The latest agreed answer for the same stable rule_id (otherwise question_id)
+supersedes only that identity's active predecessor. Distinct identities on the
+same field remain independent. A chat change may explicitly include `rule_id`
+when the actual reply resolves that identified rule; field equality alone never
+establishes supersession. Decisions without identities are preserved individually
+and conservatively. Any active deferred rule blocks the case;
 otherwise any active provisional rule keeps it provisional. Only with all active
 conditions resolved can it become formal. An unscoped legacy condition remains
 pending clarification rather than being cleared by an unrelated field answer.
 Explicit product-change reconciliation resolves the identified product rule in
 that proposal only, preserving unrelated rules and historical conditions.
+Generated feedback question IDs bind the initial source scope and full proposal,
+not a per-session counter. Automatically enriched existing doubts bind their
+original source/question fingerprint, retained as `feedback_origin` for repeat
+rounds. Distinct source doubts at the same list position remain independent.
 Recording an answer alone changes no candidate state; exact-summary agreement
 and application are required. Existing decisions and conditions remain history.
 An affected existing

@@ -125,6 +125,7 @@ def summarize(session):
         raise ValueError('Required questions remain unanswered')
     summary = {'content_version': result['batch']['content_version'], 'revision': result['revision'],
                'decisions': [{'question_id': q['id'], 'case_id': q['case_id'], 'field': q['field'],
+                              **({'rule_id': q['rule_id']} if q.get('rule_id') else {}),
                               'reply': q['history'][-1]} for q in questions.values() if _answered(q) and
                              not (set(q['depends_on']) & blocked)],
                'blocked_questions': [qid for qid in questions if qid in blocked and not _answered(questions[qid])],
@@ -173,18 +174,24 @@ def _validate_content(batch):
 
 
 def _apply_rule_decisions(case, decisions, *, blocked=False, supplied=False, product=None):
-    """Keep historical answers; aggregate only the latest decision per rule/field.
+    """Keep independent rules, even when their business fields coincide.
 
     A title answer cannot discharge a save-policy condition. Legacy unscoped
     conditions stay active until an explicit, unambiguous product reconciliation.
     """
     def key(d):
-        return d.get('field') or d.get('rule_id') or d.get('question_id') or '__unscoped__'
+        if d.get('rule_id'):
+            return ('rule', d['rule_id'])
+        if d.get('question_id'):
+            return ('question', d['question_id'])
+        # No identity means no safe supersession. Preserve distinct legacy
+        # conditions rather than guessing identity from their field location.
+        return ('legacy', _digest(d))
     active = copy.deepcopy(case.get('active_rule_decisions',
                                    case.get('rule_decisions', []) + case.get('feedback_rule_history', [])))
     indexed = {key(d): d for d in active}
     if not indexed and case['rule_status'] in ('provisional', 'deferred'):
-        indexed['__unscoped__'] = {'reply': {'decision': case['rule_status'],
+        indexed[('legacy', 'unscoped')] = {'reply': {'decision': case['rule_status'],
             'actual_reply': 'Existing rule decision requires clarification',
             'product_check': 'Existing product verification condition requires clarification'}}
     for d in decisions:
@@ -195,7 +202,8 @@ def _apply_rule_decisions(case, decisions, *, blocked=False, supplied=False, pro
             # Explicit rule links identify the condition. Older unscoped cases
             # may only resolve when exactly this one product rule is referenced.
             if (d.get('rule_id') == rule or d.get('question_id') == rule or
-                    (identity == '__unscoped__' and case.get('rule_refs') == [rule])):
+                    (identity[0] == 'legacy' and not d.get('field') and
+                     len([k for k in indexed if k[0] == 'legacy']) == 1 and case.get('rule_refs') == [rule])):
                 indexed[identity] = dict(d, reply={'decision': 'formal',
                     'actual_reply': product['actual_reply'], 'source_ref': product['source_ref']})
     if indexed or 'active_rule_decisions' in case:

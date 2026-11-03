@@ -21,7 +21,12 @@ Every question preserves the original `field`, `reason`, `case_id` and evidence,
 and adds `id`, `depends_on` (question IDs), `options` (at least two),
 `recommendation`, `rationale`, `example`, `affected_checks`, and `target_paths`.
 Every converter doubt must be represented. Several questions can address one
-field. Cyclic/unknown dependencies are rejected. The agent must check semantic
+field. Optional `rule_id` identifies the same business rule across questions or
+feedback rounds and is retained in summary decisions. Distinct question IDs
+without a rule_id are independent rules even on the same field. Reuse the same
+question ID, or explicitly bind the same rule_id, only when the actual user
+answer revises that same rule. A field path locates content, not rule identity.
+Cyclic/unknown dependencies are rejected. The agent must check semantic
 dependencies; the helper only enforces the declared graph.
 
 A reply has `question_id`, `decision` (`formal`, `provisional`, `deferred`),
@@ -60,10 +65,11 @@ do not change the content version.
 Complete catalog module paths of at least five levels retain every level through
 summary application. The recording/handwritten converter retains its separate
 five-level input contract. Rule status aggregates `active_rule_decisions` by
-field/rule: unrelated provisional product conditions or deferred rules survive
+stable rule ID (otherwise question ID): unrelated provisional product conditions or deferred rules survive
 new formal answers. Historical decisions remain recorded separately; current
-views and report checks use the active conditions. Same-field clarification can
-supersede its earlier answer, but it never confirms an unrelated condition.
+views and report checks use the active conditions. Only explicit same-identity
+clarification supersedes its earlier answer. Legacy decisions without either
+identity remain distinct and conservative even when their fields match.
 
 For a complete supplied case with no doubts, include its existing business rules
 in the summary and obtain explicit current-content understanding agreement.

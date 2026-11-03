@@ -78,16 +78,16 @@ class FeedbackTests(unittest.TestCase):
                 with self.subTest(prior=prior, decision=decision):
                     full = catalog()
                     full['cases'][0]['rule_status'] = prior
-                    # Same-field revision resolves this title condition; an
+                    # Explicit same-rule revision resolves this title condition; an
                     # unrelated active condition is covered by review regressions.
-                    full['cases'][0]['rule_decisions'] = [{'field': 'title', 'reply': {'decision': 'provisional',
+                    full['cases'][0]['rule_decisions'] = [{'rule_id': 'TITLE', 'field': 'title', 'reply': {'decision': 'provisional',
                         'actual_reply': 'SIMULATED: historical provisional authorization',
                         'product_check': 'SIMULATED: historical product condition'}}]
                     batch = build_scoped_review(full, 'synthetic-new-candidate', [
                         {'case_id': 'EDIT', 'action': 'reuse', 'reason': 'Synthetic new candidate'}])['batch']
                     old_title = batch['cases'][0]['title']
                     pending = prepare_feedback(batch, 'chat', actual_reply='SIMULATED: use revised title', changes=[
-                        {'collection': 'cases', 'id': 'EDIT', 'path': ['title'], 'value': 'New confirmed title'}])
+                        {'collection': 'cases', 'id': 'EDIT', 'path': ['title'], 'value': 'New confirmed title', 'rule_id': 'TITLE'}])
                     replies = [{'question_id': q['id'], 'decision': decision,
                                 'actual_reply': 'SIMULATED: ' + decision,
                                 **({'product_check': 'SIMULATED: verify revised product rule'} if decision == 'provisional' else {})}
