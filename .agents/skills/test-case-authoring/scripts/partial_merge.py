@@ -24,6 +24,25 @@ def _business_content(case):
         'supplied_content_confirmation', 'feedback_rule_history')}
 
 
+def _apply_delta(current, data, candidates, candidate_data, selected, actions, instruction, eligible):
+    """One projection for both dependency checks and the returned full target."""
+    cases, values = copy.deepcopy(current), copy.deepcopy(data)
+    for cid in eligible:
+        action = actions[cid]
+        if action == 'reuse':
+            continue
+        applied = copy.deepcopy(candidates[cid])
+        applied['merge_status'] = 'isolated_merged'
+        if action == 'deactivate':
+            applied['lifecycle'] = 'inactive'
+            applied.setdefault('deactivation_history', []).append(dict(original=copy.deepcopy(current[cid]),
+                reason=selected[cid]['reason'], instruction=copy.deepcopy(instruction)))
+        cases[cid] = applied
+        for ref in _references(applied):
+            values[ref] = copy.deepcopy(candidate_data[ref])
+    return cases, values
+
+
 def merge_reviewed(catalog, batch, instruction, *, target_kind):
     """Return a new full target and per-case results without mutating inputs."""
     _credential_guard([catalog, batch, instruction])
@@ -118,11 +137,9 @@ def merge_reviewed(catalog, batch, instruction, *, target_kind):
                    for owner in current.values()):
                 reasons[cid] = 'shared_data_affects_unapproved_content'
                 continue
-            effective = dict(target, cases=[copy.deepcopy(candidates.get(key, value))
-                if key in requested and key not in reasons else copy.deepcopy(value)
-                for key, value in current.items()], data=list(dict(data, **candidate_data).values()))
-            effective['cases'].extend(copy.deepcopy(candidates[key]) for key in requested
-                if key not in current and key not in reasons)
+            effective_cases, effective_data = _apply_delta(current, data, candidates, candidate_data,
+                selected, actions, instruction, [key for key in requested if key not in reasons])
+            effective = dict(target, cases=list(effective_cases.values()), data=list(effective_data.values()))
             stack, visited = [(candidates[cid], set(), False)], set()
             while stack:
                 owner, ancestors, leaving = stack.pop()
@@ -152,10 +169,7 @@ def merge_reviewed(catalog, batch, instruction, *, target_kind):
                 stack.append((owner, ancestors, True))
                 for edge in owner.get('dependencies', []):
                     dep_id = edge['case_id']
-                    dep = candidates.get(dep_id, current.get(dep_id))
-                    if (dep_id not in requested and dep_id in current and dep_id in candidates
-                            and _business_content(candidates[dep_id]) == _business_content(originals.get(dep_id))):
-                        dep = current[dep_id]
+                    dep = effective_cases.get(dep_id)
                     if (dep_id in ancestors | {owner['id']} or not dep
                             or edge.get('module_path') != dep.get('module_path')
                             or dep.get('rule_status') not in ('formal', 'provisional')
@@ -185,20 +199,9 @@ def merge_reviewed(catalog, batch, instruction, *, target_kind):
         if cid in reasons:
             results.append(dict(case_id=cid, status='pending', reason=reasons[cid]))
             continue
-        c, action = candidates[cid], actions[cid]
-        applied = copy.deepcopy(c)
-        applied['merge_status'] = 'isolated_merged'
-        if action == 'deactivate':
-            applied['lifecycle'] = 'inactive'
-            applied.setdefault('deactivation_history', []).append(dict(original=copy.deepcopy(current[cid]),
-                reason=selected[cid]['reason'], instruction=copy.deepcopy(instruction)))
-        if action == 'reuse':
-            applied = copy.deepcopy(current[cid])
-        current[cid] = applied
-        if action != 'reuse':
-            for ref in _references(c):
-                data[ref] = copy.deepcopy(candidate_data[ref])
-        results.append(dict(case_id=cid, status='applied', action=action))
+        results.append(dict(case_id=cid, status='applied', action=actions[cid]))
+    current, data = _apply_delta(current, data, candidates, candidate_data, selected, actions,
+        instruction, [cid for cid in requested if cid not in reasons])
     target['cases'] = list(current.values())
     target['data'] = list(data.values())
     if any(r['status'] == 'applied' for r in results):

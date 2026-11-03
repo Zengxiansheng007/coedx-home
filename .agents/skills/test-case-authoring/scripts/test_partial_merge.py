@@ -36,7 +36,7 @@ def fixture():
     return full, batch, instruction
 
 
-def transitive_fixture(variant='exclusive_missing', independent=False):
+def transitive_fixture(variant='exclusive_missing', independent=False, nested_steps=False, own_policy=False):
     """Build/approve public candidates only after configuring synthetic sources."""
     from test_dependencies import fixture as dependency_fixture
     from dependencies import review_dependencies
@@ -47,6 +47,14 @@ def transitive_fixture(variant='exclusive_missing', independent=False):
     nested = copy.deepcopy(full['cases'][1])
     nested.update(id='NESTED', module_path=['Example', 'Workspace', 'Web', 'Nested', 'Save'])
     full['cases'].append(nested)
+    if own_policy:
+        own = copy.deepcopy(full['data'][0])
+        own.update(id='ROOT-DATA', exclusive_case_id='EDIT',
+            subsequent_use=dict(choice='reuse_if_valid', actual_reply='SIMULATED: own case may reuse'))
+        full['data'].append(own)
+        for step in full['cases'][0]['steps']:
+            step['data_refs'] = ['ROOT-DATA' if ref == full['data'][0]['id'] else ref for ref in step['data_refs']]
+        proposal.update(data_refs=['ROOT-DATA'], object_binding={'object_id': 'ROOT-DATA'})
     d = copy.deepcopy(full['data'][0])
     d.update(id='NESTED-DATA', reuse_policy='exclusive', exclusive_case_id='LINK')
     d.pop('subsequent_use', None)
@@ -66,6 +74,11 @@ def transitive_fixture(variant='exclusive_missing', independent=False):
     if variant == 'excluded':
         edge['scope_decision']['include'] = False
     full['cases'][1]['dependencies'] = [edge]
+    if nested_steps:
+        full['cases'][1]['special_preconditions'] = [dict(id='nested-step', operation='Prepare complete NESTED',
+            data_refs=['NESTED-DATA'], dependency=edge,
+            expected=[dict(text='enabled', source='user_decision')],
+            verification=[dict(text='Check same object state', source='user_decision')])]
     proposals = [proposal]
     if variant in ('cycle', 'branch_cycle'):
         reverse = {key: copy.deepcopy(proposal[key]) for key in ('case_id', 'module_path', 'direction',
@@ -96,7 +109,67 @@ def transitive_fixture(variant='exclusive_missing', independent=False):
     return full, batch, instruction
 
 
+def overlay_fixture(target_valid=False):
+    from feedback import prepare_feedback, review_feedback
+    from test_feedback import confirm
+    full, batch, instruction = transitive_fixture('valid' if target_valid else 'exclusive_missing',
+        independent=True, nested_steps=True)
+    result = confirm(prepare_feedback(batch, 'chat', actual_reply='SIMULATED: revise nested data policy', changes=[
+        dict(collection='data', id='NESTED-DATA', path=['reuse_policy'], value='long_term')]))
+    batch = review_feedback(result, dict(approved=True, actual_reply='SIMULATED: approve latest whole content',
+        content_version=result['batch']['content_version'], case_ids=['EDIT', 'LINK', 'OTHER']))['batch']
+    return full, batch, dict(instruction, content_version=batch['content_version'])
+
+
 class PartialMergeTests(unittest.TestCase):
+    def test_valid_target_policy_is_used_instead_of_unselected_candidate_policy(self):
+        full, batch, instruction = overlay_fixture(target_valid=True)
+        before = copy.deepcopy((full, batch, instruction))
+        r = merge_reviewed(full, batch, instruction, target_kind='isolated')
+        rows = {row['case_id']: row for row in r['cases']}
+        self.assertEqual(rows['EDIT']['status'], 'applied', rows)
+        self.assertEqual(rows['OTHER']['status'], 'applied')
+        self.assertEqual(rows['LINK']['reason'], 'outside_user_merge_scope')
+        self.assertEqual(r['catalog']['data'], full['data'])
+        self.assertEqual((full, batch, instruction), before)
+
+    def test_reviewed_P0_dependency_data_is_still_outside_authoring_merge(self):
+        full, batch, instruction = overlay_fixture()
+        instruction['case_ids'].append('LINK')
+        r = merge_reviewed(full, batch, instruction, target_kind='isolated')
+        rows = {row['case_id']: row for row in r['cases']}
+        self.assertEqual(rows['EDIT']['status'], 'pending')
+        self.assertEqual(rows['LINK']['reason'], 'P0_merge_belongs_to_ui_test')
+        self.assertEqual(rows['OTHER']['status'], 'applied')
+        self.assertEqual(r['catalog']['data'], full['data'])
+
+    def test_approved_owned_dependency_data_is_checked_and_written_together(self):
+        from feedback import prepare_feedback, review_feedback
+        from test_feedback import confirm
+        full, batch, instruction = transitive_fixture('valid', own_policy=True)
+        result = confirm(prepare_feedback(batch, 'chat', actual_reply='SIMULATED: use reviewed own exclusive data', changes=[
+            dict(collection='data', id='ROOT-DATA', path=['reuse_policy'], value='exclusive')]))
+        batch = review_feedback(result, dict(approved=True, actual_reply='SIMULATED: final approve updated data and case',
+            content_version=result['batch']['content_version'], case_ids=['EDIT']))['batch']
+        instruction['content_version'] = batch['content_version']
+        before = copy.deepcopy((full, batch, instruction))
+        r = merge_reviewed(full, batch, instruction, target_kind='isolated')
+        self.assertEqual(r['cases'][0]['status'], 'applied', r['cases'])
+        self.assertEqual(next(d for d in r['catalog']['data'] if d['id'] == 'ROOT-DATA')['reuse_policy'], 'exclusive')
+        self.assertEqual(r['catalog']['cases'][1:], full['cases'][1:])
+        self.assertEqual((full, batch, instruction), before)
+
+    def test_unselected_candidate_data_cannot_satisfy_transitive_dependency(self):
+        full, batch, instruction = overlay_fixture()
+        before = copy.deepcopy((full, batch, instruction))
+        r = merge_reviewed(full, batch, instruction, target_kind='isolated')
+        rows = {row['case_id']: row for row in r['cases']}
+        self.assertEqual(rows['EDIT']['status'], 'pending', rows)
+        self.assertEqual(rows['OTHER']['status'], 'applied')
+        self.assertEqual(r['catalog']['data'], full['data'])
+        self.assertEqual(r['catalog']['cases'][1], full['cases'][1])
+        self.assertEqual((full, batch, instruction), before)
+
     def test_transitive_exclusive_data_decision_blocks_approved_root(self):
         full, batch, instruction = transitive_fixture()
         before = copy.deepcopy((full, batch, instruction))

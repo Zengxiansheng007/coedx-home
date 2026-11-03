@@ -35,7 +35,11 @@ preparation references and data policies are rechecked with the dependency
 contract, including exclusive/expiry decisions. Preparation reuse never claims
 functional execution or reduces the independently approved P0 validation scope.
 These checks cover every necessary owner/edge in the dependency closure, using
-the effective complete target and approved candidate data. A final approval on a
+the actual target plus only the approved deltas that remain eligible to apply.
+The same delta projection supplies dependency checks and the returned full
+catalog: candidate data outside those writes cannot satisfy a prerequisite.
+When a delta becomes pending, its content and data are removed from the effective
+target and affected dependents are checked again. A final approval on a
 root case cannot fill missing descendant decisions. Existing prerequisites are
 read and checked without expanding merge scope or rewriting their records.
 
