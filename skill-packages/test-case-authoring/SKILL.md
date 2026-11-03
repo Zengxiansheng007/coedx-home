@@ -215,3 +215,17 @@ Done means all manual checks have traceable coverage or pending/disposition
 records, complete boundary cases and conditions, user decisions for priority and
 extras, and same-version scope/coverage ready for final review. Report unresolved
 parts explicitly; UI exploration and formal downstream integration remain pending.
+
+## Author independent upstream/downstream references
+
+When source material or a case lifecycle suggests another module produces,
+consumes or changes the same business object, read [the dependency contract](references/dependency-contract.md).
+Actively trace that impact, cite the source, propose scope and obtain the user's
+decision before including a relationship. Inspect the complete target and its
+final state, returning unsuitable or missing P0 to the existing recording or
+handwritten path. Put complete references, object bindings and reviewed data
+conditions into the current case. Resolve policy and scope blockers before
+final review. Render both views from that candidate version, retaining optional
+special postconditions. Use the P0 report checker for functional validation;
+preparation data reuse alone is never a functional pass. This branch authors
+conditions only; it performs no data preparation, storage or scheduling.

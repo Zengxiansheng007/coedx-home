@@ -112,6 +112,12 @@ def _render(batch):
             'xmind_markdown': '\n'.join(tree) + '\n'}
 
 
+def render_review_batch(batch):
+    """Re-render a scoped candidate after clarification without losing groups."""
+    _credential_guard(batch)
+    return _render(batch)
+
+
 def _differences(before, after, path=''):
     if isinstance(before, dict) and isinstance(after, dict):
         for key in sorted(before.keys() | after.keys()):
