@@ -179,6 +179,25 @@ class ExtensionTests(unittest.TestCase):
             candidates=batch['cases'], candidate_data=batch['data'])['batch']['initial_copy_baseline']
         self.assertEqual(batch['initial_copy_baseline'], expected)
 
+    def test_accepted_feedback_recomputes_extension_coverage_at_new_version(self):
+        from feedback import prepare_feedback, apply_feedback
+        original = build_extension(*expansion(), mode='simulation')
+        pending = prepare_feedback(original['batch'], 'chat', actual_reply='SIMULATED: revise save expectation',
+            changes=[{'collection': 'cases', 'id': 'LOW', 'path': ['steps', 1, 'expected', 0, 'text'],
+                      'value': 'SIMULATED: revised expected save result'}])
+        replies = [{'question_id': q['id'], 'decision': 'formal',
+                    'actual_reply': 'SIMULATED: confirm this proposed change'}
+                   for q in pending['grill']['round_questions']]
+        pending['grill'] = summarize(respond(pending['grill'], replies))
+        updated = apply_feedback(pending, {'confirmed': True, 'summary_id': pending['grill']['summary']['id'],
+            'actual_reply': 'SIMULATED: summary accurate'})
+        result = render_extension(updated['batch'])
+        self.assertNotEqual(result['coverage']['content_version'], original['coverage']['content_version'])
+        self.assertIn('SIMULATED: revised expected save result', result['coverage_notes'])
+        self.assertEqual(result['batch']['initial_copy_baseline'], original['batch']['initial_copy_baseline'])
+        self.assertEqual([p['status'] for p in result['coverage']['points']], ['partial'])
+        self.assertEqual(result['batch']['cases'][0]['review_status'], 'pending')
+
 
 if __name__ == '__main__':
     unittest.main()
