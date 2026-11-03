@@ -11,12 +11,46 @@ from authoring import _credential_guard, _digest, _cell
 GROUPS = ('common_preconditions', 'special_preconditions', 'steps', 'special_postconditions')
 
 
-def _text(value):
-    if isinstance(value, str):
-        return value
-    if isinstance(value, dict) and 'text' in value:
-        return value['text']
-    return json.dumps(value, ensure_ascii=False, sort_keys=True)
+TECHNICAL_FIELDS = frozenset(('id', 'source', 'lines', 'basis', 'provenance',
+    'semantic_version', 'data_version', 'assertion_id', 'assertion_ids', 'operator',
+    'build_fingerprint', 'sha256', 'content_hash'))
+BUSINESS_LABELS = {
+    'context': '业务条件', 'role': '角色', 'initial_state': '初始状态',
+    'priority': '优先级', 'priority_basis': '分级依据', 'maintenance_action': '维护建议',
+    'rule_status': '规则确认', 'review_status': '最终评审', 'merge_status': '合并状态',
+    'execution_status': '执行状态', 'dependencies': '关联用例', 'case_id': '用例编号',
+    'module_path': '模块路径', 'purpose': '用途', 'required_state': '所需状态',
+    'object_binding': '业务对象关联', 'object_ref': '业务对象', 'data_ref': '数据引用',
+    'input': '输入', 'inputs': '输入', 'output': '产出', 'outputs': '产出',
+    'value': '值', 'credential_ref': '凭据引用', 'validity': '有效性',
+    'reuse_policy': '复用策略', 'invalidation_action': '失效处理',
+    'rule_decisions': '规则决定', 'reply': '答复', 'decision': '决定',
+    'actual_reply': '实际答复', 'product_check': '待产品核实',
+}
+
+
+def _business_lines(value, prefix=''):
+    """One labelled business projection used by both review formats.
+
+    Unknown extensions are flattened to labelled leaves, never opaque JSON.
+    Technical provenance stays in candidate/baseline records instead of prose.
+    """
+    if isinstance(value, dict):
+        lines = []
+        for key, child in value.items():
+            if key in TECHNICAL_FIELDS:
+                continue
+            label = '' if key == 'text' else BUSINESS_LABELS.get(key, key.replace('_', ' '))
+            heading = ' / '.join(p for p in (prefix, label) if p)
+            if key == 'module_path' and isinstance(child, list):
+                lines.append(heading + '：' + ' / '.join(map(str, child)))
+            else:
+                lines.extend(_business_lines(child, heading))
+        return lines
+    if isinstance(value, list):
+        return [line for child in value for line in _business_lines(child, prefix)]
+    text = str(value) if value is not None else '待核对'
+    return [prefix + '：' + text if prefix else text]
 
 
 def _render(batch):
@@ -39,13 +73,11 @@ def _render(batch):
                            ('本轮功能验证', '已单独列入批准范围' if case['id'] in batch['approved_validation_scope'] else '未列入批准范围')]:
             tree.append(indent + '- ' + key + '：' + _cell(value))
             human.append(key + '：' + _cell(value))
-        # Preserve all case metadata in the copy, including references and unknown
-        # source extensions. Missing fields remain questions rather than defaults.
-        for key, value in case.items():
-            if key in (*GROUPS, 'id', 'title', 'module_path', 'semantic_version', 'data_version'):
-                continue
-            tree.append(indent + '- ' + _cell(key) + '：' + _cell(_text(value)))
-            human.append(_cell(key) + '：' + _cell(_text(value)))
+        metadata = {key: value for key, value in case.items()
+                    if key not in (*GROUPS, 'id', 'title', 'module_path')}
+        for line in _business_lines(metadata):
+            tree.append(indent + '- ' + _cell(line))
+            human.append(_cell(line))
         for group, label in zip(GROUPS, ('公共前置操作', '特殊前置操作', '测试步骤', '特殊后置操作')):
             if group.startswith('special_') and not case.get(group):
                 continue
@@ -55,18 +87,22 @@ def _render(batch):
                 tree.append(indent + '  - 未提供，待核对')
                 human.append('未提供，待核对')
             for i, step in enumerate(case.get(group, []), 1):
-                values = [_text(data[ref]) for ref in step.get('data_refs', [])] or ['无']
-                expected = [_text(c) for c in step.get('expected', [])] or ['待核对']
-                checks = [_text(c) for c in step.get('verification', [])] or ['待核对']
+                values = [line for ref in step.get('data_refs', [])
+                          for line in _business_lines(data[ref])] or ['无']
+                extensions = {k: v for k, v in step.items()
+                              if k not in ('id', 'operation', 'data_refs', 'expected', 'verification')}
+                business_conditions = _business_lines(extensions)
+                if business_conditions and values == ['无']:
+                    values = []
+                values.extend(business_conditions)
+                expected = _business_lines(step.get('expected', [])) or ['待核对']
+                checks = _business_lines(step.get('verification', [])) or ['待核对']
                 operation = step.get('operation', '待核对')
                 tree.extend([indent + f'  - {i}. ' + _cell(operation), indent + '    - 参数/数据'])
                 tree.extend(indent + '      - ' + _cell(v) for v in values)
                 tree.append(indent + '    - 预期')
                 tree.extend(indent + '      - ' + _cell(v) for v in expected)
                 tree.append(indent + '      - 验证点：' + _cell('；'.join(checks)))
-                extensions = {k: v for k, v in step.items() if k not in ('id', 'operation', 'data_refs', 'expected', 'verification')}
-                if extensions:
-                    tree.append(indent + '    - 关联与依据：' + _cell(_text(extensions)))
                 human.append(f'| {i} | {_cell(operation)} | {_cell("；".join(values))} | 预期：{_cell("；".join(expected))}；验证点：{_cell("；".join(checks))} |')
         for question in batch['questions']:
             if question['case_id'] == case['id']:

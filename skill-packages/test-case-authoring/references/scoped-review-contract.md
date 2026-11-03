@@ -27,6 +27,13 @@ project/product/system/module/function levels). Keep original extra fields,
 ordered steps, public and special preparation, special postconditions and
 dependency records. `data_refs` resolve against the catalog data collection.
 Unknown metadata and step extensions are retained, not discarded.
+Both review views derive labelled business conditions from the same projection:
+role/state, dependency purpose and required state, data values, business object,
+validity, reuse and invalidation policy. Step extensions (including object
+bindings) appear in the parameter/data area of both views, across all preparation,
+feature and postcondition groups. Nested extensions become labelled leaves;
+opaque JSON is not reviewer prose. Source ranges, provenance, internal IDs,
+assertion operators and build hashes remain in candidate/baseline records.
 
 Missing business fields become locatable `questions` with `待核对`; the source
 record and its baseline remain unchanged. Absent role, initial state, expected

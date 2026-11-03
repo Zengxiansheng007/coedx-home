@@ -27,6 +27,33 @@ def catalog():
 
 
 class ScopedReviewTests(unittest.TestCase):
+    def test_business_extensions_conditions_and_data_are_readable_in_both_views(self):
+        full = catalog()
+        case = full['cases'][0]
+        case['dependencies'] = [{'case_id': 'ACCOUNT-1', 'module_path': ['Example', 'Workspace', 'Web', 'Accounts', 'Prepare'],
+                                 'purpose': 'Prepare the same account', 'required_state': 'active'}]
+        for group in ('steps', 'common_preconditions', 'special_preconditions', 'special_postconditions'):
+            if not case.get(group):
+                case[group] = [copy.deepcopy(case['steps'][0])]
+            case[group][0]['object_binding'] = 'Use the account returned by ACCOUNT-1'
+            case[group][0]['extra_condition'] = {'required_state': 'account is active'}
+            case[group][0]['assertion_id'] = 'INTERNAL-ASSERTION-ONLY'
+        full['data'][0].update(object_ref='same account', validity='until account disabled',
+                              reuse_policy='shared within validity', invalidation_action='ask for approval')
+        result = build_scoped_review(full, 'business-display', [
+            {'case_id': 'EDIT', 'action': 'reuse', 'reason': 'Necessary preparation'}])
+        for view in (result['human_view'], result['xmind_markdown']):
+            for text in ('Use the account returned by ACCOUNT-1', 'account is active',
+                         '角色：editor', '初始状态：signed in', 'Prepare the same account',
+                         '所需状态：active', '业务对象：same account', '有效性：until account disabled',
+                         '复用策略：shared within validity', '失效处理：ask for approval'):
+                self.assertIn(text, view)
+            for technical in ('"source"', '"lines"', '"id"', 'INTERNAL-ASSERTION-ONLY', '{', '}'):
+                self.assertNotIn(technical, view)
+        self.assertEqual(result['human_view'].count('Use the account returned by ACCOUNT-1'), 4)
+        self.assertEqual(result['xmind_markdown'].count('Use the account returned by ACCOUNT-1'), 4)
+        self.assertEqual(result['batch']['cases'][0], case)
+
     def test_complete_related_cases_and_baseline_are_read_only_and_scope_is_separate(self):
         full = catalog()
         original = copy.deepcopy(full)
