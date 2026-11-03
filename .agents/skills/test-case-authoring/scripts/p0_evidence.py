@@ -22,7 +22,7 @@ def _validate_catalog(catalog, round_id):
         for c in catalog.get('cases', [])])
 
 
-def approve_p0_scope(catalog, round_id, case_ids, actual_reply):
+def approve_p0_scope(catalog, round_id, case_ids, actual_reply, *, _result_scope=False):
     """Bind the explicitly approved *whole round* independently of display/merge."""
     _credential_guard([catalog, round_id, case_ids, actual_reply])
     # Reuse the full-catalog reader/identity boundary rather than accepting a copy.
@@ -33,7 +33,7 @@ def approve_p0_scope(catalog, round_id, case_ids, actual_reply):
     cases = {}
     for identity in case_ids:
         case = indexed[identity]
-        if case['priority'] != 'P0' or not case.get('semantic_version') or not case.get('data_version') or not _checks(case):
+        if (not _result_scope and case['priority'] != 'P0') or not case.get('semantic_version') or not case.get('data_version') or not _checks(case):
             raise ValueError('Versioned P0 and necessary checks required')
         if any(not step.get('verification') or not step.get('expected')
                for group in GROUPS for step in case.get(group, [])):
@@ -41,7 +41,7 @@ def approve_p0_scope(catalog, round_id, case_ids, actual_reply):
         refs = {ref for group in GROUPS for step in case.get(group, []) for ref in step.get('data_refs', [])}
         cases[identity] = {'case': copy.deepcopy(case), 'required_checks': _checks(case),
                            'data': [copy.deepcopy(d) for d in catalog['data'] if d['id'] in refs]}
-    result = {'kind': 'p0_validation_baseline', 'schema_version': 1,
+    result = {'kind': 'result_validation_baseline' if _result_scope else 'p0_validation_baseline', 'schema_version': 1,
               'round_id': round_id, 'source_ref': catalog['source_ref'],
               'catalog_version': catalog['content_version'], 'catalog_digest': _digest(catalog),
               'actual_reply': actual_reply, 'cases': cases}
@@ -49,14 +49,20 @@ def approve_p0_scope(catalog, round_id, case_ids, actual_reply):
     return result
 
 
-def check_extension(catalog, baseline, reports, request, *, mode='production'):
+def approve_result_scope(catalog, round_id, case_ids, actual_reply):
+    """Freeze P0/P1/P2 report applicability; grants no execution or stage transition."""
+    return approve_p0_scope(catalog, round_id, case_ids, actual_reply, _result_scope=True)
+
+
+def check_extension(catalog, baseline, reports, request, *, mode='production', _result_scope=False):
     """Reconcile supplied report contents and decisions, retaining every scoped P0."""
     _credential_guard([catalog, baseline, reports, request])
     _validate_catalog(catalog, baseline['round_id'])
     if mode not in ('production', 'simulation'):
         raise ValueError('Unknown evidence mode')
     payload = {k: v for k, v in baseline.items() if k != 'id'}
-    if baseline.get('kind') != 'p0_validation_baseline' or baseline.get('id') != _digest(payload):
+    expected_kind = 'result_validation_baseline' if _result_scope else 'p0_validation_baseline'
+    if baseline.get('kind') != expected_kind or baseline.get('id') != _digest(payload):
         raise ValueError('Changed P0 approval baseline')
     if mode == 'production' and any(r.get('synthetic') is not False for r in reports):
         raise ValueError('Real use requires actual reports; synthetic or unspecified nature refused')
@@ -77,7 +83,9 @@ def check_extension(catalog, baseline, reports, request, *, mode='production'):
             unchanged = now is not None and {k:v for k,v in now.items() if k not in ignore} == {k:v for k,v in case.items() if k not in ignore}
             data = {d['id']: d for d in catalog['data']}
             unchanged = unchanged and all(data.get(d['id']) == d for d in frozen['data'])
-            valid = (versions and unchanged and report.get('kind') == 'p0_execution_report'
+            valid_kinds = (('case_execution_report', 'p0_execution_report') if case['priority'] == 'P0'
+                           else ('case_execution_report',)) if _result_scope else ('p0_execution_report',)
+            valid = (versions and unchanged and report.get('kind') in valid_kinds
                      and catalog.get('source_ref') == baseline['source_ref']
                      and report.get('round_id') == baseline['round_id']
                      and report.get('tested_version') == request.get('tested_version')
@@ -96,7 +104,7 @@ def check_extension(catalog, baseline, reports, request, *, mode='production'):
                     status, reason = 'passed', 'Matching necessary evidence contents supplied'
                 else:
                     reason = 'Missing necessary evidence contents or digest mismatch'
-        rows.append({'case_id': identity, 'module_path': case['module_path'], 'priority': 'P0',
+        rows.append({'case_id': identity, 'module_path': case['module_path'], 'priority': case['priority'],
                      'rule_status': current.get(identity, case).get('rule_status', 'unconfirmed'),
                      'review_status': current.get(identity, case).get('review_status', 'pending'),
                      'merge_status': current.get(identity, case).get('merge_status', 'not_merged'),
@@ -105,6 +113,10 @@ def check_extension(catalog, baseline, reports, request, *, mode='production'):
                      'tested_version': report.get('tested_version') if report else None,
                      'report_ref': report.get('report_ref') if report else None,
                      'provisional_conditions': case.get('rule_decisions', [])})
+    if _result_scope:
+        return {'baseline_id': baseline['id'], 'round_id': baseline['round_id'],
+                'evidence_nature': 'simulated' if mode == 'simulation' else 'actual_report_contents',
+                'cases': rows, 'formal_integration': 'pending_joint_validation'}
     blockers = []
     manual = request.get('manual_start', {})
     if manual.get('baseline_id') != baseline['id'] or not manual.get('actual_reply', '').strip():
@@ -144,6 +156,14 @@ def check_extension(catalog, baseline, reports, request, *, mode='production'):
             'blockers': blockers, 'can_extend': not blockers,
             'next_step': 'author_P1_P2' if not blockers else 'resolve_blockers',
             'formal_integration': 'pending_joint_validation'}
+
+
+def check_result_evidence(catalog, baseline, reports, tested_version, *, mode='production'):
+    """Read-only per-case evidence, independent of P1/P2 entry decisions."""
+    checked = check_extension(catalog, baseline, reports, {'tested_version': tested_version},
+                              mode=mode, _result_scope=baseline.get('kind') == 'result_validation_baseline')
+    return {key: checked[key] for key in ('baseline_id', 'round_id', 'evidence_nature',
+                                         'cases', 'formal_integration')}
 
 
 def main():

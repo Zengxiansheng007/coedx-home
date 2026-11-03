@@ -68,7 +68,10 @@ separate explicit current-version action.
 Final review has `approved: true`, exact `content_version`, nonempty `case_ids`,
 and `actual_reply`. It requires the current confirmed/applied summary and refuses
 deferred/unconfirmed cases. It never creates execution or merge instructions.
-It returns the ui-test recommendation and updated views. Explicit actions have
+It returns updated views and a stage-specific recommendation: P0 recommends
+separately user-started ui-test validation; P1/P2 recommends user-started authoring
+merge of the reviewed scope, followed by separately user-started ui-test after
+merge. Neither recommendation applies a merge or executes cases. Explicit actions have
 `kind: execution_start` or `merge_instruction`, current `content_version`,
 `case_ids`, `actual_reply`. `record_actions` records these requests only; even a
 P0 merge request keeps the case `not_merged` / `not_run`. The receiving ui-test
