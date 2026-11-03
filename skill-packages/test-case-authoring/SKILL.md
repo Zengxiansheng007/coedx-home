@@ -1,6 +1,6 @@
 ---
 name: test-case-authoring
-description: Turn a supplied Playwright recording and optional PRD into source-traced P0 cases; clarify a candidate batch through independent question rounds, three-way rule decisions, summary confirmation and final review. Generate a four-column business review view and matching XMind Markdown before execution.
+description: Turn a supplied Playwright recording and optional PRD into source-traced P0 cases; clarify a candidate batch through independent question rounds, three-way rule decisions, summary confirmation and final review. Select complete related cases from a full local catalog for a scoped review copy with a stable baseline and actual field differences. Generate a four-column business review view and matching XMind Markdown before execution.
 ---
 
 # P0 authoring and batch clarification
@@ -60,6 +60,26 @@ separately invoked testing skill. Formal integration remains unverified.
 Read [the clarification contract](references/clarification-contract.md) before
 starting or resuming questions, applying a summary, or recording final review.
 Use its public batch API; business interpretation remains your responsibility.
+
+## Review a scope from a full catalog
+
+Read [the scoped review contract](references/scoped-review-contract.md) when
+reviewing existing full-catalog cases, adding related candidates, or preparing
+the initial baseline for returned-file feedback. Inspect the entire supported
+catalog and its provenance first. Select only new, modified, reused, suggested
+deactivation and necessary related records, retaining complete original paths,
+steps, public preparation and references. Explain each selection and identify
+actual changes with their basis and coverage impact.
+
+Run its public scope entry into a new directory, verify the copy against the
+full input and revised candidates, and present the scoped Markdown and companion
+notes by default for P1/P2. Expand individual human-view cases when needed.
+Keep approved functional verification scope independent from display selection.
+Done means the unchanged full input, initial displayed-content baseline,
+selection reasons, complete scope and actual-field differences are traceable;
+unshown cases remain present in the full source. Feedback application and merge
+are separate capabilities; this step applies neither. State unsupported native
+formats and pending formal ui-test mapping explicitly.
 
 1. Inspect existing evidence first. Enrich every unresolved question with stable
    identity, affected cases/checks and business fields, available options,
