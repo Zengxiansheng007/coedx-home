@@ -198,9 +198,16 @@ def apply_summary(session, confirmation):
         decisions = [d for d in current['decisions'] if d['case_id'] == case['id']]
         if decisions:
             case['rule_decisions'] = copy.deepcopy(decisions)
+        # A complete supplied case has no clarification question to answer.
+        # Only this explicit current-summary agreement can confirm that content;
+        # initial conversion and a final-review request alone confer no approval.
+        supplied_confirmation = not decisions and not any(
+            q['case_id'] == case['id'] for q in result['questions']) and old['rule_status'] == 'unconfirmed'
+        if supplied_confirmation:
+            case['supplied_content_confirmation'] = copy.deepcopy(confirmation)
         case['rule_status'] = ('deferred' if case['id'] in current['blocked_cases'] else
                                'provisional' if any(d['reply']['decision'] == 'provisional' for d in decisions) else
-                               'formal' if decisions else old['rule_status'])
+                               'formal' if decisions or supplied_confirmation else old['rule_status'])
         case['data_version'] = batch['data_version']
         def semantic(value):
             return {k: v for k, v in value.items() if k not in ('semantic_version', 'review_status', 'final_review', 'review_history', 'merge_status', 'execution_status')}

@@ -47,7 +47,7 @@ def _credential_guard(value):
             raise ValueError('Inline credential detected; supply a sanitized reference-only input')
 
 
-def _validate(draft, sources):
+def _validate(draft, sources, input_kind='recording'):
     for key in ('batch_id', 'case_id', 'title'):
         if not isinstance(draft.get(key), str) or not draft[key].strip():
             raise ValueError('Missing identity or title')
@@ -67,7 +67,7 @@ def _validate(draft, sources):
         if isinstance(value, dict):
             if 'source' in value:
                 check_source(value)
-                value['basis'] = {'recording': 'recording_observation', 'prd': 'material_statement', 'inference': 'ai_inference'}[value['source']]
+                value['basis'] = {'recording': 'recording_observation', 'handwritten': 'material_statement', 'prd': 'material_statement', 'inference': 'ai_inference'}[value['source']]
             for child in list(value.values()):
                 walk(child)
         elif isinstance(value, list):
@@ -75,13 +75,13 @@ def _validate(draft, sources):
                 walk(child)
     walk(draft)
     covered = set()
-    for item in draft.get('recording_coverage', []):
-        check_source(dict(item, source='recording'))
+    for item in draft.get(input_kind + '_coverage', []):
+        check_source(dict(item, source=input_kind))
         if not item.get('reason'):
             raise ValueError('Coverage requires a reason')
         covered.update(range(item['lines'][0], item['lines'][1] + 1))
-    if any(i not in covered for i, line in enumerate(sources['recording'].splitlines(), 1) if line.strip()):
-        raise ValueError('Recording has unaccounted lines')
+    if any(i not in covered for i, line in enumerate(sources[input_kind].splitlines(), 1) if line.strip()):
+        raise ValueError('Input has unaccounted lines')
     ids = [d['id'] for d in draft['data']]
     if len(ids) != len(set(ids)):
         raise ValueError('Duplicate data identity')
@@ -141,8 +141,9 @@ def _view_one(batch):
         tree.append(indent + '- ' + label)
         human.append(label + '：')
         if not case[group]:
-            tree.append(indent + '  - 输入未提供，待核对')
-            human.append('输入未提供，待核对')
+            note = case.get('common_preconditions_note', {}).get('text', '输入未提供，待核对')
+            tree.append(indent + '  - ' + _cell(note))
+            human.append(_cell(note))
             continue
         human.extend(['| 序号 | 操作 | 参数/数据 | 预期结果 |', '| --- | --- | --- | --- |'])
         for i, step in enumerate(case[group], 1):
@@ -163,10 +164,11 @@ def _view_one(batch):
             tree.append(indent + '    - 预期')
             tree.extend(indent + '      - ' + _cell(v) for v in expected)
             tree.append(indent + '      - 验证点：' + _cell('；'.join(verification)))
-    if batch['questions']:
+    pending = [q for q in batch['questions'] if not q.get('history') or q.get('stale')]
+    if pending:
         human.append('待澄清：')
         tree.append('- 待澄清')
-        for q in batch['questions']:
+        for q in pending:
             human.append('- ' + _cell(q['field']) + '：' + q['reason'])
             tree.append('  - ' + _cell(q['field']) + '：' + q['reason'])
     return '\n'.join(human) + '\n', '\n'.join(tree) + '\n'
@@ -192,18 +194,29 @@ def build_batch(recording, interpretation, prd=None):
     Inputs are in-memory UTF-8 text and a JSON-compatible interpretation. No writes,
     subprocesses, browser, network calls or execution of recording code occur here.
     """
+    return _build_batch(recording, interpretation, prd, 'recording')
+
+
+def build_handwritten_batch(handwritten, interpretation, prd=None):
+    """Adapt a complete hand-authored P0 into the same candidate/review model."""
+    return _build_batch(handwritten, interpretation, prd, 'handwritten')
+
+
+def _build_batch(text, interpretation, prd, input_kind):
     draft = copy.deepcopy(interpretation)
-    _credential_guard([recording, draft, prd])
-    sources = {'recording': recording}
+    _credential_guard([text, draft, prd])
+    sources = {input_kind: text}
     if prd is not None:
         sources['prd'] = prd
-    _validate(draft, sources)
+    _validate(draft, sources, input_kind)
     case = {'id': draft['case_id'], 'title': draft['title'], 'priority': 'P0',
-            'module_path': draft['module_path'], 'priority_basis': '核心录制路径候选，待用户评审',
+            'module_path': draft['module_path'], 'priority_basis': '核心业务路径候选，待用户评审',
             'maintenance_action': 'add', 'review_status': 'pending', 'rule_status': 'unconfirmed',
             'merge_status': 'not_merged', 'execution_status': 'not_run',
             'context': draft['context'], 'steps': draft['steps'],
             'common_preconditions': draft.get('common_preconditions', [])}
+    if 'common_preconditions_note' in draft:
+        case['common_preconditions_note'] = draft['common_preconditions_note']
     questions = []
     for field in ('role', 'initial_state'):
         if not case['context'].get(field):
@@ -231,9 +244,9 @@ def build_batch(recording, interpretation, prd=None):
             questions.append({'field': 'data/' + item['id'], 'reason': 'AI 数据建议，待用户确认', 'case_id': case['id']})
     batch = {'schema_version': 1, 'id': draft['batch_id'], 'stage': 'P0',
              'sources': [{'id': key, 'kind': key, 'sha256': hashlib.sha256(text.encode()).hexdigest()} for key, text in sources.items()],
-             'initial_copy_baseline': None, 'selection': [{'case_id': case['id'], 'reason': '录制核心路径'}],
+             'initial_copy_baseline': None, 'selection': [{'case_id': case['id'], 'reason': '核心业务路径'}],
              'approved_validation_scope': [], 'cases': [case], 'data': draft['data'], 'questions': questions}
-    batch['recording_coverage'] = draft['recording_coverage']
+    batch[input_kind + '_coverage'] = draft[input_kind + '_coverage']
     batch['data_version'] = _digest(batch['data'])
     case['semantic_version'] = _digest(case)
     case['data_version'] = batch['data_version']
@@ -245,16 +258,19 @@ def build_batch(recording, interpretation, prd=None):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--recording', required=True)
+    inputs = parser.add_mutually_exclusive_group(required=True)
+    inputs.add_argument('--recording')
+    inputs.add_argument('--handwritten')
     parser.add_argument('--interpretation', required=True)
     parser.add_argument('--prd')
     parser.add_argument('--output-dir', required=True, help='New directory only')
     args = parser.parse_args()
     try:
-        recording = Path(args.recording).read_text(encoding='utf-8-sig')
+        text = Path(args.recording or args.handwritten).read_text(encoding='utf-8-sig')
         interpretation = json.loads(Path(args.interpretation).read_text(encoding='utf-8-sig'))
         prd = Path(args.prd).read_text(encoding='utf-8-sig') if args.prd else None
-        result = build_batch(recording, interpretation, prd)
+        converter = build_batch if args.recording else build_handwritten_batch
+        result = converter(text, interpretation, prd)
         output = Path(args.output_dir)
         output.mkdir(parents=True, exist_ok=False)
         (output / 'candidate.json').write_text(json.dumps(result['batch'], ensure_ascii=False, indent=2) + '\n', encoding='utf-8')

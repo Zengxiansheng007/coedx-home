@@ -3,7 +3,7 @@
 `scripts/clarification.py` provides pure Python entry points. They accept and
 return JSON-compatible batch/session objects without files, network, browser,
 execution or merge side effects. Use `scripts/authoring.py` for initial recording
-conversion. A batch may contain several complete candidate cases with stable
+or handwritten conversion. A batch may contain several complete candidate cases with stable
 identities. Use `authoring.render_batch(batch)` for matching multi-case views.
 
 ```python
@@ -57,6 +57,13 @@ pending. Questions retain all histories. Explicit unchanged answers can be
 reused by starting with the same question descriptions/history from the batch;
 changed question descriptions need a new answer. Review status changes alone
 do not change the content version.
+
+For a complete supplied case with no doubts, include its existing business rules
+in the summary and obtain explicit current-content understanding agreement.
+`apply_summary` retains that actual agreement as `supplied_content_confirmation`
+and sets rule status to formal. Conversion alone stays unconfirmed. No redundant
+field questions or invented answer records are required; final review remains a
+separate explicit current-version action.
 
 Final review has `approved: true`, exact `content_version`, nonempty `case_ids`,
 and `actual_reply`. It requires the current confirmed/applied summary and refuses
