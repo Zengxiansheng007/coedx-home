@@ -1,6 +1,6 @@
 ---
 name: test-case-authoring
-description: Turn a supplied Playwright recording or complete handwritten P0 and optional PRD into source-traced cases; clarify a candidate batch through independent questions, rule decisions, summary confirmation and final review. Select complete related cases for scoped review; receive chat or edited Markdown feedback against its initial baseline. Reconcile P0 reports and missing core cases before user-started P1/P2; design independent boundary cases, human-check coverage and user-selected extra combinations. Generate business review views and XMind Markdown before execution.
+description: Turn a supplied Playwright recording or complete handwritten P0 and optional PRD into source-traced cases; clarify a candidate batch through independent questions, rule decisions, summary confirmation and final review. Select complete related cases for scoped review; receive chat or edited Markdown feedback against its initial baseline. Reconcile P0 reports and missing core cases before user-started P1/P2; design independent boundary cases, human-check coverage and user-selected extra combinations. Generate business review views and XMind Markdown before execution. Apply user-started approved P1/P2 deltas to isolated full catalogs.
 ---
 
 # P0 authoring and batch clarification
@@ -154,7 +154,7 @@ never replace file inspection with self-authored JSON and call that a file test.
    For P1/P2, recommend user-started authoring merge of the reviewed scope, then
    separately user-started ui-test after merge; review itself performs neither.
    Record separately any explicit execution or merge request, retaining its
-   scope/version; this skill performs neither. P0 formal merging belongs to
+   scope/version; execution stays separate and isolated P1/P2 merge uses the branch below. P0 formal merging belongs to
    ui-test after complete matching verification and the user's merge instruction.
 
 Reuse an existing clear authorization for unchanged content. If one user message
@@ -229,3 +229,21 @@ final review. Render both views from that candidate version, retaining optional
 special postconditions. Use the P0 report checker for functional validation;
 preparation data reuse alone is never a functional pass. This branch authors
 conditions only; it performs no data preparation, storage or scheduling.
+
+## Merge a user-approved P1/P2 scope into an isolated full target
+
+When the user explicitly starts an authoring merge, read
+[the partial merge contract](references/partial-merge-contract.md). Load the full
+isolated catalog, initial review baseline and latest accepted candidate, including
+feedback and its current final approval. Confirm the user's exact version and
+case scope, then show proposed changes and blocked cases. Reuse unchanged clear
+authorization. A review approval alone is not a merge instruction.
+
+Use the public merge entry to create a new full isolated target. Inspect its
+per-case results: defer unresolved dependencies and affected target drift, retain
+provisional product conditions, preserve unshown and unapproved records and
+retain deactivated originals with the user's reason. Never replace a full catalog
+with the review copy. Report only actual applied isolated changes, pending cases
+and their reasons, version and unchanged full P0 verification scope. Recommend
+separately user-started ui-test after applied P1/P2 merge. Formal synchronization
+awaits the next PR; this branch never merges P0 formally or starts execution.
