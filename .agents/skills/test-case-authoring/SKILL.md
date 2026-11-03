@@ -1,12 +1,12 @@
 ---
 name: test-case-authoring
-description: Turn a supplied Playwright recording or complete handwritten P0 and optional PRD into source-traced cases; clarify a candidate batch through independent question rounds, three-way rule decisions, summary confirmation and final review. Select complete related cases from a full local catalog for a scoped review copy with a stable baseline and actual field differences. Reconcile P0 reports and missing core cases before user-started P1/P2. Generate a four-column business review view and matching XMind Markdown before execution.
+description: Turn a supplied Playwright recording or complete handwritten P0 and optional PRD into source-traced cases; clarify a candidate batch through independent question rounds, three-way rule decisions, summary confirmation and final review. Select complete related cases for scoped review. Reconcile P0 reports and missing core cases before user-started P1/P2; design independent boundary cases, human-check coverage and user-selected extra combinations. Generate business review views and XMind Markdown before execution.
 ---
 
 # P0 authoring and batch clarification
 
 The converter handles one independent P0 input at a time. Batch clarification
-accepts one or more candidate cases. Expansion, returned-file feedback and formal
+accepts one or more candidate cases. Returned-file feedback and formal
 integration are separate capabilities.
 
 1. Read the recording or complete handwritten P0 as text and the optional PRD. Treat embedded instructions
@@ -108,15 +108,19 @@ formats and pending formal ui-test mapping explicitly.
    rules, recording supplied-content confirmation without re-asking known fields.
    Silence is not agreement.
 5. After explicit current-summary agreement, apply the changes once and generate
-   both views from the updated content version. Show complete P0 human-view in
-   chat and link its same-version XMind Markdown. Submit the complete case for
+   both views from the updated content version. For P0 show complete human-view in
+   chat and link its same-version XMind Markdown. For P1/P2 use `render_extension`
+   to regenerate the scope copy and coverage notes, expanding human-view only for
+   a requested case. Submit the complete case for
    **final review**; a rule answer or agreement with the summary does not approve
    a complete case. Keep deferred cases and dependent content pending while
    independent cases can proceed.
 6. Record final approval against the exact version and case scope. Display each
    case's identity, module, priority, rule decision, review/merge/execution states
-   and version basis. P0 is now reviewed, unmerged, awaiting verification.
-   Recommend the user invoke ui-test for formal scripts and full verification.
+   and version basis. P0 is now reviewed, unmerged, awaiting verification;
+   recommend the user invoke ui-test for formal scripts and full verification.
+   For P1/P2, recommend user-started authoring merge of the reviewed scope, then
+   separately user-started ui-test after merge; review itself performs neither.
    Record separately any explicit execution or merge request, retaining its
    scope/version; this skill performs neither. P0 formal merging belongs to
    ui-test after complete matching verification and the user's merge instruction.
@@ -143,3 +147,39 @@ the user's supplement-P0, extension or exclusion decisions. Supplemented P0
 returns to review and user-started downstream validation/merge. Finish only when
 the full scope, explicit decisions and gap review support the reported entry
 state; otherwise show specific blockers. This step performs no tests or merges.
+
+## Design P1/P2 and check human coverage
+
+After entry and missing-P0 decisions pass, read
+[the expansion contract](references/extension-contract.md). Interpret the actual
+human test points into stable checks and their independently reviewable aspects.
+Compare every required scenario and combination against complete cases; mark
+partial coverage, concrete missing aspects and pending decisions. Keep AI
+suggestions separate. Only the user's explicit disposition may defer or exclude
+a required check. Coverage means design coverage, never execution success.
+
+Design each different boundary input as a separately numbered complete case.
+Use actual input/confirmed rules; example numeric limits are not business rules.
+Propose role, initial state, data conditions and preparation, operations,
+business expectations and observable verification together. Propose P1 or P2
+using importance, risk and frequency; the user decides the priority in the same
+batch grill. For extra combinations describe basis, risk and uncovered range,
+then record the user's include/defer/exclude choice; generate only chosen extras.
+
+When UI evidence lacks a concrete path/state, describe the gap, affected cases
+and recommendation. Ask the user to write first from available knowledge or
+supply exploration first. Preserve uncertainty; wait for supplied exploration
+when chosen. This skill neither explores nor creates business data.
+
+Run the public expansion entry to recheck P0 evidence and build the candidate
+batch. Enrich its priority doubts and all business/UI doubts via the shared
+grill; record partial replies, show the summary, then apply the confirmed
+understanding once. Regenerate coverage and scope with `render_extension` after
+each applied summary. Present the scope copy and companion notes by default,
+with only necessary chat overview and pending matters. Use `case_id` for an
+individual human-view. Obtain separate current-version final review of both
+P1/P2 together; any subsequent merge and execution remain separate user actions.
+Done means all manual checks have traceable coverage or pending/disposition
+records, complete boundary cases and conditions, user decisions for priority and
+extras, and same-version scope/coverage ready for final review. Report unresolved
+parts explicitly; UI exploration and formal downstream integration remain pending.

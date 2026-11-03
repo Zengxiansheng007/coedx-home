@@ -250,7 +250,10 @@ def review(session, final_review):
             case['final_review'] = copy.deepcopy(final_review)
             case['review_status'] = 'approved'
     result.update(render_batch(result['batch']))
-    result['next_step'] = 'Recommend ui-test for formal scripts and complete verification; user starts it separately. P0 remains unmerged.'
+    result['next_step'] = ('Recommend user-started authoring merge of the reviewed P1/P2 scope; '
+                           'after merge recommend separately user-started ui-test. Cases remain unmerged and not run.'
+                           if batch['stage'] == 'P1/P2' else
+                           'Recommend ui-test for formal scripts and complete verification; user starts it separately. P0 remains unmerged.')
     return result
 
 
