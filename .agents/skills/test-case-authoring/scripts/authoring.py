@@ -184,6 +184,9 @@ def _views(batch):
 
 def render_batch(batch):
     """Render same-version candidates without changing their content."""
+    if batch.get('kind') == 'scoped_review_copy':
+        from scoped_review import render_review_batch
+        return render_review_batch(batch)
     human, tree = _views(batch)
     return {'batch': copy.deepcopy(batch), 'human_view': human, 'xmind_markdown': tree}
 
