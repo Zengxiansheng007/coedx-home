@@ -1,10 +1,14 @@
-# Public recording batch contract v1
+# Public P0 input batch contract v1
 
 `scripts/authoring.py` is a deterministic converter, not a JavaScript parser or
 business analyst. The skill reads the source and supplies its interpretation.
 The converter validates source ranges, line coverage and data references;
 semantic correctness of the translation requires the skill's final comparison.
 No dependency other than Python 3.10+ is needed.
+
+Complete handwritten P0 uses this same content model through the
+[handwritten adapter](handwritten-input.md), substituting the source kind and
+coverage key. Both inputs continue to the same clarification and review API.
 
 The input object contains:
 
@@ -16,6 +20,7 @@ The input object contains:
 | `data` | Records with unique `id`, `value` or `credential_ref`, and provenance |
 | `steps` | Nonempty ordered complete business steps |
 | `common_preconditions` | Ordered preparation steps; empty only when none is supplied |
+| `common_preconditions_note` | Optional source claim preserving an explicit statement that no extra preparation is needed |
 | `recording_coverage` | Ranges and business/technical accounting reasons for every nonblank line |
 
 A claim is `{"text":"business statement","source":"recording","lines":[2,3]}`.
