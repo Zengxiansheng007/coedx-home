@@ -1,6 +1,6 @@
 ---
 name: test-case-authoring
-description: Turn a supplied Playwright recording or complete handwritten P0 and optional PRD into source-traced cases; clarify a candidate batch through independent questions, rule decisions, summary confirmation and final review. Select complete related cases for scoped review; receive chat or edited Markdown feedback against its initial baseline. Reconcile P0 reports and missing core cases before user-started P1/P2; design independent boundary cases, human-check coverage and user-selected extra combinations. Generate business review views and XMind Markdown before execution.
+description: Turn a supplied Playwright recording or complete handwritten P0 and optional PRD into source-traced cases; clarify a candidate batch through independent questions, rule decisions, summary confirmation and final review. Select complete related cases for scoped review; receive chat or edited Markdown feedback against its initial baseline. Reconcile P0 reports and missing core cases before user-started P1/P2; design independent boundary cases, human-check coverage and user-selected extra combinations. Reconcile final product rules with provisional results and user-decided reuse or affected-case review and retest suggestions. Generate business review views and XMind Markdown before execution.
 ---
 
 # P0 authoring and batch clarification
@@ -64,6 +64,18 @@ separately invoked testing skill. Formal integration remains unverified.
 Read [the clarification contract](references/clarification-contract.md) before
 starting or resuming questions, applying a summary, or recording final review.
 Use its public batch API; business interpretation remains your responsibility.
+
+## Reconcile final product confirmation
+
+Read [the product reconciliation contract](references/product-reconciliation-contract.md)
+when product finally confirms a provisional rule or changes its meaning. Compare
+the actual message with the original conditions, inspect rule and coverage links,
+then check case/data versions, tested version and evidence applicability. For
+consistent meaning propose reuse for explicit user decision; incomplete evidence
+stays pending. For changed meaning use the common feedback/grill, one agreed
+update and final review, retaining the affected downstream retest scope. Preserve
+the old results under their original provisional conditions and record the formal
+conclusion separately. Execute neither retests nor formal source synchronization.
 
 ## Review a scope from a full catalog
 
