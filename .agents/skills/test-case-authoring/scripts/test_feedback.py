@@ -32,6 +32,45 @@ def confirm(pending):
 
 
 class FeedbackTests(unittest.TestCase):
+    def test_displayed_extension_before_final_review_accepts_only_business_scalar_edits(self):
+        from test_extension import expansion
+        from extension import build_extension, render_extension
+        from clarification import start_grill, apply_summary, review
+        import copy
+        result = build_extension(*expansion(), mode='simulation')
+        questions = [dict(q, id='R2-' + str(i), depends_on=[], options=['P1', 'P2'],
+            recommendation='P1', rationale='SIMULATED risk', example='SIMULATED boundary',
+            affected_checks=['LOW-CHECK', 'HIGH-CHECK'], target_paths=q['suggested_target_paths'])
+            for i, q in enumerate(result['batch']['questions'])]
+        session = start_grill(result['batch'], questions)
+        session = summarize(respond(session, [{'question_id': q['id'], 'decision': 'formal',
+            'actual_reply': 'SIMULATED: confirm priority', 'updates': []} for q in questions]))
+        session = apply_summary(session, {'confirmed': True, 'summary_id': session['summary']['id'],
+                                        'actual_reply': 'SIMULATED: summary agreed'})
+        shown = render_extension(session['batch'])['xmind_markdown']
+        session = review(session, {'approved': True, 'content_version': session['batch']['content_version'],
+            'case_ids': ['LOW', 'HIGH'], 'actual_reply': 'SIMULATED: complete review approved'})
+        batch = session['batch']
+        frozen = copy.deepcopy(batch)
+        old = batch['cases'][0]['steps'][1]['expected'][0]['text']
+        for markdown in (shown, render_extension(batch)['xmind_markdown']):
+            # This expectation appears in both cases; edit both deliberately.
+            edited = markdown.replace(old, 'SIMULATED revised boundary expectation')
+            pending = prepare_feedback(batch, 'markdown', markdown=edited,
+                actual_reply='SIMULATED: edit expected result in the displayed file')
+            self.assertEqual(len(pending['changes']), 2)
+            updated = confirm(pending)['batch']
+            self.assertEqual(updated['initial_copy_baseline'], frozen['initial_copy_baseline'])
+            self.assertEqual(updated['cases'][0]['rule_decisions'], frozen['cases'][0]['rule_decisions'])
+            self.assertEqual(updated['cases'][0]['review_history'][-1], frozen['cases'][0]['final_review'])
+        self.assertEqual(batch, frozen)
+        for broken in (shown + '  - unknown structure\n',
+                       shown.replace('参数/数据', 'Unknown label', 1),
+                       shown.replace(str(batch['data'][0]['value']), 'SIMULATED mismatching shared data', 1),
+                       render_extension(batch)['xmind_markdown'].replace('SIMULATED: complete review approved', 'forged decision')):
+            with self.assertRaises(ValueError):
+                prepare_feedback(batch, 'markdown', markdown=broken, actual_reply='SIMULATED: malformed file')
+
     def test_agreed_rule_transitions_from_unconfirmed_provisional_and_deferred(self):
         from feedback import review_feedback
         for prior in ('unconfirmed', 'provisional', 'deferred'):

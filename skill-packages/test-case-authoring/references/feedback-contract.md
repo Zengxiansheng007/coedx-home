@@ -40,8 +40,8 @@ Identity, module paths, reference lists, credentials and workflow fields cannot
 be patched as business answers. Structural edits require a fresh scoped candidate
 or explicit interpretation at the existing authoring boundary, retaining history.
 
-Returned Markdown is the generated `xmind_markdown` hierarchy from the INITIAL
-scope copy, not arbitrary Markdown or native XMind. Edit business scalar leaves
+Returned Markdown is the generated `xmind_markdown` hierarchy from the initial
+scope copy or a current same-version review display, not arbitrary Markdown or native XMind. Edit business scalar leaves
 (title, operations, expected and verification text, context or data) while retaining
 labels, hierarchy, order, header/version, IDs and row counts. Whole-case removals
 include their full module subtree. Repeated projections of one data leaf must
@@ -54,6 +54,12 @@ Each returned change is compared three ways: first displayed value, latest
 accepted candidate value, proposed value. Unchanged first-display fields preserve
 later accepted edits. Already applied changes are no-ops; conflicts require
 clarification rather than reversion. Both views come from the latest candidate.
+Final review may add workflow prose without changing the semantic version. A
+pre-approval displayed file remains eligible: the reader ignores only exact
+trusted same-version final-review/history prose and normalizes its pending versus
+approved display status. It never imports those fields as decisions. Altered or
+unknown metadata, business structure and conflicting semantics remain rejected;
+the immutable initial baseline and current accepted decisions stay authoritative.
 
 Chat can supply `removed_case_ids` and `deletion_decisions`, mapping each missing
 ID to `{action: exclude|deactivate|restore, actual_reply: ...}`. Only IDs in the

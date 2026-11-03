@@ -2,9 +2,9 @@
 import copy
 import html
 
-from authoring import _credential_guard, _digest
+from authoring import _credential_guard, _digest, _cell
 from clarification import start_grill, summarize, review, _validate_content
-from scoped_review import _render, _references, GROUPS, TECHNICAL_FIELDS
+from scoped_review import _render, _references, _business_lines, GROUPS, TECHNICAL_FIELDS
 
 
 PROTECTED = TECHNICAL_FIELDS | frozenset(('module_path', 'data_refs', 'credential_ref',
@@ -66,6 +66,23 @@ def _markdown_changes(batch, markdown):
     original = _render(initial)['xmind_markdown'].splitlines()
     if incoming[:3] != original[:3]:
         raise ValueError('Markdown header/version must match initial display')
+    def normalize_review_metadata(cid, lines):
+        # A final review changes projection-only metadata at the SAME semantic
+        # version. Accept its earlier pending view without treating omitted
+        # review prose as a business deletion. Only exact trusted metadata is
+        # optional; unknown/edited lines still fail ordinary structure checks.
+        case = next(c for c in batch['cases'] if c['id'] == cid)
+        approval = case.get('final_review', {})
+        if (case.get('review_status') != 'approved' or approval.get('approved') is not True or
+                approval.get('content_version') != batch['content_version']):
+            return lines
+        prefix = '  ' * (len(case['module_path']) + 1) + '- '
+        trusted = {prefix + _cell(line) for key in ('final_review', 'review_history')
+                   if key in case for line in _business_lines({key: case[key]})}
+        pending_line = prefix + '最终评审：pending'
+        approved_line = prefix + '最终评审：approved'
+        return [approved_line if line == pending_line else line for line in lines if line not in trusted]
+
     def blocks(lines):
         headers = []
         for index, line in enumerate(lines[3:], 3):
@@ -82,7 +99,7 @@ def _markdown_changes(batch, markdown):
             if cid in result:
                 raise ValueError('Duplicate Markdown identity')
             end = headers[pos + 1][0] if pos + 1 < len(headers) else len(lines)
-            result[cid] = lines[start:end]
+            result[cid] = normalize_review_metadata(cid, lines[start:end])
         return result
     before, after = blocks(original), blocks(incoming)
     changes, missing = [], list(before.keys() - after.keys())
