@@ -28,6 +28,36 @@ def apply(batch, questions, decisions):
 
 
 class RuleIdentityTests(unittest.TestCase):
+    def test_enriched_known_rule_can_be_formally_resolved_without_repeating_identity(self):
+        for other_pending in (False, True):
+            full, _, _, _ = fixture()
+            batch = build_scoped_review(full, 'synthetic-known-rule', [
+                dict(case_id='EDIT', action='reuse', reason='SIMULATED named confirmation')])['batch']
+            qs = [question('VALIDATE', 'VALIDATION')]
+            if other_pending:
+                qs.append(question('MESSAGE', 'MESSAGE'))
+            updated = apply(batch, qs, ['provisional'] * len(qs))
+            history = copy.deepcopy(updated['cases'][0]['rule_decisions'])
+            pending = prepare_feedback(updated, 'chat', actual_reply='SIMULATED validation finally formal; title corrected',
+                changes=[dict(collection='cases', id='EDIT', path=['title'], value='Validated save')])
+            existing = [q for q in pending['grill']['round_questions'] if q['id'].startswith('existing-')]
+            self.assertEqual({q.get('rule_id') for q in existing}, {'VALIDATION', 'MESSAGE'} if other_pending else {'VALIDATION'})
+            origins = {q['rule_id']: q['feedback_origin'] for q in existing}
+            replies = [dict(question_id=q['id'], decision='provisional' if q.get('rule_id') == 'MESSAGE' else 'formal',
+                actual_reply='SIMULATED message still pending' if q.get('rule_id') == 'MESSAGE' else 'SIMULATED formal confirmation',
+                **({'product_check': 'SIMULATED message condition still pending'} if q.get('rule_id') == 'MESSAGE' else {}))
+                for q in pending['grill']['round_questions']]
+            pending['grill'] = summarize(respond(pending['grill'], replies))
+            self.assertEqual({d.get('rule_id') for d in pending['grill']['summary']['decisions'] if d.get('rule_id')}, set(origins))
+            result = apply_feedback(pending, dict(confirmed=True, actual_reply='SIMULATED agree current summary',
+                summary_id=pending['grill']['summary']['id']))['batch']
+            case = result['cases'][0]
+            self.assertEqual(case['rule_status'], 'provisional' if other_pending else 'formal')
+            self.assertEqual(case['rule_decisions'], history)
+            self.assertEqual({d['rule_id']: d['reply']['decision'] for d in case['active_rule_decisions'] if d.get('rule_id')},
+                             {'VALIDATION': 'formal', 'MESSAGE': 'provisional'} if other_pending else {'VALIDATION': 'formal'})
+            self.assertEqual({q['rule_id']: q['feedback_origin'] for q in result['questions']}, origins)
+
     def test_automatic_question_ids_do_not_alias_different_source_doubts(self):
         full, _, _, _ = fixture()
         def scoped(round_id, field, reason):
@@ -113,8 +143,17 @@ class RuleIdentityTests(unittest.TestCase):
             self.assertEqual(updated['cases'][0]['rule_status'], 'provisional')
             self.assertEqual(len(updated['cases'][0]['active_rule_decisions']), 2)
             historical = copy.deepcopy(updated['cases'][0]['rule_decisions'])
-            result = confirm(prepare_feedback(updated, 'chat', actual_reply='SIMULATED title only', changes=[
-                dict(collection='cases', id='EDIT', path=['title'], value='Corrected title')]))['batch']
+            pending = prepare_feedback(updated, 'chat', actual_reply='SIMULATED title only; validation remains provisional', changes=[
+                dict(collection='cases', id='EDIT', path=['title'], value='Corrected title')])
+            # Explicitly retain the unresolved validation when answering its
+            # known rule question, rather than blanket-confirming every rule.
+            replies = [dict(question_id=q['id'], decision='provisional' if q['reason'] == 'SIMULATED SAVE-VALIDATION' else 'formal',
+                actual_reply='SIMULATED validation remains provisional' if q['reason'] == 'SIMULATED SAVE-VALIDATION' else 'SIMULATED formal',
+                **({'product_check': 'SIMULATED confirm SAVE-VALIDATION'} if q['reason'] == 'SIMULATED SAVE-VALIDATION' else {}))
+                for q in pending['grill']['round_questions']]
+            pending['grill'] = summarize(respond(pending['grill'], replies))
+            result = apply_feedback(pending, dict(confirmed=True, actual_reply='SIMULATED agree title and retained condition',
+                summary_id=pending['grill']['summary']['id']))['batch']
             self.assertEqual(result['cases'][0]['rule_status'], 'provisional')
             self.assertEqual(result['cases'][0]['rule_decisions'], historical)
             self.assertIn('confirm SAVE-VALIDATION', str(result['cases'][0]['active_rule_decisions']))

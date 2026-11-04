@@ -241,6 +241,8 @@ def prepare_feedback(batch, channel, *, actual_reply, changes=None, markdown=Non
             k: v for k, v in doubt.items() if k not in ('history', 'stale')}))
         q = _question('existing-' + origin, doubt['case_id'], doubt['field'], doubt['reason'], [])
         q['feedback_origin'] = origin
+        if doubt.get('rule_id'):
+            q['rule_id'] = doubt['rule_id']
         questions.append(q)
     return {'batch': copy.deepcopy(batch), 'channel': channel, 'actual_reply': actual_reply,
             'base_version': batch['content_version'], 'changes': normalized, 'deletions': deletions,
