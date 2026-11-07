@@ -1,6 +1,6 @@
 # #88 implementation verification before independent GREEN
 
-Baseline is accepted #87 `2a3ef95a5c9f5692a077d211fd069eb58f9d1d82`. Final runtime identity will be recorded separately after the local freeze commit. This record contains actual source/static checks and preserved pre-edit behavioral evidence, with no GREEN or twelve-AC pass prefilled.
+Baseline is accepted #87 `2a3ef95a5c9f5692a077d211fd069eb58f9d1d82`. Runtime is frozen at `12d99db3699c0996910adf3c6085b70dbb0ba2ee`, with physical identities in `source-freeze.json`. This record contains actual source/static checks and preserved pre-edit behavioral evidence, with no GREEN or twelve-AC pass prefilled.
 
 ## Source and focused static checks
 
@@ -12,6 +12,7 @@ Baseline is accepted #87 `2a3ef95a5c9f5692a077d211fd069eb58f9d1d82`. Final runti
 | Runtime and active-material whitespace | `git diff --cached --check` restricted to the runtime and changed/new active test materials exited0. Actual returned chunk `494ec3` reports `runtime_active_whitespace_exit=0`. |
 | Protected source/history | Cached comparison to baseline across `.agents`, `skill-packages`, `tools`, reader/scripts and prior #80–#87 evidence exited0. Same returned chunk reports `protected_diff_exit=0`. |
 | Cross-material semantic source review | `source-review.md` accounts for the entry/all eighteen references, seven schemes, examples, explanation template and affected active criteria. This is contract analysis, not behavioral execution. |
+| Physical freeze readback | Actual source-freeze manifest includes21 runtime files,63 active request/rubric/fixture files,2 external ordinary inputs and13 preserved RED files. A subsequent independent read-only loop recomputed all99 file sizes/hashes with0 mismatch, actual returned chunk `b53839`. Original worker87 accurate v3 still has SHA256 `356e09ffad2a773369bc8eec40821c4685dfa5faf4d38665ffd6846d66e334bf`. |
 
 ## Preserved full staged whitespace failure
 
@@ -29,6 +30,8 @@ evidence/optimization/88/red/round-04-input.md:12: new blank line at EOF.
 ```
 
 These are actual frozen RED outputs and inputs. Root explicitly instructed retaining their bytes and reporting this evidence-format limit separately from scoped product/active-material checks. No trailing blank line was removed and no existing assertion was changed. Full staged whitespace remains failed. The subsequent local commit may preserve evidence containing these lines without calling that full check passed. LF→CRLF checkout warnings are a separate materialization concern, not these EOF diagnostics.
+
+The exact existing `review-failures.ps1` was rerun after new incident17 because the automatic generic capture dedupe key is chronic. It exited0, reporting17 incidents,1 chronic key,7 initially uncategorized records and0 promotion candidates. The new incident's concrete cause is the preserved EOF evidence above. The generic automatic pre-diagnosis key does not imply the prior different failures share this cause. Taskroot raw incidents remain original, and the task-local governance summary was refreshed.
 
 ## Actual pre-edit behavior and remaining validation
 

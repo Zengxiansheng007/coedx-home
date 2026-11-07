@@ -1,0 +1,509 @@
+{
+  "schemaVersion": "1.0",
+  "runtimeFreezeCommit": "12d99db3699c0996910adf3c6085b70dbb0ba2ee",
+  "baseline": "2a3ef95a5c9f5692a077d211fd069eb58f9d1d82",
+  "byteIdentity": "Physical worker88 bytes, no normalization",
+  "runtime": [
+    {
+      "path": "skills/test-point-discovery/agents/openai.yaml",
+      "bytes": 347,
+      "sha256": "e825b3e4c5a0be805eff0e5f040fff3de663dadeeeb48f03c03206fe149e3666"
+    },
+    {
+      "path": "skills/test-point-discovery/references/async-exchange.md",
+      "bytes": 4988,
+      "sha256": "f095afb2e6c1e4c837a2765418ddee5e616c491cc3ef5375caedc00e6dba7c31"
+    },
+    {
+      "path": "skills/test-point-discovery/references/dashboard-intake.md",
+      "bytes": 4830,
+      "sha256": "a604b2d3e0a5c679277105ee0e424bf297e5be9d3288c7d90217d7fe631a17e0"
+    },
+    {
+      "path": "skills/test-point-discovery/references/feedback-review.md",
+      "bytes": 7389,
+      "sha256": "305041c26267062f5063a0ef7c9c7ca62d1c091fa89125450162744386d2865a"
+    },
+    {
+      "path": "skills/test-point-discovery/references/information-maintenance.md",
+      "bytes": 4084,
+      "sha256": "fd3563b13eebdead8d913fbd70ad81c3bb6690b02dd12b6593fd83ffa22b8f41"
+    },
+    {
+      "path": "skills/test-point-discovery/references/method-boundary-values.md",
+      "bytes": 1794,
+      "sha256": "f88fd40e93df2f72ee6ca48c9c031c16acbad13e7e7b535c554e7513c23ea59b"
+    },
+    {
+      "path": "skills/test-point-discovery/references/method-decision-tables.md",
+      "bytes": 1673,
+      "sha256": "a024d3e66877d449f1f04362ff670f98d14740ce70a091cec2f313a6483b4fd5"
+    },
+    {
+      "path": "skills/test-point-discovery/references/method-equivalence-partitioning.md",
+      "bytes": 1640,
+      "sha256": "9bd757f74fed666b765b33deb91ff9893aa9e63e4d3e3faa9fb54c658421d63f"
+    },
+    {
+      "path": "skills/test-point-discovery/references/method-error-guessing-checklist.md",
+      "bytes": 3296,
+      "sha256": "63efd53814ec161bd2894b44e0e773bcd976d7bc36a805c0747afe559d86d36f"
+    },
+    {
+      "path": "skills/test-point-discovery/references/method-state-transition.md",
+      "bytes": 1938,
+      "sha256": "f207c6d7f056e34b1cb09ae55ca0f20b91a9c1806ce616a41bd8122d429c2452"
+    },
+    {
+      "path": "skills/test-point-discovery/references/module-clarification.md",
+      "bytes": 13244,
+      "sha256": "1008a495de1c80f77982ef53565e1abb743095a3487902b100bc64263ec0a2a9"
+    },
+    {
+      "path": "skills/test-point-discovery/references/planning-confirmation.md",
+      "bytes": 4246,
+      "sha256": "1787476b6078a12ffcd82129df0b56ce622a1350f013fdb5f0d0882ade370e3c"
+    },
+    {
+      "path": "skills/test-point-discovery/references/review-and-progress.md",
+      "bytes": 7407,
+      "sha256": "7567d57c3a0a1a22690882f8c90699ca0a758cd24d6e430f5d6f2c96459abaae"
+    },
+    {
+      "path": "skills/test-point-discovery/references/roles-entitlements.md",
+      "bytes": 6425,
+      "sha256": "b31062cd622acba74cdc1521aed25973af82803547db43a842233866c00a8522"
+    },
+    {
+      "path": "skills/test-point-discovery/references/rule-calculation.md",
+      "bytes": 2919,
+      "sha256": "1936a2d844001256310e5e44de1a403e382bd50354f927970f1129b9bc5a2fc4"
+    },
+    {
+      "path": "skills/test-point-discovery/references/single-file-handoff.md",
+      "bytes": 5348,
+      "sha256": "6dfbefddecf3c5a77c58b77b436d4958b0f0231247dabe6a41e4494a9d9c01a5"
+    },
+    {
+      "path": "skills/test-point-discovery/references/workflow-lifecycle.md",
+      "bytes": 5256,
+      "sha256": "fa4b0384392fb0f6235aba699698c5d9893a85327fa9501215ade55c95d0f4cf"
+    },
+    {
+      "path": "skills/test-point-discovery/references/writing-review.md",
+      "bytes": 13387,
+      "sha256": "06ee4c5272e194533d76cd72d6dd74ba6d58fa0f9d0174136c4212dd4147bfdf"
+    },
+    {
+      "path": "skills/test-point-discovery/references/xmind-feedback.md",
+      "bytes": 4219,
+      "sha256": "4de753f1f7a6d9a6108146f2253f4d4c3588edc6f1e082f757991811c2b3b319"
+    },
+    {
+      "path": "skills/test-point-discovery/scripts/read_xmind.py",
+      "bytes": 4040,
+      "sha256": "7ed1bf32a931f08b4e93dbab51f302b501c46dcc43a43cf93e5bad4487d0e254"
+    },
+    {
+      "path": "skills/test-point-discovery/SKILL.md",
+      "bytes": 17182,
+      "sha256": "1af0ebdaa30694af656534cdcb6c0a985ac895303e8e8172bfb92814add08b22"
+    }
+  ],
+  "activeAcceptanceMaterials": [
+    {
+      "path": "tests/test-point-discovery/async-request.md",
+      "bytes": 1239,
+      "sha256": "f18bff6058e5e80d063e5d5239324501912fddd1df4151b24fe32a690b813ba1"
+    },
+    {
+      "path": "tests/test-point-discovery/clarification-r2-request.md",
+      "bytes": 1863,
+      "sha256": "b84fbc13439aa4bdf4264c8ec4043401cee2f111450676098903efba0e155908"
+    },
+    {
+      "path": "tests/test-point-discovery/clarification-requests.md",
+      "bytes": 1409,
+      "sha256": "e049f1d132d1ea2ef3277e62e64b74e2ca6638e55610bd7b36679872891c7b0d"
+    },
+    {
+      "path": "tests/test-point-discovery/clarification-rubric.md",
+      "bytes": 3078,
+      "sha256": "c5a7150f652181d52b4f910f88d52ae199731ab200f3ec3a2e4f5429ac19f4b1"
+    },
+    {
+      "path": "tests/test-point-discovery/feedback-request.md",
+      "bytes": 1101,
+      "sha256": "3e491d0702a6656cedfbb18498c1106823910c12da86d4163b25beb1fecc6c5b"
+    },
+    {
+      "path": "tests/test-point-discovery/feedback-rubric.md",
+      "bytes": 1177,
+      "sha256": "c7e62547cad9e831366ac6e2a1da801b9305df56a06a99ebd2d0b1b7cbb14cfb"
+    },
+    {
+      "path": "tests/test-point-discovery/fixtures/async-notes.md",
+      "bytes": 350,
+      "sha256": "1ba579b43344aaa4a7b4e47a51e4bae6f81a30ff8ad440fc3f5ae70f681f099d"
+    },
+    {
+      "path": "tests/test-point-discovery/fixtures/async-prd.md",
+      "bytes": 876,
+      "sha256": "7a217f19a362195e83b871e53f856a4fa2c744da576c36804fa063df0c5b0b42"
+    },
+    {
+      "path": "tests/test-point-discovery/fixtures/clarification-continuation.md",
+      "bytes": 1253,
+      "sha256": "c4fd725595fec78b1905ee3ceb30d52d0042e2b95f7289958262bbbfd3e5db22"
+    },
+    {
+      "path": "tests/test-point-discovery/fixtures/clarification-notes.md",
+      "bytes": 1075,
+      "sha256": "5831158696dfb913193d04ad75983441e1566cd4c7b7687fb4a38f7759c14cd9"
+    },
+    {
+      "path": "tests/test-point-discovery/fixtures/clarification-prd.md",
+      "bytes": 745,
+      "sha256": "41cd6f1444ea1e43a6ddf657a422b5eb5c2e0e31341a979ae623fd4ad59ad6bb"
+    },
+    {
+      "path": "tests/test-point-discovery/fixtures/dashboard-prd.md",
+      "bytes": 1220,
+      "sha256": "a911160fbcea7c2095c1beb1c56e6caa6b0db4a40ee209127f9f4fce49dc5308"
+    },
+    {
+      "path": "tests/test-point-discovery/fixtures/handoff-notes.md",
+      "bytes": 575,
+      "sha256": "6d2ca863628c8b47e51a8efcfc5c63232be7be9115e169755e1cbd2a58d71963"
+    },
+    {
+      "path": "tests/test-point-discovery/fixtures/handoff-prd.md",
+      "bytes": 829,
+      "sha256": "fcc02951746e1dfd8dc97ce127c3b5a58c81ae43e4703dcd9457d1621f58fed1"
+    },
+    {
+      "path": "tests/test-point-discovery/fixtures/lifecycle-prd.md",
+      "bytes": 310,
+      "sha256": "76e6931d44f131c0320fc69de8647248bd76bce2cc0f512ad39fc2aa4bb60fa3"
+    },
+    {
+      "path": "tests/test-point-discovery/fixtures/maintenance-calculation-prd.md",
+      "bytes": 1312,
+      "sha256": "de372fc849a109cfd8f96d67ce869074d03923b0aab385a50aa64c99307e64c8"
+    },
+    {
+      "path": "tests/test-point-discovery/fixtures/optimization-80-input.md",
+      "bytes": 2152,
+      "sha256": "291cef3a6b87680be88ac6e1326826c23b2791a3b0005363447fdb1809610c32"
+    },
+    {
+      "path": "tests/test-point-discovery/fixtures/optimization-82-dashboard.md",
+      "bytes": 1083,
+      "sha256": "64ba798878e4cf4f3a5a258632e945f5824f0d4a024005fad886c0720068a661"
+    },
+    {
+      "path": "tests/test-point-discovery/fixtures/optimization-82-form.md",
+      "bytes": 2440,
+      "sha256": "924c1036ea79a5cedc0274074952e47cbc050a99b4747d9e32af7f9989f686a1"
+    },
+    {
+      "path": "tests/test-point-discovery/fixtures/optimization-82-roles.md",
+      "bytes": 1114,
+      "sha256": "b8318b37bfb95f0a19f8b72eaa05cde8e547f074b0227f213e7cb2a4d27016f9"
+    },
+    {
+      "path": "tests/test-point-discovery/fixtures/optimization-83-input.md",
+      "bytes": 2575,
+      "sha256": "444710431f7faf7cef61b3da08d888fc59e7f7b2bb71b44aab0ea7f6091c019f"
+    },
+    {
+      "path": "tests/test-point-discovery/fixtures/optimization-84-input.md",
+      "bytes": 1539,
+      "sha256": "b4744b27cba8de70a67d6b6844a85900e52d81c5f595f722ef527e3656b41cfe"
+    },
+    {
+      "path": "tests/test-point-discovery/fixtures/optimization-85-input.md",
+      "bytes": 1550,
+      "sha256": "afe53e76426ae56f6b04509ac3bfb40e8ddb7d0e782235b8789b6408e78b1904"
+    },
+    {
+      "path": "tests/test-point-discovery/fixtures/optimization-86-form.md",
+      "bytes": 1220,
+      "sha256": "00f3304cf5574e18e81ceab0f0066ad62f21fcf2679e52a4642fa24836019982"
+    },
+    {
+      "path": "tests/test-point-discovery/fixtures/optimization-87-labels.md",
+      "bytes": 1347,
+      "sha256": "a8e2cc918b8bcdde75447a694544f8837dfcc3d779e1f966d9fd6bef8fc48762"
+    },
+    {
+      "path": "tests/test-point-discovery/fixtures/procurement-notes.md",
+      "bytes": 347,
+      "sha256": "fcf28e79865d22651a43e91031c9074d9514174175ad6a77f36d719b195eb0be"
+    },
+    {
+      "path": "tests/test-point-discovery/fixtures/procurement-prd.md",
+      "bytes": 496,
+      "sha256": "a978cb4795851e6f61a445db317ff42710ac51f0d184b5609c4f9294b5090904"
+    },
+    {
+      "path": "tests/test-point-discovery/fixtures/readability-input.md",
+      "bytes": 1892,
+      "sha256": "042fb5d417e65dad063abbdc6745f2f0b51e4e85e3d7059b1d7da6cc3002ff3c"
+    },
+    {
+      "path": "tests/test-point-discovery/fixtures/roles-notes.md",
+      "bytes": 629,
+      "sha256": "d6e76fe289ed9145fd444c2054b0fe9360201868985f026bcafde8d6b2ebdfcb"
+    },
+    {
+      "path": "tests/test-point-discovery/fixtures/roles-prd.md",
+      "bytes": 695,
+      "sha256": "57ddf06170cb065bc3f5a18dd0c3cbf61b509acdd847951e006a07ab18761494"
+    },
+    {
+      "path": "tests/test-point-discovery/fixtures/two-chart-writing.md",
+      "bytes": 1167,
+      "sha256": "b5e390475b66df5dbdda3131c5ce809d31ba25aa06f5701fb1034f45aaddf186"
+    },
+    {
+      "path": "tests/test-point-discovery/fixtures/user-notes.md",
+      "bytes": 561,
+      "sha256": "f94a4ee2b7c280f6cb97b8dd216263d35f610432650c0509ed7ae3acb6c43cf7"
+    },
+    {
+      "path": "tests/test-point-discovery/handoff-request.md",
+      "bytes": 719,
+      "sha256": "7d8f4974c3c8608386b8448ae7daab89a2edf9baec8f90016f989a8e4abb3854"
+    },
+    {
+      "path": "tests/test-point-discovery/handoff-rubric.md",
+      "bytes": 1535,
+      "sha256": "0de8464f2f6b62ed3e62a0a8eb9f40522375e3e22457adbcb5f4798636c5d7d9"
+    },
+    {
+      "path": "tests/test-point-discovery/maintenance-calculation-request.md",
+      "bytes": 1346,
+      "sha256": "755c62a709230967c2e24d3b7c6110fc39161a70c88945a1baf0aefe949e2762"
+    },
+    {
+      "path": "tests/test-point-discovery/optimization-80-request.md",
+      "bytes": 508,
+      "sha256": "a64a7db9ebec9ad572652c1946b48fbfae0661171d22e9da8690f8b6de329a51"
+    },
+    {
+      "path": "tests/test-point-discovery/optimization-80-rubric.md",
+      "bytes": 2382,
+      "sha256": "8451079247b4bdc4a380f79d8851fd8b6d394a1d9250f6c184507867a965d113"
+    },
+    {
+      "path": "tests/test-point-discovery/optimization-82-dashboard-request.md",
+      "bytes": 523,
+      "sha256": "42a323d84ce5de19282033e291cfdc9d12309c0fb0abe81a8f49b9e7004d0198"
+    },
+    {
+      "path": "tests/test-point-discovery/optimization-82-form-request.md",
+      "bytes": 807,
+      "sha256": "e017c76d3f482b58948518282c38a1be4ae9804daf38332ba5b34accf299bca6"
+    },
+    {
+      "path": "tests/test-point-discovery/optimization-82-roles-request.md",
+      "bytes": 543,
+      "sha256": "730b4f318f7f5fe96e18f437c24be378442984524b26139263719f4b371a3d5d"
+    },
+    {
+      "path": "tests/test-point-discovery/optimization-82-rubric.md",
+      "bytes": 4126,
+      "sha256": "68a8b1a1e7209cf196b9a53f82a4facacd42b1b1737e66c8b4e776f3ee779be6"
+    },
+    {
+      "path": "tests/test-point-discovery/optimization-83-request.md",
+      "bytes": 452,
+      "sha256": "fa14a48d8d7ba08cfa8aba38c3ca30c1e63a284a2d2a686e9e0333cb2caa498c"
+    },
+    {
+      "path": "tests/test-point-discovery/optimization-83-rubric.md",
+      "bytes": 2954,
+      "sha256": "8db5deb2d76bb46557155e55ed8af6f875d508a3fbabb4ef16b1dc621644b813"
+    },
+    {
+      "path": "tests/test-point-discovery/optimization-84-request.md",
+      "bytes": 798,
+      "sha256": "671965612d7e82acaca80d5a70d8f662c438a62d858767356e81cab8be3e21a4"
+    },
+    {
+      "path": "tests/test-point-discovery/optimization-84-rubric.md",
+      "bytes": 1450,
+      "sha256": "58f33f6bd543aa891aef2f39fcb9ea7310113ddd8b6c94c346c1e2f01390f747"
+    },
+    {
+      "path": "tests/test-point-discovery/optimization-85-request.md",
+      "bytes": 456,
+      "sha256": "d59599f7b85eb24bf18bd6018c4f05f2b0df16f4f7d5c76766cc9c9957184a83"
+    },
+    {
+      "path": "tests/test-point-discovery/optimization-85-rubric.md",
+      "bytes": 1698,
+      "sha256": "771f6113bee0f877c068cb7da703e420986babdc2e5f1ee0d01d5f8d4126e09c"
+    },
+    {
+      "path": "tests/test-point-discovery/optimization-86-request.md",
+      "bytes": 535,
+      "sha256": "db73b8f1a6fa70ea781899017220c1208ed499bb64ca28dadd040cc306130ad5"
+    },
+    {
+      "path": "tests/test-point-discovery/optimization-86-rubric.md",
+      "bytes": 3460,
+      "sha256": "c6fe6269155e1f2362603acb6e45d7965e6c1b0f425334f715f3c75d78c6a2f6"
+    },
+    {
+      "path": "tests/test-point-discovery/optimization-87-request.md",
+      "bytes": 702,
+      "sha256": "29e0994b4be37617c7fac321ef8b7d2783edc43f7b16f9dcf9cecff21c663385"
+    },
+    {
+      "path": "tests/test-point-discovery/optimization-87-rubric.md",
+      "bytes": 2516,
+      "sha256": "6ed8ef10c826fd38815cd672a6b919633be40ed310376bdfba6596d90fe727c4"
+    },
+    {
+      "path": "tests/test-point-discovery/optimization-88-request.md",
+      "bytes": 703,
+      "sha256": "ec6b2cfc5370d7512c9cdd38b71c29c22c4c34822d717bef4d2f2fa3a1e711a9"
+    },
+    {
+      "path": "tests/test-point-discovery/optimization-88-rubric.md",
+      "bytes": 4168,
+      "sha256": "57f5c55ed6074de40c1191fd6b08c6dd2937b0faaa41c4b59b69b1409563456c"
+    },
+    {
+      "path": "tests/test-point-discovery/progress-request.md",
+      "bytes": 1061,
+      "sha256": "658a49483603321c631a8514d7b8c04d54cff7f2c2440397917d01222e96e3bd"
+    },
+    {
+      "path": "tests/test-point-discovery/readability-request.md",
+      "bytes": 761,
+      "sha256": "ae5130831da5aad06b7be8a1087e8868ddaf5bda379884213a23ab0d8614e7c2"
+    },
+    {
+      "path": "tests/test-point-discovery/requests.md",
+      "bytes": 3121,
+      "sha256": "12d9eb0253f7a644295d7ad747f2213b3583a6fd76cbfc801b1579560bdc3245"
+    },
+    {
+      "path": "tests/test-point-discovery/roles-request.md",
+      "bytes": 1115,
+      "sha256": "935590ccc4cbc6b045e1fcaeb1c26655addfec1a6226c01de0d04e8cdb2b5238"
+    },
+    {
+      "path": "tests/test-point-discovery/roles-rubric.md",
+      "bytes": 1557,
+      "sha256": "8486b423862f4c6ec73a58b9b5a08c222b5b1be1a5f88f4a8d9d2c409825f652"
+    },
+    {
+      "path": "tests/test-point-discovery/rubric.md",
+      "bytes": 5060,
+      "sha256": "e7d213bd1a8c535f26b113f28de6cd2e1147be7bb4beece4637f324457fe8119"
+    },
+    {
+      "path": "tests/test-point-discovery/workflow-lifecycle-request.md",
+      "bytes": 764,
+      "sha256": "7d951c9dcfab6bd4abae31c0fb7316a165712960be63ea01ddde573e5c9d18d3"
+    },
+    {
+      "path": "tests/test-point-discovery/workflow-lifecycle-rubric.md",
+      "bytes": 1583,
+      "sha256": "825a8f0d1e15738e313c7e1b05cf176fe2a50aea71d73824464545a76bb63e7f"
+    },
+    {
+      "path": "tests/test-point-discovery/writing-request.md",
+      "bytes": 1373,
+      "sha256": "c20ffa301fec049903df239679803cffa55acc01709ac4113674a79ec921809a"
+    },
+    {
+      "path": "tests/test-point-discovery/xmind-request.md",
+      "bytes": 1948,
+      "sha256": "c39b0c71f2bca6227f54d71bb92fc3e3d1d4c5ab3d7ec35437d753c3addfbff2"
+    }
+  ],
+  "externalControllerInputs": [
+    {
+      "path": "inputs/final-shared-fields.md",
+      "bytes": 2618,
+      "sha256": "341abc712067fb6c623d1218b9f689cc58212fc7e52980c4868c9a6e19473473"
+    },
+    {
+      "path": "inputs/final-shared-request.md",
+      "bytes": 630,
+      "sha256": "08f65c5d02e383b2b9baac26e5f8d7feb01e62352c998a120e7fc7c339fd3e79"
+    }
+  ],
+  "preservedRed": [
+    {
+      "path": "evidence/optimization/88/red/accurate.md",
+      "bytes": 13426,
+      "sha256": "9a451becbace66a429f4c5a24f934b63758068457bf8c6392d017f56e7cdc7c1"
+    },
+    {
+      "path": "evidence/optimization/88/red/business-feedback-input.md",
+      "bytes": 456,
+      "sha256": "13c261590ea6c7df9bd25a0f091ca090a970e6ce5a42f9912bb67be3ebba637c"
+    },
+    {
+      "path": "evidence/optimization/88/red/process.md",
+      "bytes": 13427,
+      "sha256": "d2eb60f667a0cf0dbef632176d0189871ef998a6a7e87e39d6169ce73f9cbc03"
+    },
+    {
+      "path": "evidence/optimization/88/red/request.md",
+      "bytes": 1176,
+      "sha256": "a83f036e65d866cfe97d29dc19f130730ea7953ef6de07844b729cca4a6f0ca4"
+    },
+    {
+      "path": "evidence/optimization/88/red/round-01-display.md",
+      "bytes": 4680,
+      "sha256": "76782901e57789eeacda44b4c9184dadd6e5973e35eaaae4a40555a12e793af5"
+    },
+    {
+      "path": "evidence/optimization/88/red/round-01-input.md",
+      "bytes": 1272,
+      "sha256": "3808b29d954d3c561daa782fa13344e439e2a4ecb7e8ef77e701c97ac46e20f7"
+    },
+    {
+      "path": "evidence/optimization/88/red/round-02-display.md",
+      "bytes": 1314,
+      "sha256": "7b3e2f17c5615aca3eb70ec0e7a70a2030bbaf75d01db157166661004d87eab2"
+    },
+    {
+      "path": "evidence/optimization/88/red/round-02-input.md",
+      "bytes": 683,
+      "sha256": "cb80fc2a39a328331d5dca43262ab5cfe3025811cf2b8a7c33e6161a38327fe8"
+    },
+    {
+      "path": "evidence/optimization/88/red/round-03-display.md",
+      "bytes": 3533,
+      "sha256": "640b75ba7dc0674d61ae9f30674522e2ff2b73e272bca0f836ebec17cf7cec73"
+    },
+    {
+      "path": "evidence/optimization/88/red/round-03-input.md",
+      "bytes": 1010,
+      "sha256": "f859c296000c2b47c3f573c70d0527aa60cc32fc9424f492e070072c6029bddd"
+    },
+    {
+      "path": "evidence/optimization/88/red/round-04-display.md",
+      "bytes": 4074,
+      "sha256": "e65d93a5adacc8fb5777ddc6052251ae8e3d808bc96bfc67889dbb308993feb1"
+    },
+    {
+      "path": "evidence/optimization/88/red/round-04-input.md",
+      "bytes": 974,
+      "sha256": "93ff100907a04a14013ef4071bad20d9be22e40db39d677cda6a979033a14805"
+    },
+    {
+      "path": "evidence/optimization/88/red/technical-feedback-input.md",
+      "bytes": 347,
+      "sha256": "0aeb2578bc2d60dd75144d6cb16b41e99a8b93472ae232f8e2ea69448a4eb2be"
+    }
+  ]
+}

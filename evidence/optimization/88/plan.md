@@ -2,7 +2,7 @@
 
 ## Current stage and baseline
 
-Implementation on 2026-11-07 after Root ended the actual four-round RED. The source changes below are ready for freeze and fresh independent GREEN. Final semantic acceptance and client work remain pending.
+Implementation on 2026-11-07 after Root ended the actual four-round RED. Source is frozen at `12d99db3699c0996910adf3c6085b70dbb0ba2ee`, with exact physical identities in `source-freeze.json` and scope in `source-freeze.md`. Fresh independent GREEN, final semantic acceptance and client work remain pending.
 
 Worker is `C:/Users/lenovo/Documents/ChatGPT/ui-test/work/test-point-discovery-optimization-20261107/workers/88`, branch `codex/tpd-opt-88`. Read-only Git inspection found a clean tree at `3cae1a783ddf43a0106d7ba6dc5e1072651693be`. Git resolves to `C:/Program Files/Git/cmd/git.exe`, version `2.55.0.windows.5`, in this session. Tooling paths are verified current observations, not assumptions from AGENTS.md.
 
@@ -24,13 +24,13 @@ At dependency recheck the downstream technical/business wording gap remained in 
 
 The accepted seam is the real natural-language Skill entry, visible replies and actual files under separately sent simulated follow-ups. No semantic keyword checker or new framework is planned. Analysis of text is recorded separately from actual entry behavior.
 
-## Existing behavior and pending RED
+## Initial source assessment and RED transition
 
-The current single-file handoff reference already requires source-to-branch mapping, actual decisions, unresolved dependencies, default sharing, explicit user handoff choice, reference recovery and P0/manual-start boundaries. These working requirements should be reused. It does not explicitly express the design's technical-feedback versus business-rule/scope/expectation split in its downstream explanation. This is a source-contract gap, with runtime behavior still untested in #88.
+The pre-edit single-file handoff reference already required source-to-branch mapping, actual decisions, unresolved dependencies, default sharing, explicit user handoff choice, reference recovery and P0/manual-start boundaries. These working requirements are reused. Its downstream explanation lacked the design's explicit technical-feedback versus business-rule/scope/expectation split. That was the initial source-contract finding before actual RED.
 
 Earlier #85 `evidence/optimization/85/green/candidate-v3.md` actually names `input.md` in its explanation. That short location is not a sufficient independent handoff reference to the fixture used by that run. Preserve that candidate and its real history. The #88 test must open the final MD's actual referenced locations and cannot silently substitute an unreferenced sources/manifest record. Whether product text needs an additional edit will be decided after the merged contract and new observed behavior are checked.
 
-No #88 runtime failure or passing result is asserted yet. Root will dispatch an isolated entry actor with only an ordinary request and the actual input. Save that observed RED or existing-correct behavior before source edits. A correct behavior is retained as such, not relabelled as a failure.
+Root subsequently dispatched an isolated actor with the ordinary request and real sources. The four-round RED below establishes the technical-routing failure and the existing correct handoff/business-conflict behavior. A correct behavior is retained as such, not relabelled as a failure. No final-runtime GREEN or whole-spec pass is asserted.
 
 ## Intended write set after #87 recheck
 

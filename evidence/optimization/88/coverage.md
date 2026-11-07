@@ -1,6 +1,6 @@
 # #88 dynamic whole-spec coverage
 
-Updated after Root's actual four-round RED and the associated source implementation. This is a pending-evidence tracker, not a passing-result projection. Final runtime is not frozen yet. Pre-edit runtime is `2a3ef95a5c9f5692a077d211fd069eb58f9d1d82`. Final-runtime entry, receiver and client execution remain pending.
+Updated after Root's actual four-round RED and the associated source freeze at `12d99db3699c0996910adf3c6085b70dbb0ba2ee`. This is a pending-evidence tracker, not a passing-result projection. Pre-edit runtime is `2a3ef95a5c9f5692a077d211fd069eb58f9d1d82`. Final-runtime entry, receiver and client execution remain pending. Exact physical identities are in `source-freeze.json` and the scope explanation in `source-freeze.md`.
 
 | Acceptance | Final-runtime status | Required actual evidence | Present evidence boundary |
 | --- | --- | --- | --- |
@@ -20,13 +20,15 @@ Updated after Root's actual four-round RED and the associated source implementat
 | Evidence layer | Current status |
 | --- | --- |
 | #88 pre-edit handoff/feedback RED | Actual rounds1–2 correct recovery/handoff, round3 fails by adding a business-review gate for pure technical mapping, round4 correctly asks Q010 for the business conflict and keeps accurate v4 |
-| Final-runtime source/static consistency | Six-document fix and seven-scheme source review complete, affected format valid and80 local runtime references resolve, final identity pending freeze |
+| Final-runtime source/static consistency | Six-document fix and seven-scheme source review complete, affected format valid and80 local runtime references resolve, frozen21 runtime/63 active materials/2 external inputs/13 RED files all99 physical records rechecked with0 mismatch |
 | Final-runtime semantic simulation | Pending |
 | Supported native reader | Prior3/3 and synthetic-file results retain their original scope |
 | Real XMind client import/edit/return | Availability only, no final affected-MD run yet |
 | Final single-MD receiver | Pending actual handoff choice and latest-MD artifact |
 | Repository aggregate | Root owns the later seven-stage check |
 | Real business acceptance | Outside authorization |
+
+Full staged whitespace remains failed for six frozen RED EOF blank lines. Runtime/active-material whitespace and protected-history comparisons separately exit0. See `verification.md` for the retained diagnostic and Root's explicit preservation decision.
 
 The detailed independent rubric is `preparation/final-rubric.md`. Main and receiver actors receive ordinary requests and input only. Any final result must identify the actual runtime and exact turns/files, preserve failed attempts and distinguish reused historical dependencies from newly executed behavior.
 
