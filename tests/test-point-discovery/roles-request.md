@@ -1,6 +1,6 @@
 # #73 公开入口请求（模拟开发验证）
 
-从 skills/test-point-discovery/SKILL.md 实际入口读 fixtures/roles-prd.md 和 roles-notes.md，以P-R1规划接续，先提必要问题，再写购买测试点。授权在roles-run/写本轮展示及唯一accurate.md。模拟答复可逐轮自动执行，必须标明身份、展示版本、答复原文及范围，未回答保留问题，不填业务批准。
+从 skills/test-point-discovery/SKILL.md 实际入口读 fixtures/roles-prd.md 和 roles-notes.md，以P-R1规划接续，先提必要问题，再写购买测试点。授权在主持方指定的本轮新输出目录保存展示及唯一accurate.md，保留旧roles-run证据。模拟答复由主持方逐轮实际发送，执行者等待回答，标明身份、展示版本、原文与范围，未回答继续保留，不自行填业务答案或批准。
 
 具体测试点评审后，产品反馈VIP新单单价90元，普通价不变，生效和旧订单仍未定；请处理完整影响与重审，评审后更新原MD。另用独立角色端小样例核对目录建议未答/拒绝/同意，不能一次预填成功轨迹。局部差异和多角色接力只验证组织判断，不虚构完整流程已验收。
 

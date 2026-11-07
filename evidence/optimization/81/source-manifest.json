@@ -1,0 +1,101 @@
+{
+  "baseline": "82c3ae0bba575a15340e0d1f914d89b9a404fea4",
+  "identity": "physical working-tree bytes, not Git blob hashes",
+  "files": [
+    {
+      "path": "skills/test-point-discovery/references/async-exchange.md",
+      "sha256": "99c269f064a3f6bca60527835eec4fffd364383274a14f962dbc6c48bbcf98f2",
+      "bytes": 4444
+    },
+    {
+      "path": "skills/test-point-discovery/references/dashboard-intake.md",
+      "sha256": "a604b2d3e0a5c679277105ee0e424bf297e5be9d3288c7d90217d7fe631a17e0",
+      "bytes": 4830
+    },
+    {
+      "path": "skills/test-point-discovery/references/feedback-review.md",
+      "sha256": "90e6f80d4ee21b7352c9f9d87253456872c1020f2ac80d9fb9549bddf486208d",
+      "bytes": 4478
+    },
+    {
+      "path": "skills/test-point-discovery/references/information-maintenance.md",
+      "sha256": "343828e871d796ad70b689567899b2486562343815faab23e3fbfd430f7b7723",
+      "bytes": 2623
+    },
+    {
+      "path": "skills/test-point-discovery/references/method-boundary-values.md",
+      "sha256": "a1e51d0b5cd15907c2d8a08aa07f15ac21ffc0252f51c6bac8eb60a93101d489",
+      "bytes": 1549
+    },
+    {
+      "path": "skills/test-point-discovery/references/method-decision-tables.md",
+      "sha256": "a024d3e66877d449f1f04362ff670f98d14740ce70a091cec2f313a6483b4fd5",
+      "bytes": 1673
+    },
+    {
+      "path": "skills/test-point-discovery/references/method-equivalence-partitioning.md",
+      "sha256": "ccf594e6c98b0fbf4bb480e241ac8486193a7bf4b904d29f0f74de2c0975ab98",
+      "bytes": 1484
+    },
+    {
+      "path": "skills/test-point-discovery/references/method-error-guessing-checklist.md",
+      "sha256": "63efd53814ec161bd2894b44e0e773bcd976d7bc36a805c0747afe559d86d36f",
+      "bytes": 3296
+    },
+    {
+      "path": "skills/test-point-discovery/references/method-state-transition.md",
+      "sha256": "f207c6d7f056e34b1cb09ae55ca0f20b91a9c1806ce616a41bd8122d429c2452",
+      "bytes": 1938
+    },
+    {
+      "path": "skills/test-point-discovery/references/module-clarification.md",
+      "sha256": "ef9f9ba69dfb87d5267b1ea81c54799e85ca798652fac91f04a5b6e4578864d9",
+      "bytes": 9346
+    },
+    {
+      "path": "skills/test-point-discovery/references/planning-confirmation.md",
+      "sha256": "1787476b6078a12ffcd82129df0b56ce622a1350f013fdb5f0d0882ade370e3c",
+      "bytes": 4246
+    },
+    {
+      "path": "skills/test-point-discovery/references/review-and-progress.md",
+      "sha256": "d8c0c1de58a834d4e2fd6e4050091fc442ba961abbe8b7d81aeeea9cae31a155",
+      "bytes": 4338
+    },
+    {
+      "path": "skills/test-point-discovery/references/roles-entitlements.md",
+      "sha256": "6668b375a4d320276ab75cbb69952d2110073ba80c3d66374249eeef1429f9ff",
+      "bytes": 5916
+    },
+    {
+      "path": "skills/test-point-discovery/references/rule-calculation.md",
+      "sha256": "a7d9ee143ef0eb90e0175147ba9406e6dd46ed7e84891a30abcb43089b62a7c6",
+      "bytes": 2770
+    },
+    {
+      "path": "skills/test-point-discovery/references/single-file-handoff.md",
+      "sha256": "7b2398f7a7451ede73c69e26c8be7c531e84d8054c66eebf96756a782c126e60",
+      "bytes": 4773
+    },
+    {
+      "path": "skills/test-point-discovery/references/workflow-lifecycle.md",
+      "sha256": "bfc92f08e39249dc1d59bbc4c20b9b44e9dc8372915956e03fdd29e105664c57",
+      "bytes": 4600
+    },
+    {
+      "path": "skills/test-point-discovery/references/writing-review.md",
+      "sha256": "07e845c75d9c488d869cbac14ece5022838f1be45d725f58c0f1e5ce25eba314",
+      "bytes": 7150
+    },
+    {
+      "path": "skills/test-point-discovery/references/xmind-feedback.md",
+      "sha256": "10ca1ec90bf257089054a47186c5da2ff7e77b09ed22470c5e405644711648ab",
+      "bytes": 3852
+    },
+    {
+      "path": "skills/test-point-discovery/SKILL.md",
+      "sha256": "62c10b569e5fa0fc323fa9b4170e759be652e50c74f1e35257a241c5f87932be",
+      "bytes": 13358
+    }
+  ]
+}
