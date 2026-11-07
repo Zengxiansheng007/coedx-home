@@ -1,0 +1,251 @@
+{
+  "schemaVersion": "1.0",
+  "baseline": "ba9a7fcaf16ea792275ddb729f956d0d9bc2a651",
+  "byteIdentity": "Physical review-fix worker bytes, no normalization",
+  "changedActiveFiles": [
+    {
+      "path": "tests/test-point-discovery/writing-request.md",
+      "bytes": 1624,
+      "sha256": "9d5871ab3240db718446c8bd121dc46e69254e55fbe9d5d89c348e19a841f8a4"
+    }
+  ],
+  "preservedHistoricalFiles": [
+    {
+      "path": "tests/test-point-discovery/writing-demo.md",
+      "sha256": "75f3cf0e9160a4ec9f9e5ca84aff396dcee53c31b108de69a33ad6d7df1a3cbb"
+    },
+    {
+      "path": "tests/test-point-discovery/two-chart-writing-demo.md",
+      "sha256": "a06d6e5f3a0a3cbb48b82a64480144c9c0a18c2717b6bea758203e150ad85873"
+    },
+    {
+      "path": "evidence/optimization/88/source-freeze.json",
+      "sha256": "d6137786fdda615ddcd471bfb9d99c03cd9abc01678bd06c60f7ebbbe2d2f891"
+    }
+  ],
+  "runtimeFiles": [
+    {
+      "path": "skills/test-point-discovery/agents/openai.yaml",
+      "bytes": 347,
+      "sha256": "e825b3e4c5a0be805eff0e5f040fff3de663dadeeeb48f03c03206fe149e3666"
+    },
+    {
+      "path": "skills/test-point-discovery/references/async-exchange.md",
+      "bytes": 4988,
+      "sha256": "f095afb2e6c1e4c837a2765418ddee5e616c491cc3ef5375caedc00e6dba7c31"
+    },
+    {
+      "path": "skills/test-point-discovery/references/dashboard-intake.md",
+      "bytes": 4830,
+      "sha256": "a604b2d3e0a5c679277105ee0e424bf297e5be9d3288c7d90217d7fe631a17e0"
+    },
+    {
+      "path": "skills/test-point-discovery/references/feedback-review.md",
+      "bytes": 7389,
+      "sha256": "305041c26267062f5063a0ef7c9c7ca62d1c091fa89125450162744386d2865a"
+    },
+    {
+      "path": "skills/test-point-discovery/references/information-maintenance.md",
+      "bytes": 4084,
+      "sha256": "fd3563b13eebdead8d913fbd70ad81c3bb6690b02dd12b6593fd83ffa22b8f41"
+    },
+    {
+      "path": "skills/test-point-discovery/references/method-boundary-values.md",
+      "bytes": 1794,
+      "sha256": "f88fd40e93df2f72ee6ca48c9c031c16acbad13e7e7b535c554e7513c23ea59b"
+    },
+    {
+      "path": "skills/test-point-discovery/references/method-decision-tables.md",
+      "bytes": 1673,
+      "sha256": "a024d3e66877d449f1f04362ff670f98d14740ce70a091cec2f313a6483b4fd5"
+    },
+    {
+      "path": "skills/test-point-discovery/references/method-equivalence-partitioning.md",
+      "bytes": 1640,
+      "sha256": "9bd757f74fed666b765b33deb91ff9893aa9e63e4d3e3faa9fb54c658421d63f"
+    },
+    {
+      "path": "skills/test-point-discovery/references/method-error-guessing-checklist.md",
+      "bytes": 3296,
+      "sha256": "63efd53814ec161bd2894b44e0e773bcd976d7bc36a805c0747afe559d86d36f"
+    },
+    {
+      "path": "skills/test-point-discovery/references/method-state-transition.md",
+      "bytes": 1938,
+      "sha256": "f207c6d7f056e34b1cb09ae55ca0f20b91a9c1806ce616a41bd8122d429c2452"
+    },
+    {
+      "path": "skills/test-point-discovery/references/module-clarification.md",
+      "bytes": 13244,
+      "sha256": "1008a495de1c80f77982ef53565e1abb743095a3487902b100bc64263ec0a2a9"
+    },
+    {
+      "path": "skills/test-point-discovery/references/planning-confirmation.md",
+      "bytes": 4246,
+      "sha256": "1787476b6078a12ffcd82129df0b56ce622a1350f013fdb5f0d0882ade370e3c"
+    },
+    {
+      "path": "skills/test-point-discovery/references/review-and-progress.md",
+      "bytes": 7407,
+      "sha256": "7567d57c3a0a1a22690882f8c90699ca0a758cd24d6e430f5d6f2c96459abaae"
+    },
+    {
+      "path": "skills/test-point-discovery/references/roles-entitlements.md",
+      "bytes": 6425,
+      "sha256": "b31062cd622acba74cdc1521aed25973af82803547db43a842233866c00a8522"
+    },
+    {
+      "path": "skills/test-point-discovery/references/rule-calculation.md",
+      "bytes": 2919,
+      "sha256": "1936a2d844001256310e5e44de1a403e382bd50354f927970f1129b9bc5a2fc4"
+    },
+    {
+      "path": "skills/test-point-discovery/references/single-file-handoff.md",
+      "bytes": 5348,
+      "sha256": "6dfbefddecf3c5a77c58b77b436d4958b0f0231247dabe6a41e4494a9d9c01a5"
+    },
+    {
+      "path": "skills/test-point-discovery/references/workflow-lifecycle.md",
+      "bytes": 5256,
+      "sha256": "fa4b0384392fb0f6235aba699698c5d9893a85327fa9501215ade55c95d0f4cf"
+    },
+    {
+      "path": "skills/test-point-discovery/references/writing-review.md",
+      "bytes": 13387,
+      "sha256": "06ee4c5272e194533d76cd72d6dd74ba6d58fa0f9d0174136c4212dd4147bfdf"
+    },
+    {
+      "path": "skills/test-point-discovery/references/xmind-feedback.md",
+      "bytes": 4219,
+      "sha256": "4de753f1f7a6d9a6108146f2253f4d4c3588edc6f1e082f757991811c2b3b319"
+    },
+    {
+      "path": "skills/test-point-discovery/scripts/read_xmind.py",
+      "bytes": 4040,
+      "sha256": "7ed1bf32a931f08b4e93dbab51f302b501c46dcc43a43cf93e5bad4487d0e254"
+    },
+    {
+      "path": "skills/test-point-discovery/SKILL.md",
+      "bytes": 17182,
+      "sha256": "1af0ebdaa30694af656534cdcb6c0a985ac895303e8e8172bfb92814add08b22"
+    }
+  ],
+  "evidenceFiles": [
+    {
+      "path": "evidence/optimization/review-fix/assessment.md",
+      "bytes": 6087,
+      "sha256": "1542b63402e94ddc3c6dd1926a32e16d9f86c23180a97203ad48d034d88eb1f0"
+    },
+    {
+      "path": "evidence/optimization/review-fix/checks-unsandboxed/authoring-tests.json",
+      "bytes": 17938,
+      "sha256": "ec27c56e91fe21a168d62e54b30a657076a7454627c46a8747512734ea1d3bce"
+    },
+    {
+      "path": "evidence/optimization/review-fix/checks-unsandboxed/copies.json",
+      "bytes": 1659,
+      "sha256": "7c9a12fc31eea5b88567a95daa3db77749cbe75e9d254aeea18b9ecf6d4f39bc"
+    },
+    {
+      "path": "evidence/optimization/review-fix/checks-unsandboxed/dependencies.json",
+      "bytes": 687,
+      "sha256": "a84644312c9d2de02aa3c942b93be7251e1af8c34f44769e8a598d1b1d3f6431"
+    },
+    {
+      "path": "evidence/optimization/review-fix/checks-unsandboxed/registry.json",
+      "bytes": 1038,
+      "sha256": "57303defea8a2d22307052808c1681142aac3a46900bd55e00b438f8b55f5d41"
+    },
+    {
+      "path": "evidence/optimization/review-fix/checks-unsandboxed/skill-format.json",
+      "bytes": 1732,
+      "sha256": "1ad233fd6b952723163ab394d240289513afdf022c035f998fe3df35e4f6b3ae"
+    },
+    {
+      "path": "evidence/optimization/review-fix/checks-unsandboxed/summary.json",
+      "bytes": 3385,
+      "sha256": "ba74a3103cfd6d793b6c89ad594bcd94c4431088eb98425853b6b6c97b8a331c"
+    },
+    {
+      "path": "evidence/optimization/review-fix/checks-unsandboxed/verification-tests.json",
+      "bytes": 2207,
+      "sha256": "a9f86f1dd9d8cc3a0d4821b73af35ce26c78d8b98333c4f8cb5c0a927f12d498"
+    },
+    {
+      "path": "evidence/optimization/review-fix/checks-unsandboxed/workflow-tests.json",
+      "bytes": 10930,
+      "sha256": "1e0582126029bec01d36c8ccdd6e5a2ab923b801fb09d80700031ab351a329ab"
+    },
+    {
+      "path": "evidence/optimization/review-fix/checks/authoring-tests.json",
+      "bytes": 17938,
+      "sha256": "50fe4f91abd06c419dc05e3d5257dfbc20bb15a46831fd79e8ed81194cb90dfa"
+    },
+    {
+      "path": "evidence/optimization/review-fix/checks/copies.json",
+      "bytes": 1659,
+      "sha256": "1c144fe547640d9fcc58a876642c1ad5548979631b93fa86abdc725b297462e6"
+    },
+    {
+      "path": "evidence/optimization/review-fix/checks/dependencies.json",
+      "bytes": 687,
+      "sha256": "5d5a974ab5d4bd575f0a8c9583c31b3c2a260d8f93ad5415b4cbc2f2498e1f6d"
+    },
+    {
+      "path": "evidence/optimization/review-fix/checks/registry.json",
+      "bytes": 1038,
+      "sha256": "cc160506992c4c05f7ec9b9a994668952cde9b6c07559d951c9a424054779c98"
+    },
+    {
+      "path": "evidence/optimization/review-fix/checks/skill-format.json",
+      "bytes": 1732,
+      "sha256": "e64bbba749236a2b8bc891325ab8341ba35606d45b9cbd53493cd03c5276c0dd"
+    },
+    {
+      "path": "evidence/optimization/review-fix/checks/summary.json",
+      "bytes": 3301,
+      "sha256": "40ba326f30d48d850b0a7967d0b00e8ad8456b8ab2afe9c3281d933a452a487d"
+    },
+    {
+      "path": "evidence/optimization/review-fix/checks/verification-tests.json",
+      "bytes": 10559,
+      "sha256": "b0ecb3020dad84670e019d120f54f9bbf89712e448d24fe5147156f907288ad8"
+    },
+    {
+      "path": "evidence/optimization/review-fix/checks/workflow-tests.json",
+      "bytes": 98047,
+      "sha256": "e29229d394063c4c8b3dc4afb606dee99fc3161b62fc9d579fe1b21b3cb99fad"
+    },
+    {
+      "path": "evidence/optimization/review-fix/green-interaction.md",
+      "bytes": 4390,
+      "sha256": "c933f2ee4de4870395e4e5965f637cd4a4854183fa35ab17bd7a0fb7e6cd3f68"
+    },
+    {
+      "path": "evidence/optimization/review-fix/green-output/two-chart-writing-demo-v2.md",
+      "bytes": 7972,
+      "sha256": "f1672d70289404170dc2396979c4bda1cca976b09b072b3114d196a6c9f0e07d"
+    },
+    {
+      "path": "evidence/optimization/review-fix/green-output/two-chart-writing-demo.md",
+      "bytes": 6028,
+      "sha256": "eb731436f573ed97307f6a56f76135296e9599278b340d573e111080914a2295"
+    },
+    {
+      "path": "evidence/optimization/review-fix/green-output/writing-demo.md",
+      "bytes": 8983,
+      "sha256": "30278c810fc2f2fd682a8900d31795fafaca30d6da4d2ef5928ad7f307b64be1"
+    },
+    {
+      "path": "evidence/optimization/review-fix/plan.md",
+      "bytes": 4747,
+      "sha256": "a313f5009a55e6fef1a616e0fbcaf0ea1e382bb2cd06dade75f3de7c5b4a3a89"
+    },
+    {
+      "path": "evidence/optimization/review-fix/red-entry-observation.md",
+      "bytes": 3021,
+      "sha256": "0a77910be6e795e9b229e9985aad4aafcd34c0657a80c956a17e821464b52843"
+    }
+  ],
+  "manifestExclusion": "This delta manifest excludes itself. Original 99-file freeze remains unchanged."
+}
