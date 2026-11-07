@@ -11,3 +11,7 @@
 - 运行使用既有C:/DevelopTool/Python311/python.exe，核对Machine PATH与C:/DevelopTool，没有安装依赖。
 
 RED及GREEN由Root主持的逐轮模拟另列，尚未把静态或解析成功认作三入口行为通过。真实XMind客户端往返本票未执行，最终#88同版流程另证。
+
+## GREEN后实现者核验
+
+已完成10轮限定模拟的逐AC核对，见acceptance.md。实际读回current.md v5和全部输入、展示、回传来源、解析记录，三入口在同一路径具体评审后更新。合成解析与真实客户端边界分列。frozen-runtime-diff.log及protected-diff.log为空，对应实际git diff --exit-code均退出0，未改冻结运行内容或原保护路径。没有重复运行已通过静态项。独立整票审查与Root最终聚合检查仍另行执行。
