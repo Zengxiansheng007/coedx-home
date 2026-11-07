@@ -1,0 +1,8 @@
+test_duplicate_identity_and_multiple_sheets_are_pending (__main__.NativeRead.test_duplicate_identity_and_multiple_sheets_are_pending) ... ok
+test_ordered_chinese_hierarchy_without_writing_or_interpreting (__main__.NativeRead.test_ordered_chinese_hierarchy_without_writing_or_interpreting) ... ok
+test_unsupported_semantics_remain_pending (__main__.NativeRead.test_unsupported_semantics_remain_pending) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.067s
+
+OK
