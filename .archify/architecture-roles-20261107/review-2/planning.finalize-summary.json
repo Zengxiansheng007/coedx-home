@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "C:\\Users\\lenovo\\Documents\\ChatGPT\\ui-test\\.scratch\\tpd-development-20261107\\worktrees\\tpd77\\.archify\\architecture-roles-20261107\\candidate.json",
+    "sha256": "854205ff3fb4068f616bf041e6ca9bf75477c371f4b268244e664250fc993bfc",
+    "bytes": 1659
+  },
+  "artifact": {
+    "path": "C:\\Users\\lenovo\\Documents\\ChatGPT\\ui-test\\.scratch\\tpd-development-20261107\\worktrees\\tpd77\\.archify\\architecture-roles-20261107\\planning.html",
+    "sha256": "b6ba725656472a883e81774fabef370e22897c96cee7f62c9e914b5f01141f87",
+    "bytes": 809616
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\Users\\lenovo\\Documents\\ChatGPT\\ui-test\\.scratch\\tpd-development-20261107\\worktrees\\tpd77\\.archify\\architecture-roles-20261107\\review-2\\planning.finalize.json",
+    "summaryReceipt": "C:\\Users\\lenovo\\Documents\\ChatGPT\\ui-test\\.scratch\\tpd-development-20261107\\worktrees\\tpd77\\.archify\\architecture-roles-20261107\\review-2\\planning.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\lenovo\\Documents\\ChatGPT\\ui-test\\.scratch\\tpd-development-20261107\\worktrees\\tpd77\\.archify\\architecture-roles-20261107\\review-2\\planning.browser-check.json"
+  },
+  "visualReview": "not-requested",
+  "durationMs": 23918,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}

@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "服务使用概览 · 调整规划（模拟待确认）",
+    "locale": "zh-CN",
+    "output": ".archify/architecture-planning-20261107-020000/adjusted.html",
+    "quality_profile": "showcase",
+    "legend": {
+      "entries": {
+        "frontend": {
+          "label": "业务模块／分组"
+        }
+      }
+    }
+  },
+  "components": [
+    {
+      "id": "M1",
+      "type": "frontend",
+      "label": "M1 渠道分布柱状图",
+      "sublabel": "第二组 · 平台、日期筛选 · 访问次数",
+      "tag": "第二组",
+      "pos": [
+        40,
+        40
+      ],
+      "size": [
+        230,
+        80
+      ]
+    },
+    {
+      "id": "M3",
+      "type": "frontend",
+      "label": "M3 访问明细／跳转接收",
+      "sublabel": "只核对接收；字段和详情后置",
+      "tag": "随M1核对",
+      "pos": [
+        680,
+        40
+      ],
+      "size": [
+        260,
+        80
+      ]
+    },
+    {
+      "id": "M2",
+      "type": "frontend",
+      "label": "M2 活跃趋势与指标卡",
+      "sublabel": "第一组 · 按日人数、同筛选范围总数",
+      "tag": "先梳理",
+      "pos": [
+        40,
+        235
+      ],
+      "size": [
+        250,
+        80
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "R1-R2",
+      "from": "M1",
+      "to": "M3",
+      "label": "点击传渠道；平台/日期待确认"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "amber",
+      "title": "关系与未知",
+      "items": [
+        "R1：P2记载点击渠道柱传递渠道；目的页如何应用待产品确认。",
+        "R2：同次跳转是否传平台、日期未知；不预填参数和结果。",
+        "M1与M2仅各有筛选约束，不证明共用控件或交叉筛选。"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "M2口径仍待产品确认",
+      "items": [
+        "去重、总数聚合、昨日时区、及时更新阈值未确认。",
+        "P3图例隐藏/恢复暂挂M2为推断；实际适用图待确认。"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "范围与确认",
+      "items": [
+        "模拟调整：趋势和指标卡先行，渠道随后；明细仍只看接收。",
+        "两张图独立评审；不加入权限、性能、导出、安全或增删改。",
+        "仅演示调整，尚无真实用户确认；不进入模块澄清。"
+      ]
+    }
+  ]
+}

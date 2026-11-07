@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "3d12fa90-7138-4efb-be49-8f59295cb9d4",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "C:\\Users\\lenovo\\Documents\\ChatGPT\\ui-test\\.scratch\\tpd-development-20261107\\worktrees\\tpd66\\.archify\\architecture-planning-20261107-020000\\adjusted-candidate.json",
+  "output": "C:\\Users\\lenovo\\Documents\\ChatGPT\\ui-test\\.scratch\\tpd-development-20261107\\worktrees\\tpd66\\.archify\\architecture-planning-20261107-020000\\adjusted.html",
+  "specification": {
+    "sha256": "9f5070ec457272a8533067ed9813254ab7a20bb82d1b88e7dec9be90d9d9eb40",
+    "bytes": 2465
+  },
+  "artifact": {
+    "sha256": "036b1e40d047263753751fec381aeaf33f13c436122e2ccc948f5d3300543ea4",
+    "bytes": 808854
+  }
+}
