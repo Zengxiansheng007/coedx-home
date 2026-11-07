@@ -1,5 +1,5 @@
 interface:
-  display_name: "模块测试点梳理"
+  display_name: "test-point-discovery"
   short_description: "从看板、信息维护与规则计算 PRD 梳理可评审测试点，保留来源与未决问题"
   default_prompt: "使用 $test-point-discovery 阅读我提供的 PRD 和说明，先提出可核对的模块候选规划。"
 policy:
