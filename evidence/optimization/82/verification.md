@@ -60,6 +60,10 @@ Root ran the original ordinary form request with a fresh isolated actor at R2. A
 
 The final conclusion covers these limited simulations and static consistency. R1 failure, initial overbroad self-assessment and Root's correction remain visible above. No independent whole-ticket acceptance is claimed by this implementation record. Protected global/downstream/native-reader paths remain unchanged. Final aggregate checks remain assigned to Root's integration stage.
 
+## Preserved R1 check record
+
+The following paragraph preserves the R1 check made before R2. The final R2 source identity is the source-manifest-r2.json record above.
+
 After GREEN, all19 physical product Markdown hashes and byte lengths still match source-manifest.json, changed0. Diff whitespace checking exits0. Protected `.agents`, `skill-packages` and native-reader script paths have no diff, exit0. Tracked modifications are only the seven product documents and two active rubrics. Existing historical fixtures/runs/demos/evidence remain outside the changed-path set.
 
 One read-only inspection assumed round01/round02 filenames. Actual files are round-01/round-02, then successfully read after a full relative-path listing. The redacted incident is taskroot `PS-INC-20261107-008`. It changed no source or actor evidence.
