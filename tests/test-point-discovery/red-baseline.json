@@ -1,0 +1,11 @@
+{
+  "stage": "red-before-implementation",
+  "observed_at_utc": "2026-11-06T17:19:22.2512972Z",
+  "source_head": "f74938f64c683f3baa1cabdb37cead6f0e9e2929",
+  "seam": "Agent reads the real Skill entry using requests.md scene A",
+  "command": "Test-Path -LiteralPath skills/test-point-discovery/SKILL.md",
+  "entry_exists": false,
+  "outcome": "not-executable-entry-missing",
+  "behavior_run": "not_run: no entry to load",
+  "scope": "Entry availability only; no semantic acceptance claimed"
+}

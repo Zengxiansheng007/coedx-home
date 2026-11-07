@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "C:\\Users\\lenovo\\Documents\\ChatGPT\\ui-test\\.scratch\\tpd-development-20261107\\worktrees\\tpd66\\.archify\\architecture-planning-20261107-020000\\candidate.json",
+    "sha256": "765656ce94b8bb14ea335e00abc8f137299e25bfada0510b7451e098debed390",
+    "bytes": 2427
+  },
+  "artifact": {
+    "path": "C:\\Users\\lenovo\\Documents\\ChatGPT\\ui-test\\.scratch\\tpd-development-20261107\\worktrees\\tpd66\\.archify\\architecture-planning-20261107-020000\\planning.html",
+    "sha256": "ec6173d5cf8df06b43f289b566842cd68738c6cf8b60ae70a1dae25a2c40968f",
+    "bytes": 808720
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\Users\\lenovo\\Documents\\ChatGPT\\ui-test\\.scratch\\tpd-development-20261107\\worktrees\\tpd66\\.archify\\architecture-planning-20261107-020000\\planning.finalize.json",
+    "summaryReceipt": "C:\\Users\\lenovo\\Documents\\ChatGPT\\ui-test\\.scratch\\tpd-development-20261107\\worktrees\\tpd66\\.archify\\architecture-planning-20261107-020000\\planning.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\lenovo\\Documents\\ChatGPT\\ui-test\\.scratch\\tpd-development-20261107\\worktrees\\tpd66\\.archify\\architecture-planning-20261107-020000\\planning.browser-check.json"
+  },
+  "visualReview": "not-requested",
+  "durationMs": 12315,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}

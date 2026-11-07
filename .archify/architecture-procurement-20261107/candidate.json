@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "采购协作 · 候选规划（模拟开发验证）",
+    "locale": "zh-CN",
+    "output": ".archify/architecture-procurement-20261107/planning.html",
+    "quality_profile": "showcase",
+    "legend": {
+      "entries": {
+        "frontend": {
+          "label": "业务模块 / 责任人"
+        }
+      }
+    }
+  },
+  "components": [
+    {
+      "id": "M1",
+      "type": "frontend",
+      "label": "M1 申请 / 申请人",
+      "sublabel": "编号、事项、申请金额",
+      "tag": "流程后第1模块",
+      "pos": [
+        40,
+        40
+      ],
+      "size": [
+        250,
+        80
+      ]
+    },
+    {
+      "id": "M2",
+      "type": "frontend",
+      "label": "M2 审批 / 审批人",
+      "sublabel": "同一申请，通过或驳回",
+      "tag": "流程后第2模块",
+      "pos": [
+        650,
+        40
+      ],
+      "size": [
+        250,
+        80
+      ]
+    },
+    {
+      "id": "M3",
+      "type": "frontend",
+      "label": "M3 付款 / 财务",
+      "sublabel": "资格与金额规则待澄清",
+      "tag": "流程后第3模块",
+      "pos": [
+        650,
+        300
+      ],
+      "size": [
+        250,
+        80
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "submit",
+      "from": "M1",
+      "to": "M2",
+      "label": "提交：申请编号、金额"
+    },
+    {
+      "id": "eligibility",
+      "from": "M2",
+      "to": "M3",
+      "label": "审批结果；付款条件待确认"
+    },
+    {
+      "id": "writeback",
+      "from": "M3",
+      "to": "M1",
+      "label": "付款结果回写同一申请"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "amber",
+      "title": "未确认关系",
+      "items": [
+        "预算额度：是否校验、占用或扣减未知；本轮仅建议候选，不画确定方向。",
+        "驳回后修改重提未知；不预设撤回、重试。"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "范围与组织建议",
+      "items": [
+        "先评审同一申请跨模块流程，再申请、审批、付款；角色差异为补充。",
+        "付款衔接建议纳入；预算范围由用户决定。尚无规划确认。"
+      ]
+    }
+  ]
+}
