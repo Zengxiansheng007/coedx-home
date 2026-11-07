@@ -1,35 +1,37 @@
 # #88 dynamic whole-spec coverage
 
-Updated after Root's actual four-round RED and the associated source freeze at `12d99db3699c0996910adf3c6085b70dbb0ba2ee`. This is a pending-evidence tracker, not a passing-result projection. Pre-edit runtime is `2a3ef95a5c9f5692a077d211fd069eb58f9d1d82`. Final-runtime entry, receiver and client execution remain pending. Exact physical identities are in `source-freeze.json` and the scope explanation in `source-freeze.md`.
+Updated on 2026-11-08 after actual four-round narrow GREEN, three fresh targets,15 final-main rounds, real client cycle/exact-v7 import and independent receiver. Runtime remains `12d99db3699c0996910adf3c6085b70dbb0ba2ee`. Pre-edit RED belongs to `2a3ef95a5c9f5692a077d211fd069eb58f9d1d82`. All99 physical freeze entries were rechecked after final results with0 mismatches, and skills/tests/tools/.agents/skill-packages diff0. All twelve rows pass at the explicitly stated evidence levels. Implementation delivery is ready for Root's independent review and integration.
 
 | Acceptance | Final-runtime status | Required actual evidence | Present evidence boundary |
 | --- | --- | --- | --- |
-| TPD-OPT-AC-001 | Pending | Main real question/partial answer/missed-answer turns and follow-up | Prior-ticket evidence remains version-scoped. |
-| TPD-OPT-AC-002 | Pending | Actual unknown answer, disposition question and explicit deferral before product entry | No final-runtime turns yet. |
-| TPD-OPT-AC-003 | Pending | Known-rule candidate, optional-risk actual choice and exclusion continuity | Ordinary shared-field input prepared by Root. |
-| TPD-OPT-AC-004 | Pending | Clear-rule writing, actual source conflict and authority treatment | Ordinary shared-field input prepared by Root. |
-| TPD-OPT-AC-005 | Pending | Common fields/differences, actual cross-module choice and roles/dashboard outputs | Existing #82 fixtures selected for reuse as inputs only. |
-| TPD-OPT-AC-006 | Pending | Unknown implementation versus actual known-control evidence and downstream boundary | Control-feedback request prepared, not executed. |
-| TPD-OPT-AC-007 | Pending | Actual concise rule expression with necessary conditions, counting, special boundary and independent switch | No final-runtime artifact yet. |
-| TPD-OPT-AC-008 | Pending | Per-operation actual endpoint questions/choices and same-object outcomes | No final-runtime turns yet. |
-| TPD-OPT-AC-009 | Pending | A gap actually discovered during writing/self-check/feedback, local clarification and bounded resume | Initial unknowns alone will not count as writing-discovered recovery. |
-| TPD-OPT-AC-010 | Pending | Actual chat/MD/native feedback, concrete reviews, same-MD update and technical/business split | #86 three-entry run remains an older frozen runtime with synthetic native input. |
-| TPD-OPT-AC-011 | Pending | Actual flow review, two modules, permanent readback/cleanup, retained pending state and affected reopen | Accepted #87 nine-turn evidence is dependency proof at its original runtime, not a #88 final run. |
-| TPD-OPT-AC-012 | Pending | Cross-material consistency, final actual-MD client hierarchy and independent receiver reading actual references | Minimal handoff RED and blind receiver request prepared, not executed. |
+| TPD-OPT-AC-001 | Pass in examined simulation | Main R1–R3 actual Q1/Q2 questions, partial Q1 and omitted Q2, actual follow-up and later scoped answer | Full actual inputs/displays/candidates read. |
+| TPD-OPT-AC-002 | Pass in examined simulation | R3/R4 mere unknowns, actual disposition questions, R5 explicit deferrals before Q8/Q9 product entry | Product approval covers expression, not an invented rule answer. |
+| TPD-OPT-AC-003 | Pass in examined simulation | R1 direct known-rule candidate and optional-risk value/cost, R2 actual concurrency exclusion and later continuity | Existing project exclusions retained, no extra risk execution. |
+| TPD-OPT-AC-004 | Pass in examined simulation | Clear main/target rules directly written, actual old20/30 conflict Q3, R2 authority decision, R8/9 new30 business decision | Native feedback is actual proposed change followed by separate R14 review, not automatic authority. |
+| TPD-OPT-AC-005 | Pass after actual candidate correction | Main common rules/real differences and R2 separate-module choice, fresh form Q1→A, roles corrected v2 and dashboard candidate | Roles v1's unsupported own-only list expectation remains a failed first candidate. |
+| TPD-OPT-AC-006 | Pass in examined simulation | Main unknown controls, form known contact same control/rule versus unknown remarks, narrow GREEN R3 bounded technical observation | Common expression does not imply a once-only execution claim where evidence is absent. |
+| TPD-OPT-AC-007 | Pass after actual partial review | Final v7 retains count/requiredness/overlimit/special📨/independent switch, R9 excludes R8's two duplicate negative lines while keeping full field refusals | Original redundant candidate remains preserved, not called a compliant first draft. |
+| TPD-OPT-AC-008 | Pass in examined simulation | R1 separate endpoint questions, R2 actual save/reopen and submit/receive choices, known cancel, R3/R6/R7 approvals and final same-ID outcomes | Q8 audit prerequisites and Q9 target dependencies remain unresolved and unhanded. |
+| TPD-OPT-AC-009 | Pass in examined simulation | New writing-stage mapping R4 actually read and localized, R5 explicit deferral, R10 unknown content/deletion intent and R11 answers | The new mapping was host-supplied during writing, not claimed as an unprompted discovery or real query. |
+| TPD-OPT-AC-010 | Pass in examined simulation and actual native chain | Chat R8/9, edited MD R10–12, real native R13/14, scoped approvals and same-path v7, narrow GREEN technical/business split | Final-v7 client import obligation is tracked separately under AC012. |
+| TPD-OPT-AC-011 | Pass at the stated contextual evidence level | Actual flow-before-modules, two module reviews, permanent records and scoped cleanup/reopen, B017 fact and Q8/Q9 retained | Ordering uses the executor's retrospective receipt plus saved turns/process. Platform logs/intermediate snapshots and unprinted child codes/IDs remain unavailable. |
+| TPD-OPT-AC-012 | Pass in examined source/client/receiver scope | Source review covers entry/all18 references/seven schemes/examples/template/active rules. Exact-v7 native content/hierarchy and independent final-receiver recovery/read-log were actually examined | Receiver uses actual cited sources/decisions without opening process.md or hidden records. R13's old ambiguity remains preserved and corrected in v7 via R14. Plain attached-text client scope and receipt limits remain explicit. |
 
 | Evidence layer | Current status |
 | --- | --- |
 | #88 pre-edit handoff/feedback RED | Actual rounds1–2 correct recovery/handoff, round3 fails by adding a business-review gate for pure technical mapping, round4 correctly asks Q010 for the business conflict and keeps accurate v4 |
 | Final-runtime source/static consistency | Six-document fix and seven-scheme source review complete, affected format valid and80 local runtime references resolve, frozen21 runtime/63 active materials/2 external inputs/13 RED files all99 physical records rechecked with0 mismatch |
-| Final-runtime semantic simulation | Pending |
-| Supported native reader | Prior3/3 and synthetic-file results retain their original scope |
-| Real XMind client import/edit/return | Availability only, no final affected-MD run yet |
-| Final single-MD receiver | Pending actual handoff choice and latest-MD artifact |
-| Repository aggregate | Root owns the later seven-stage check |
+| Final-runtime semantic simulation | Narrow GREEN4 rounds, fresh form/roles/dashboard and main15 rounds actually examined. See green-assessment.md, target-assessment.md and main-assessment.md. |
+| Supported native reader | Root final-reader.log records3 tests OK. Actual client original/return reader outputs both read_for_agent_review with explicit helper exit0, semantic ordered-tree comparison examined. |
+| Real XMind client import/edit/return | Root actual About26.04.01327, historical v3 import/original save/separate-copy text+parent edit/save/native74→75 complete. Exact final-v7 import/local save/helper exit0 and complete91-topic content/hierarchy examined, native SHA c8c4bf7258e6b7d4af0942bd5ba662971d47bf7ba040c8a5b34cf1cd04c8d52e. |
+| Final single-MD receiver | Actual recovery.md/read-log.md restore immutable v7's A choice, current rules/source chains, Q8/Q9 dependencies, unknowns and downstream conditions using only its citation chain. All attempted references succeed. |
+| Repository aggregate | Root actually ran all seven stages in worker88, each exit0/pass. Summary and every raw record were read and all7 record hashes revalidated. Integration binding/checks remain Root/merger work. |
 | Real business acceptance | Outside authorization |
 
 Full staged whitespace remains failed for six frozen RED EOF blank lines. Runtime/active-material whitespace and protected-history comparisons separately exit0. See `verification.md` for the retained diagnostic and Root's explicit preservation decision.
 
 The detailed independent rubric is `preparation/final-rubric.md`. Main and receiver actors receive ordinary requests and input only. Any final result must identify the actual runtime and exact turns/files, preserve failed attempts and distinguish reused historical dependencies from newly executed behavior.
+
+Main clean-up ordering is supported by its original executor's post-hoc contextual receipt, not original platform logs. Missing call IDs/timestamps, child chunk IDs/exit/session values and full intermediate snapshots remain unknown. The explicitly saved native helper exit0 cannot fill unrelated missing child exits. Root's initial client reader-summary wrapper failure remains PS-INC-20261108-002. Six RED EOF whitespace failures and the historical XMind owning-context limitation remain separate retained limits.
 
 Actual RED pointers are `red/round-01-display.md` through `round-04-display.md`, the separately sent matching input files, `red/accurate.md` v4 and `red/process.md`. The technical failure is R03-tech-v1's explicit request for concrete review despite its own statement that only technical mapping facts changed. R04-clarify-v1's actual Q010, correct source authority, bounded hold and retained handoff are existing correct behavior. None is relabelled as final GREEN.

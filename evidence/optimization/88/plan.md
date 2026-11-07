@@ -2,7 +2,7 @@
 
 ## Current stage and baseline
 
-Implementation on 2026-11-07 after Root ended the actual four-round RED. Source is frozen at `12d99db3699c0996910adf3c6085b70dbb0ba2ee`, with exact physical identities in `source-freeze.json` and scope in `source-freeze.md`. Fresh independent GREEN, final semantic acceptance and client work remain pending.
+Implementation completed with final evidence examined on 2026-11-08. Source remains frozen at `12d99db3699c0996910adf3c6085b70dbb0ba2ee`, with exact physical identities in `source-freeze.json` and scope in `source-freeze.md`. Actual GREEN,three targets,15-round main,real client roundtrip/exact-v7 import,blind receiver and worker88 seven-stage checks are complete. Current conclusions are in acceptance.md and coverage.md, with the recorded limits. Root's independent review and integration remain the next gate.
 
 Worker is `C:/Users/lenovo/Documents/ChatGPT/ui-test/work/test-point-discovery-optimization-20261107/workers/88`, branch `codex/tpd-opt-88`. Read-only Git inspection found a clean tree at `3cae1a783ddf43a0106d7ba6dc5e1072651693be`. Git resolves to `C:/Program Files/Git/cmd/git.exe`, version `2.55.0.windows.5`, in this session. Tooling paths are verified current observations, not assumptions from AGENTS.md.
 
@@ -78,11 +78,11 @@ Protected areas include every downstream Skill, engineering Skill/distribution c
 - One actual latest accurate MD with source-to-branch mapping, scope, real decisions, unresolved dependencies, default sharing, implementation evidence boundaries and chosen handoff/retained scopes.
 - Independent recovery result using that MD's real references, including whether known checks, pending dependencies and downstream responsibilities were recoverable.
 - A twelve-row coverage table with pass/fail/unverified, runtime identity, exact evidence and reason. Source consistency, simulated semantics, native parsing, actual client roundtrip and business acceptance each retain their own status.
-- Reviewable local commit and clean worker after integration-tip merge when implementation is complete. Preparation currently makes no AC-complete claim.
+- Reviewable local commit and clean worker after integration-tip merge when implementation is complete. The initial preparation made no AC-complete claim. Final judgments are now based on the actual records listed above.
 
-The known #86 ten-turn run belongs to its frozen development version. Its native input was a synthetic 33-topic archive. Only XMind availability/version `26.4.1327.202606142039` is currently established for this optimization. No real-client result is prefilled. Real business acceptance remains outside this task.
+The known #86 ten-turn run belongs to its frozen development version. Its native input was a synthetic33-topic archive. At preparation,only XMind availability/version `26.4.1327.202606142039` was established. The later actual #88 client execution and final-v7 verification are independently documented in main-assessment.md and Root's actual client/roundtrip.md,without relabelling #86's synthetic run. Real business acceptance remains outside this task.
 
-The dynamic whole-spec table is `coverage.md`. All twelve final-runtime entries remain pending until actual results arrive. The actual bounded pre-edit RED and prior-ticket results have their own version identities and cannot fill that final table as same-version runs.
+The dynamic whole-spec table is `coverage.md`. It now accounts for all twelve final-runtime rows using actual #88 results and their stated evidence levels. The bounded pre-edit RED and prior-ticket results retain their own version identities and are not relabelled as same-version final runs.
 
 ## Preparation incident
 

@@ -1,6 +1,6 @@
-# #88 implementation verification before independent GREEN
+# #88 implementation and final execution verification
 
-Baseline is accepted #87 `2a3ef95a5c9f5692a077d211fd069eb58f9d1d82`. Runtime is frozen at `12d99db3699c0996910adf3c6085b70dbb0ba2ee`, with physical identities in `source-freeze.json`. This record contains actual source/static checks and preserved pre-edit behavioral evidence, with no GREEN or twelve-AC pass prefilled.
+Baseline is accepted #87 `2a3ef95a5c9f5692a077d211fd069eb58f9d1d82`. Runtime is frozen at `12d99db3699c0996910adf3c6085b70dbb0ba2ee`, with physical identities in `source-freeze.json`. Initial implementation checks and failure evidence remain below. Final behavior/client/receiver and Root's actual aggregate results are appended from their actual records, without altering original evidence.
 
 ## Source and focused static checks
 
@@ -38,5 +38,47 @@ The exact existing `review-failures.ps1` was rerun after new incident17 because 
 - Rounds1–2 recover reviewed #87 rules/actual references, wait for Root's separate choice and establish red/accurate.md v4 with the selected M1 nonemoji and conditional M2 scope. Original #87 remains read-only.
 - Round3 R03-tech-v1 is the actual failure. It states that only two-name-input technical facts changed, yet creates a review candidate and waits for concrete approval. The six-document implementation addresses the common unconditional feedback route.
 - Round4 R04-clarify-v1 is already correct. It actually asks Q010 for the unconfirmed work12 observation, preserves approved work10/accurate v4, retains the chosen handoff and suspends only related expectations. Its existing correct behavior is not called a failure.
-- Fresh GREEN, final shared-field/cross-module/roles/dashboard behavior, actual client and independent receiver are pending Root execution. The unchanged reader's existing3/3 is limited reader evidence. The historical XMind checker retains its original missing owning `context/issues/75.md` StopIteration and was not rerun or altered here.
-- Root owns the repository seven-stage aggregate and independent whole-spec review. No real business, downstream, global installation or remote action occurred.
+- At initial implementation freeze, fresh GREEN, final main/targets/client/receiver and aggregate were pending. Their completed results are recorded below. The historical XMind checker retains its original missing owning `context/issues/75.md` StopIteration and was not altered or manufactured as passing.
+- Root owns independent whole-spec review and integration-specific checks. No real business, downstream business workflow, global installation or remote action occurred.
+
+## Final behavior, client and receiver
+
+Actual final-runtime evidence comprises four narrow GREEN rounds,three fresh targeted cases,15 main rounds,three business feedback entries,real client import/edit/save/return and exact-v7 import/read,followed by an independent receiver. Detailed semantic conclusions and actual correction histories are in green-assessment.md,target-assessment.md,main-assessment.md,coverage.md and acceptance.md. All actor originals remain.
+
+The immutable accurate v7 and exact client input share raw SHA256 `ffaf7ce7bd1b670c7a36fafc7aee612db4303f4fb522c21b558f8d671fc75eaf`. Final native is362386 bytes and SHA256 `c8c4bf7258e6b7d4af0942bd5ba662971d47bf7ba040c8a5b34cf1cd04c8d52e`. Its complete91-topic business/decision content was actually read, together with the actual saved-client image and appended client execution record. Native count is not used as a semantic substitute.
+
+Complete receiver recovery/read-log were read. The receiver restores actual A choice,current rules/source chain,complete Q8/Q9 and retained dependencies,mock identity,unknown implementation and manual downstream conditions using the actual MD citation chain. It never opens process.md or hidden developer records. Recovery SHA256 is `2ffe663ec6cfa2e131866f5e626acf378e0b768cbb81607056bc5c98d96d016e`,read-log SHA256 `6c3e8b93aa2135b9cda2a83e680a66201fdee88ed324d7e3aa83ebe429e7517a`.
+
+The main cleanup order uses the executor's retrospective tool receipt plus saved inputs/displays/process. Missing original platform metadata,unprinted child IDs/exit/session values and full intermediate snapshots remain unknown. Earlier #87 receipt limits remain as independently stated in that ticket's review. Explicit native helper exits do not stand in for other unknown shell results.
+
+## Root's actual seven-stage aggregate
+
+Actually read taskroot `checks/final-aggregate/summary.json` and all seven complete raw records. Summary status is passed. Every stage records exit0/passed,no error,its actual command array and worker88 cwd. Each actual raw-record SHA256 matches the summary binding. The run starts2026-11-07T17:31:26 UTC and finishes17:32:15 UTC according to those records.
+
+| Stage | Actual result |
+| --- | --- |
+| dependencies | PyYAML6.0.3,exit0 |
+| workflow-tests | 67 tests,OK,exit0 |
+| verification-tests | 8 tests,OK,exit0 |
+| authoring-tests | 94 synthetic tests,OK,exit0 |
+| skill-format | Existing six engineering/distribution Skill copies valid,exit0 |
+| registry | Both registries valid,21 skills each,exit0 |
+| copies | Existing develop-system23,grill4,test-case-authoring36 source/package files identical,exit0 |
+
+Dedicated test-point-discovery format exit0 and reader3/3 remain separate evidence. The aggregate is not claimed to be the TPD semantic runner or a downstream business run, and it was not launched from integration.
+
+## Tested-source identity for integration
+
+After the final receiver/check records were read,all99 freeze entries were recomputed with0 mismatches. The current worker's skills/tests/tools/.agents/skill-packages comparison to runtime12d99 exited0. Their exact tested Git tree identities are below.
+
+| Scope | Git tree at tested runtime |
+| --- | --- |
+| skills | `b1d8d9e56ffc3a43a6f319558a6bd07c182398ba` |
+| tests | `5669e4814e11c78e64af0fd396539e0a9f018892` |
+| tools | `1a254e38db1b512cc6ff2bebe7c807d977981e67` |
+| .agents | `368fb75b52ce3af46df27374ffb63cb602b67624` |
+| skill-packages | `cdf73d0f5ffa338945862b5440c3a5c893c277a8` |
+
+These identify committed bytes. The physical freeze manifest separately identifies actual worker bytes for TPD and active inputs,including LF/CRLF scope. Root's merger must compare final integration source identities and preserve any new checkout's actual physical hashes/declared normalization evidence. This verification does not mislabel the worker88 aggregate as an integration-path run. Root retains integration-specific targeted verification.
+
+Immediately before final evidence submission,the exact controlled runner verified integration clean at2a3ef95 and executed `merge --ff-only 2a3ef95a5c9f5692a077d211fd069eb58f9d1d82` in worker88. It returned “Already up to date”,exit0. The five tested-source scopes still compared equal to runtime12d99,exit0. Actual returned chunk is `60931d`. Integration itself was not mutated by this worker operation.
