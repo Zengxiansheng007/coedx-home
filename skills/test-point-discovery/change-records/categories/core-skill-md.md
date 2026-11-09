@@ -8,13 +8,24 @@
 
 | Date | Change ID | Section | Change Type | Summary | Status |
 | --- | --- | --- | --- | --- | --- |
+| 2026-11-09 | CR-20261109-006 | CR001当前状态与证据 | validation | 同步已完成有限模拟，保留冻结检查点 | validated |
 | 2026-11-09 | CR-20261109-005 | 执行10与验证 | fixed | 局部回流、集中修订与实际具体重审 | validated |
 | 2026-11-09 | CR-20261109-004 | 执行9与验证 | fixed | 具体评审、准确版本保存回读后推进 | validated |
-| 2026-11-09 | CR-20261109-001 | 执行顺序、完成判定 | fixed | 整体业务关系实际问答先于模块安排 | applied |
+| 2026-11-09 | CR-20261109-001 | 执行顺序、完成判定 | fixed | 整体业务关系实际问答先于模块安排 | validated |
 | 2026-11-09 | CR-20261109-002 | 对话与唯一问答 | fixed | 明确所有权与逐轮状态 | validated |
 | 2026-11-09 | CR-20261109-003 | 当前模块集中生成 | fixed | 处置、来源补漏和依赖复核绑定生成 | validated |
 
 ## Detailed Records
+
+### CR-20261109-006 - final-review-closeout
+
+- Section changed 为CR001当前完成状态及证据归纳，入口源码无需变更。
+- Before 为冻结时applied/pending仍作为当前状态显示。
+- After 为依据实际初始模拟和独立审查同步validated，原提交与检查点保留。
+- Why 为最终Standards评审的证据追踪发现。
+- Impact 限本地候选，最终单冻结运行时、真实业务和宿主接受另行验证。
+- Validation 为TASK/evidence/final-fix/validation中的结构、隐私、表格、reader3与完整仓库检查，实际初始模拟见CR001。
+- Detail record 为[CR006](../entries/2026/2026-11/CR-20261109-006-final-review-closeout.md)。
 
 ### CR-20261109-005 - local-reopening
 
@@ -43,7 +54,7 @@
 - After 为先分别理解主要操作与衔接，必要问题等答复，再给模块表图并等待确认。
 - Why 为落实 issue89 与 S5，保护已知资料无需重问。
 - Impact 限于整体业务与规划进入条件，七类及具体评审保持。
-- Validation 见详细记录的静态与独立模拟证据。
+- Validation 当前有限初始模拟见TASK/evidence/candidate-actor/QA.md turns1–3及TASK/evidence/89/independent-review.md green补充，静态复核见CR006；原applied检查点保留在原提交。
 - Detail record [CR-20261109-001](../entries/2026/2026-11/CR-20261109-001-business-before-planning.md)。
 
 ### CR-20261109-002 - dialogue-and-single-qa

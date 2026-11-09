@@ -2,14 +2,14 @@
 
 | Field | Value |
 | --- | --- |
-| Status | applied |
+| Status | validated |
 | Target Skill | test-point-discovery |
 | Change Type | fixed |
 | Scope | core-skill-md / references-and-assets / scripts-and-validation |
 | Source | issue89, confirmed S5/R22 |
 | Baseline | cdc663bd112680a2abfba6e0fb4501092d57f025 |
 | Author | Codex |
-| Related Records | none |
+| Related Records | CR-20261109-006 |
 
 ## Summary
 
@@ -52,7 +52,9 @@
 | Reader regression | unittest discover test_xmind_reader.py | 3/3 pass，源码/测试与基线字节相同 | TASK/evidence/89/reader-tests.txt |
 | Repository regression | tools/checks.py --output-dir TASK/evidence/89/repository-checks | pass，运行原有仓库必跑检查 | TASK/evidence/89/repository-checks-output.txt |
 | Sensitive scan and references | 候选26文件扫描与包内引用检查 | 0 static errors，常见凭据模式未命中 | TASK/evidence/89/candidate-static.json |
-| Behavioral | 新演员实际入口，主持另发答复 | pending | TASK/evidence/actor-green89 |
+| Behavioral current supplement | 新演员初始入口、主持另发答复、实际表图及规划确认 | issue89 四AC在已检查的有限虚构模拟范围成立 | TASK/evidence/candidate-actor/QA.md turns1–3, TASK/evidence/89/independent-review.md Actual green checkpoint supplement |
+| Graph corroboration | 实际finalize回执及1440浅色视口读图 | validate/deliver/check/browser-check均pass，模块/顺序/同ID标题正文边及三块说明可见 | TASK/evidence/candidate-actor/planning-v1/plan.finalize-summary.json, visual-check/plan.visual-check.1440x900.light.png |
+| Current reconciliation | 最终评审发现后的状态、引用与范围复核 | 本地validated-candidate，静态及回归证据见CR006 | TASK/evidence/final-fix/validation/candidate-static.json, CR-20261109-006 |
 
 TASK指本轮工作目录 work/test-point-discovery-flow-20261109，所有证据位于克隆外。包内语义规则和本地验证均为候选证据，实际人工决定不由关键词或脚本替代。
 
@@ -62,6 +64,10 @@ TASK指本轮工作目录 work/test-point-discovery-flow-20261109，所有证据
 
 ## Risks And Follow-up
 
-独立候选模拟与审查待父协调者调度，记录状态保持applied。初次静态检查因既有中文章节不匹配验证器英文标题而失败，保留原输出，现有标题补充英文后通过。P2两项为中文触发词未匹配英文启发式，以及读取器经XMind参考间接链接，均保留并记录语义适用理由。真实客户端未重跑，格式未改。模拟不构成真实用户/产品或业务系统验收。后续 issue90—93 分别负责唯一问答细节、模块集中生成、推进和回流。
+历史提交cd9dbd048c63c16212bc66245ee40cd6cda794a0交付时，独立候选模拟与审查尚待调度，故原冻结记录为applied，Behavioral为pending，原预定路径TASK/evidence/actor-green89。该检查点保留在原提交中。实际随后完成的有限模拟及独立审查记录于上述真实路径，本次CR006将当前记录与索引、分类账同步为validated，仅表示本地候选证据完成。
+
+实际QA turns1–3从未规划虚构资料开始，先Q001–Q003，再另收主持答复，实际表图/Q004展示后另收规划确认，并按主持要求暂停模块深入。图候选SHA256为3247a04bf8ac5caa9001856712cb6323d0b66bcedd2fed48aa5f3869902049e6，HTML为fe330b1ffd3d8359948a2aff019e08e02922adf38d4fbf8077dfa3f225bb8325。1440浅色视口已独立读图，较大深色视口底部截断仍保留。实际原始QA、回执、失败与独立评审均保持原字节。
+
+初次静态检查因既有中文章节不匹配验证器英文标题而失败，保留原输出，现有标题补充英文后通过。P2两项为中文触发词未匹配英文启发式，以及读取器经XMind参考间接链接，均保留并记录语义适用理由。后续issue90—93运行时存在明确切换，增量链不能充当最终单一冻结运行时复演，最终六项观察须在修复复审后另行运行。真实客户端未重跑，格式未改。真实PRD用户确认、业务系统正确性及宿主接受仍未验证。
 
 Refs 为本次 inputs/issue-89.md、原访谈 Q016/Q017/S5/R22、核心 v0.8 REQ-002/024、细节 v0.2 §0/V13、测试入口提案及逐票计划。实际成文历史待审标签保留，以已确认S5和发布工单为当前依据。

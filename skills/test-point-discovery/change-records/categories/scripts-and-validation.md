@@ -8,13 +8,24 @@
 
 | Date | Change ID | Section | Change Type | Summary | Status |
 | --- | --- | --- | --- | --- | --- |
+| 2026-11-09 | CR-20261109-006 | 最终修复验证与CR001证据 | validation | 实际有限模拟归档与静态回归复核 | validated |
 | 2026-11-09 | CR-20261109-005 | flow93与活动重开请求 | fixed | 局部回流、集中修订与实际具体重审 | validated |
 | 2026-11-09 | CR-20261109-004 | flow92与活动推进请求 | validation | 逐轮具体意见、通过与准确回读先后观察 | validated |
-| 2026-11-09 | CR-20261109-001 | 初始请求与审查rubric | validation | 原始资料启动并逐轮等待主持答复 | applied |
+| 2026-11-09 | CR-20261109-001 | 初始请求与审查rubric | validation | 原始资料启动并逐轮等待主持答复 | validated |
 | 2026-11-09 | CR-20261109-002 | 对话与唯一问答 | fixed | 明确所有权与逐轮状态 | validated |
 | 2026-11-09 | CR-20261109-003 | 当前模块集中生成 | fixed | 处置、来源补漏和依赖复核绑定生成 | validated |
 
 ## Detailed Records
+
+### CR-20261109-006 - final-review-closeout
+
+- Section changed 为最终修复验证记录与CR001证据路径和范围。
+- Before 为actor-green89占位路径和pending状态未承接已完成技术证据。
+- After 为引用真实QA初始turns1–3、独立评审补充和图形回执，保留历史检查点。
+- Why 为最终Standards评审的当前追踪发现。
+- Impact 验证脚本仅在TASK/evidence/final-fix，产品脚本及历史测试不变。
+- Validation 为实际RED文档契约、GREEN结构/引用/隐私/表格/依赖身份、reader3与完整仓库检查；行为证据沿用已检查初始模拟，最终单运行时待执行。
+- Detail record 为[CR006](../entries/2026/2026-11/CR-20261109-006-final-review-closeout.md)。
 
 ### CR-20261109-005 - local-reopening
 
@@ -43,7 +54,7 @@
 - After 为独立演员由未规划资料启动，问题先于依赖答案的规划。
 - Why 为 issue89 AC4，拒绝关键词检查冒充行为通过。
 - Impact 不变更读取器或测试框架，不覆盖冻结历史证据。
-- Validation 详细记录分别链接实际静态、语义和未执行项。
+- Validation 当前有限初始模拟见TASK/evidence/candidate-actor/QA.md turns1–3及TASK/evidence/89/independent-review.md green补充，静态复核见CR006；原applied检查点保留在原提交。
 - Detail record [CR-20261109-001](../entries/2026/2026-11/CR-20261109-001-business-before-planning.md)。
 
 ### CR-20261109-002 - dialogue-and-single-qa

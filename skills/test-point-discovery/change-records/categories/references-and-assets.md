@@ -8,13 +8,24 @@
 
 | Date | Change ID | Section | Change Type | Summary | Status |
 | --- | --- | --- | --- | --- | --- |
+| 2026-11-09 | CR-20261109-006 | 操作终点示例与CR001证据 | fixed | 保存编写依据，处置复核后集中出稿 | validated |
 | 2026-11-09 | CR-20261109-005 | 共享回流与调用参考 | fixed | 局部回流、集中修订与实际具体重审 | validated |
 | 2026-11-09 | CR-20261109-004 | 评审、反馈与澄清接续 | fixed | 固定推进顺序与部分评审边界 | validated |
-| 2026-11-09 | CR-20261109-001 | 规划、七类、澄清与编写入口 | fixed | 规划条件前置，移除整体阶段流程出稿路径 | applied |
+| 2026-11-09 | CR-20261109-001 | 规划、七类、澄清与编写入口 | fixed | 规划条件前置，移除整体阶段流程出稿路径 | validated |
 | 2026-11-09 | CR-20261109-002 | 对话与唯一问答 | fixed | 明确所有权与逐轮状态 | validated |
 | 2026-11-09 | CR-20261109-003 | 当前模块集中生成 | fixed | 处置、来源补漏和依赖复核绑定生成 | validated |
 
 ## Detailed Records
+
+### CR-20261109-006 - final-review-closeout
+
+- Section changed 为information-maintenance的操作终点假设例和CR001当前证据。
+- Before 为单次部分回答后即称操作候选，与模块集中生成条件冲突。
+- After 为两次答复均先保存依据，全部相关处置及来源依赖复核后集中形成当前模块稿。
+- Why 为最终Standards和Spec评审的同根因发现及追踪发现。
+- Impact 保留分别确定的操作终点，复用共享生成条件，原始记录与图形证据保持。
+- Validation 为TASK/evidence/final-fix/validation中的结构、隐私、表格、reader3与完整仓库检查，最终冻结行为观察待修复复审后执行。
+- Detail record 为[CR006](../entries/2026/2026-11/CR-20261109-006-final-review-closeout.md)。
 
 ### CR-20261109-005 - local-reopening
 
@@ -43,7 +54,7 @@
 - After 为单一规划前理解条件，七类入口按条件加载，流程分析承接到约定模块。
 - Why 为同一根因的备用入口需一致。
 - Impact 涉及活动空白模板与假设示例的阶段解释，历史产物保持身份与原文。
-- Validation 包内引用检查和独立模拟，详见记录。
+- Validation 当前有限初始模拟见TASK/evidence/candidate-actor/QA.md turns1–3及TASK/evidence/89/independent-review.md green补充，静态复核见CR006；原applied检查点保留在原提交。
 - Detail record [CR-20261109-001](../entries/2026/2026-11/CR-20261109-001-business-before-planning.md)。
 
 ### CR-20261109-002 - dialogue-and-single-qa
