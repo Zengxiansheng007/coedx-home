@@ -11,6 +11,8 @@
 | 2026-11-09 | CR-20261109-001 | 规划、七类、澄清与编写入口 | fixed | 规划条件前置，移除整体阶段流程出稿路径 | applied |
 | 2026-11-09 | CR-20261109-002 | 对话与唯一问答 | fixed | 明确所有权与逐轮状态 | validated |
 
+| 2026-11-09 | CR-20261109-003 | 当前模块集中生成 | fixed | 处置、来源补漏和依赖复核绑定生成 | validated |
+
 ## Detailed Records
 
 ### CR-20261109-001 - business-before-planning
@@ -32,3 +34,13 @@
 - Impact 限本票问答行为及必要验证，运行时与格式未改。
 - Validation 本地结构/隐私/reader3通过，实际actor host round3/4语义核对见详情与 task evidence/90；独立整票审查待执行。
 - Detail record [CR-20261109-002](../entries/2026/2026-11/CR-20261109-002-dialogue-and-single-qa.md)。
+
+### CR-20261109-003 - module-collective-generation
+
+- Section changed 为当前模块生成条件、编写及关联活动验证。
+- Before 为明确规则与部分答复可即时成稿，来源复核未绑定生成。
+- After 为先保存编写依据，问题明确处置及来源补漏/依赖复核后集中出稿。
+- Why 为落实issue91与已确认S5/R22。
+- Impact 限当前模块及受影响关联入口，格式与下游边界保持。
+- Validation 本地结构/隐私/reader3通过，实际同一actor D004/D005补漏及D006修复v2语义核对完成，证据见详情与task evidence/91。
+- Detail record [CR-20261109-003](../entries/2026/2026-11/CR-20261109-003-module-collective-generation.md)。
