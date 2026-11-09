@@ -8,12 +8,23 @@
 
 | Date | Change ID | Section | Change Type | Summary | Status |
 | --- | --- | --- | --- | --- | --- |
+| 2026-11-09 | CR-20261109-005 | flow93与活动重开请求 | fixed | 局部回流、集中修订与实际具体重审 | validated |
 | 2026-11-09 | CR-20261109-004 | flow92与活动推进请求 | validation | 逐轮具体意见、通过与准确回读先后观察 | validated |
 | 2026-11-09 | CR-20261109-001 | 初始请求与审查rubric | validation | 原始资料启动并逐轮等待主持答复 | applied |
 | 2026-11-09 | CR-20261109-002 | 对话与唯一问答 | fixed | 明确所有权与逐轮状态 | validated |
 | 2026-11-09 | CR-20261109-003 | 当前模块集中生成 | fixed | 处置、来源补漏和依赖复核绑定生成 | validated |
 
 ## Detailed Records
+
+### CR-20261109-005 - local-reopening
+
+- Section changed 为flow93与活动重开请求。
+- Before 为缺少已通过双模块后的实际局部重开观察。
+- After 为实际逐轮部分答复、明确暂留、拒绝与通过观察。
+- Why 为issue93及已确认S5/R22。
+- Impact 限本次受影响流程及必要活动验证，保留无关评审和历史字节。
+- Validation 静态P0/P1零、reader3通过，实际turn14–17部分/暂留/复核/集中修订/具体批准及保真支持四AC；本票新拒绝循环未执行，见详情与TASK/evidence/93。
+- Detail record 为[CR005](../entries/2026/2026-11/CR-20261109-005-local-reopening.md)。
 
 ### CR-20261109-004 - reviewed-module-advance
 

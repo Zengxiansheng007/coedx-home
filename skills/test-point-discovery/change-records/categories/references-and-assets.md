@@ -8,12 +8,23 @@
 
 | Date | Change ID | Section | Change Type | Summary | Status |
 | --- | --- | --- | --- | --- | --- |
+| 2026-11-09 | CR-20261109-005 | 共享回流与调用参考 | fixed | 局部回流、集中修订与实际具体重审 | validated |
 | 2026-11-09 | CR-20261109-004 | 评审、反馈与澄清接续 | fixed | 固定推进顺序与部分评审边界 | validated |
 | 2026-11-09 | CR-20261109-001 | 规划、七类、澄清与编写入口 | fixed | 规划条件前置，移除整体阶段流程出稿路径 | applied |
 | 2026-11-09 | CR-20261109-002 | 对话与唯一问答 | fixed | 明确所有权与逐轮状态 | validated |
 | 2026-11-09 | CR-20261109-003 | 当前模块集中生成 | fixed | 处置、来源补漏和依赖复核绑定生成 | validated |
 
 ## Detailed Records
+
+### CR-20261109-005 - local-reopening
+
+- Section changed 为共享回流与调用参考。
+- Before 为跨模块例句可将新答案直接转候选。
+- After 为绑定相关处置、来源依赖复核及原准确版本保持。
+- Why 为issue93及已确认S5/R22。
+- Impact 限本次受影响流程及必要活动验证，保留无关评审和历史字节。
+- Validation 静态P0/P1零、reader3通过，实际turn14–17部分/暂留/复核/集中修订/具体批准及保真支持四AC；本票新拒绝循环未执行，见详情与TASK/evidence/93。
+- Detail record 为[CR005](../entries/2026/2026-11/CR-20261109-005-local-reopening.md)。
 
 ### CR-20261109-004 - reviewed-module-advance
 
