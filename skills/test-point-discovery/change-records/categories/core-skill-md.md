@@ -8,11 +8,22 @@
 
 | Date | Change ID | Section | Change Type | Summary | Status |
 | --- | --- | --- | --- | --- | --- |
+| 2026-11-09 | CR-20261109-004 | 执行9与验证 | fixed | 具体评审、准确版本保存回读后推进 | validated |
 | 2026-11-09 | CR-20261109-001 | 执行顺序、完成判定 | fixed | 整体业务关系实际问答先于模块安排 | applied |
 | 2026-11-09 | CR-20261109-002 | 对话与唯一问答 | fixed | 明确所有权与逐轮状态 | validated |
 | 2026-11-09 | CR-20261109-003 | 当前模块集中生成 | fixed | 处置、来源补漏和依赖复核绑定生成 | validated |
 
 ## Detailed Records
+
+### CR-20261109-004 - reviewed-module-advance
+
+- Section changed 为执行9及flow92验证入口。
+- Before 为更新与继续句未明确绑定准确回读成功。
+- After 为当前具体稿通过、准确版本实际保存回读及适用收尾后推进，部分评审留当前模块。
+- Why 为issue92和S5逐模块顺序。
+- Impact 为复用原问答、准确路径、永久产品问题和有界清理。
+- Validation 见本次详情与TASK/evidence/92。
+- Detail record 为[CR004](../entries/2026/2026-11/CR-20261109-004-reviewed-module-advance.md)。
 
 ### CR-20261109-001 - business-before-planning
 

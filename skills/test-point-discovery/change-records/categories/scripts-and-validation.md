@@ -8,11 +8,22 @@
 
 | Date | Change ID | Section | Change Type | Summary | Status |
 | --- | --- | --- | --- | --- | --- |
+| 2026-11-09 | CR-20261109-004 | flow92与活动推进请求 | validation | 逐轮具体意见、通过与准确回读先后观察 | validated |
 | 2026-11-09 | CR-20261109-001 | 初始请求与审查rubric | validation | 原始资料启动并逐轮等待主持答复 | applied |
 | 2026-11-09 | CR-20261109-002 | 对话与唯一问答 | fixed | 明确所有权与逐轮状态 | validated |
 | 2026-11-09 | CR-20261109-003 | 当前模块集中生成 | fixed | 处置、来源补漏和依赖复核绑定生成 | validated |
 
 ## Detailed Records
+
+### CR-20261109-004 - reviewed-module-advance
+
+- Section changed 为flow92请求/rubric及progress、optimization87、feedback活动标准。
+- Before 为旧接续请求未证明初始到双模块完整新流程。
+- After 为接续真实已产生QA及集中稿，主持分别发意见，观察实际版本、读回和M02问题先后。
+- Why 为issue92四项AC。
+- Impact 为历史证据和99freeze不改写，静态与语义分别报告。
+- Validation 见本次详情与TASK/evidence/92。
+- Detail record 为[CR004](../entries/2026/2026-11/CR-20261109-004-reviewed-module-advance.md)。
 
 ### CR-20261109-001 - business-before-planning
 

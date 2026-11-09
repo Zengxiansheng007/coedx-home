@@ -8,11 +8,22 @@
 
 | Date | Change ID | Section | Change Type | Summary | Status |
 | --- | --- | --- | --- | --- | --- |
+| 2026-11-09 | CR-20261109-004 | 评审、反馈与澄清接续 | fixed | 固定推进顺序与部分评审边界 | validated |
 | 2026-11-09 | CR-20261109-001 | 规划、七类、澄清与编写入口 | fixed | 规划条件前置，移除整体阶段流程出稿路径 | applied |
 | 2026-11-09 | CR-20261109-002 | 对话与唯一问答 | fixed | 明确所有权与逐轮状态 | validated |
 | 2026-11-09 | CR-20261109-003 | 当前模块集中生成 | fixed | 处置、来源补漏和依赖复核绑定生成 | validated |
 
 ## Detailed Records
+
+### CR-20261109-004 - reviewed-module-advance
+
+- Section changed 为review-and-progress、feedback-review、module-clarification。
+- Before 为独立下一模块与部分准确更新表述可能绕过当前模块评审完成。
+- After 为统一推进完成条件，写入或回读失败保留恢复位置，永久未知保留。
+- Why 为issue92与S5/V15。
+- Impact 为18参考复核，专项共用入口与评审指针复用，无assets格式改动。
+- Validation 见本次详情与TASK/evidence/92。
+- Detail record 为[CR004](../entries/2026/2026-11/CR-20261109-004-reviewed-module-advance.md)。
 
 ### CR-20261109-001 - business-before-planning
 
