@@ -4,7 +4,7 @@
 
 ## A：看板资料与用户思路
 
-请读取并使用本仓库 skills/test-point-discovery/SKILL.md，基于 tests/test-point-discovery/fixtures/dashboard-prd.md 和 tests/test-point-discovery/fixtures/user-notes.md，帮我开始梳理这个看板的模块测试点。现在先给我候选范围、顺序、组织主线和关联简表，保留资料缺口，准备继续画图。本轮仅作模拟，不调用外部模型或真实业务系统。
+请读取并使用本仓库 skills/test-point-discovery/SKILL.md，基于 tests/test-point-discovery/fixtures/dashboard-prd.md 和 tests/test-point-discovery/fixtures/user-notes.md，帮我开始梳理这个看板的模块测试点。先理解业务及主要操作与关联，影响划分的问题先实际问我，等我逐轮答复后再给依赖其答案的候选范围、顺序、主线和关联表图；明确内容直接记依据，整体阶段先不生成测试点稿。本轮仅作模拟，不调用外部模型或真实业务系统。
 
 ## B：无 PRD
 
