@@ -8,6 +8,7 @@
 
 | Date | Change ID | Section | Change Type | Summary | Status |
 | --- | --- | --- | --- | --- | --- |
+| 2026-11-10 | CR-20261110-002 | 阶段1～3规划过渡 | changed | 当前表图确认与实际推进 | applied |
 | 2026-11-10 | CR-20261110-001 | 八阶段入口 | changed | 默认阶段1及用户接续 | applied |
 | 2026-11-09 | CR-20261109-006 | CR001当前状态与证据 | validation | 同步已完成有限模拟，保留冻结检查点 | validated |
 | 2026-11-09 | CR-20261109-005 | 执行10与验证 | fixed | 局部回流、集中修订与实际具体重审 | validated |
@@ -17,6 +18,16 @@
 | 2026-11-09 | CR-20261109-003 | 当前模块集中生成 | fixed | 处置、来源补漏和依赖复核绑定生成 | validated |
 
 ## Detailed Records
+
+### CR-20261110-002 - planning-transitions
+
+- Section changed 为首次阶段1～3推进、规划确认及自然语言验证入口。
+- Before 为已有先业务规划，缺少连续动作集中说明与当前表图版本绑定。
+- After 为成果简述后实际推进，修改表图重新展示，确认当前版本后进入4。
+- Why 为issue96与父005/006规划段/012。
+- Impact 限入口、规划参考、本票虚构开发场景，沿用七类和唯一问答MD。
+- Validation 静态与行为分证，当前applied，实际证据见详情。
+- Detail record 为[CR002](../entries/2026/2026-11/CR-20261110-002-planning-transitions.md)。
 
 ### CR-20261109-006 - final-review-closeout
 
