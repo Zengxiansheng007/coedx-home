@@ -4,6 +4,7 @@
 
 | Date | Change ID | Summary | Status |
 | --- | --- | --- | --- |
+| 2026-11-10 | [CR-20261110-003](entries/2026/2026-11/CR-20261110-003-module-stage-cycle.md) | 模块4～7循环与局部回流阶段衔接 | applied |
 | 2026-11-10 | [CR-20261110-002](entries/2026/2026-11/CR-20261110-002-planning-transitions.md) | 阶段1～3连续推进及当前表图确认 | applied |
 | 2026-11-10 | [CR-20261110-001](entries/2026/2026-11/CR-20261110-001-stage-entry.md) | 八阶段统一入口与有依据的用户接续 | applied |
 | 2026-11-09 | [CR-20261109-006](entries/2026/2026-11/CR-20261109-006-final-review-closeout.md) | 同步操作终点示例与CR001当前有限模拟证据 | validated |

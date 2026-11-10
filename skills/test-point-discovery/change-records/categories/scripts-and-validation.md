@@ -8,6 +8,7 @@
 
 | Date | Change ID | Section | Change Type | Summary | Status |
 | --- | --- | --- | --- | --- | --- |
+| 2026-11-10 | CR-20261110-003 | 模块循环 | changed | 八阶段模块及局部回流 | applied |
 | 2026-11-10 | CR-20261110-002 | 阶段1～3规划过渡 | changed | 当前表图确认与实际推进 | applied |
 | 2026-11-10 | CR-20261110-001 | 八阶段入口 | changed | 默认阶段1及用户接续 | applied |
 | 2026-11-09 | CR-20261109-006 | 最终修复验证与CR001证据 | validation | 实际有限模拟归档与静态回归复核 | validated |
@@ -98,3 +99,13 @@
 - Impact 限目标Skill及入口模拟请求，下游仅同步引用条件。
 - Validation 为静态检查与独立行为分证，结果见详情。
 - Detail record 为[CR-20261110-001](../entries/2026/2026-11/CR-20261110-001-stage-entry.md)。
+
+### CR-20261110-003 - module-stage-cycle
+
+- Section changed: 模块阶段4～7、三反馈及本期验证入口
+- Before: 已有业务机制，阶段过渡与模块动作未集中对应
+- After: 明确5原始来源复核、6集中编写、7评审/回读/收尾及下一模块4，局部4→5→6→7
+- Why: #97及父007—010的八阶段一致性
+- Impact: 仅本Skill及必要本期测试，reader格式与下游保持原契约
+- Validation: TASK/ticket97-static.json及reader/structure/diff log，行为pending
+- Detail record: [CR-20261110-003](../entries/2026/2026-11/CR-20261110-003-module-stage-cycle.md)
