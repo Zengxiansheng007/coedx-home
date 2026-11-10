@@ -8,6 +8,7 @@
 
 | Date | Change ID | Section | Change Type | Summary | Status |
 | --- | --- | --- | --- | --- | --- |
+| 2026-11-10 | CR-20261110-004 | 阶段8交接 | changed | 整体核对及12AC冻结观察 | applied |
 | 2026-11-10 | CR-20261110-001 | 八阶段入口 | changed | 默认阶段1及用户接续 | applied |
 
 ## Detailed Records
@@ -21,3 +22,13 @@
 - Impact 限目标Skill及入口模拟请求，下游仅同步引用条件。
 - Validation 为静态检查与独立行为分证，结果见详情。
 - Detail record 为[CR-20261110-001](../entries/2026/2026-11/CR-20261110-001-stage-entry.md)。
+
+### CR-20261110-004 - stage-eight-handoff
+
+- Section changed: 阶段8入口、交接参考/模板、12AC活动验证
+- Before: 已有依赖和范围机制，缺集中阶段8核对/完成条件
+- After: 七项整体核对、实际范围/用途决定、同MD更新回读与独立恢复
+- Why: #98及父011/012的八阶段交接要求
+- Impact: 本Skill及必要测试，无下游执行或全局变更
+- Validation: TASK/ticket98-static.json及structure/reader/diff log，行为pending
+- Detail record: [CR-20261110-004](../entries/2026/2026-11/CR-20261110-004-stage-eight-handoff.md)
