@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | applied |
+| Status | validated |
 | Target Skill | test-point-discovery |
 | Change Type | fixed / validation |
 | Scope | references-and-assets / core-skill-md / scripts-and-validation / agent-metadata / downstream-and-handoff |
@@ -54,3 +54,11 @@ SKILL、agents、scripts、其余references和测试不变，必要关联仅为�
 ## Local Static Closeout
 
 首轮检查实际通过。reader与格式未改，复用ticket98-reader.log的3/3回归，未重复执行。PS只读探索曾请求不存在的final-repair/AGENTS.md，已核准确目录并按治理补记PS-INC-20261110-011，未误判为产品失败。Git报告LF/CRLF转换提示，提交blob与工作字节在TASK/final-known-freeze.json分别列示。最终整规格行为仍pending。
+
+## Current Independent Technical Status at d07b00ba
+
+原冻结applied、behavior pending及失败保持历史身份。2026-11-10的独立Spec审查已完成，详见TASK/final-spec-review.md和final-acceptance.json，准确绑定d07b00ba0897f0cc1b8dc1e80bb40c85b4538aa6及operative工作manifest a796f26fd819573ebb404ed7992a2544d6ae1598029bf6e7c94afa5fd42008e1。父规格12AC与#98六AC按各项报告限定的SIMULATION技术范围通过，阶段8独立接收实际完成。主链23轮、显式前提不足及遗漏来源补充分支保留各自身份，MD/XMind反馈仅复用报告明确核对的b1e5493a历史范围。
+
+接收证据为TASK/final-receiver/receipt.md及read-evidence.json，准确MD v5 SHA256为9FDC7688725D7FB9AD4FCD670F54FF5158B9706F4A7E513D5515CCC0054D41E4。主链首次读取缺少当时单独原始返回、轮8快照未等完成、轮17误序纠正及历史helper原始stdout缺失均沿用独立报告披露。真实XMind客户端、真实业务、全局安装、宿主/OS强制门仍未验证。
+
+CR004/005当前validated只登记上述原冻结的独立技术结论，整体身份validated-candidate。最终Standards的一项P2重复定义由CR-20261110-006本轮修复，其新operative版本的受影响反馈行为与独立复审仍待执行。旧23轮及12AC证据不改绑为新包通过。
