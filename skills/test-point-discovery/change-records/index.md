@@ -4,6 +4,7 @@
 
 | Date | Change ID | Summary | Status |
 | --- | --- | --- | --- |
+| 2026-11-10 | [CR-20261110-001](entries/2026/2026-11/CR-20261110-001-stage-entry.md) | 八阶段统一入口与有依据的用户接续 | applied |
 | 2026-11-09 | [CR-20261109-006](entries/2026/2026-11/CR-20261109-006-final-review-closeout.md) | 同步操作终点示例与CR001当前有限模拟证据 | validated |
 | 2026-11-09 | [CR-20261109-005](entries/2026/2026-11/CR-20261109-005-local-reopening.md) | 新事实局部回流与集中修订重审 | validated |
 | 2026-11-09 | [CR-20261109-004](entries/2026/2026-11/CR-20261109-004-reviewed-module-advance.md) | 当前模块具体评审与准确版本回读后推进 | validated |
@@ -16,6 +17,10 @@
 - [Core skill](categories/core-skill-md.md)
 - [References and assets](categories/references-and-assets.md)
 - [Scripts and validation](categories/scripts-and-validation.md)
+
+- [agent-metadata](categories/agent-metadata.md)
+
+- [downstream-and-handoff](categories/downstream-and-handoff.md)
 
 ## Open Risks
 

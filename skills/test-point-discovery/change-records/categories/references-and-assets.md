@@ -8,6 +8,7 @@
 
 | Date | Change ID | Section | Change Type | Summary | Status |
 | --- | --- | --- | --- | --- | --- |
+| 2026-11-10 | CR-20261110-001 | 八阶段入口 | changed | 默认阶段1及用户接续 | applied |
 | 2026-11-09 | CR-20261109-006 | 操作终点示例与CR001证据 | fixed | 保存编写依据，处置复核后集中出稿 | validated |
 | 2026-11-09 | CR-20261109-005 | 共享回流与调用参考 | fixed | 局部回流、集中修订与实际具体重审 | validated |
 | 2026-11-09 | CR-20261109-004 | 评审、反馈与澄清接续 | fixed | 固定推进顺序与部分评审边界 | validated |
@@ -76,3 +77,13 @@
 - Impact 限当前模块及受影响关联入口，格式与下游边界保持。
 - Validation 本地结构/隐私/reader3通过，实际同一actor D004/D005补漏及D006修复v2语义核对完成，证据见详情与task evidence/91。
 - Detail record [CR-20261109-003](../entries/2026/2026-11/CR-20261109-003-module-collective-generation.md)。
+
+### CR-20261110-001 - stage-entry
+
+- Section changed 为本分类直接入口、资料前提或入口验证。
+- Before 为旧内部操作序号及直接接续分流。
+- After 为共享八阶段定义，入口先核对，接续等待真实同意。
+- Why 为#95及父#94的入口需求。
+- Impact 限目标Skill及入口模拟请求，下游仅同步引用条件。
+- Validation 为静态检查与独立行为分证，结果见详情。
+- Detail record 为[CR-20261110-001](../entries/2026/2026-11/CR-20261110-001-stage-entry.md)。
