@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | applied |
+| Status | validated |
 | Target Skill | test-point-discovery |
 | Change Type | changed |
 | Scope | core-skill-md / references-and-assets / scripts-and-validation |
@@ -41,6 +41,8 @@
 
 ## Validation Evidence
 
+以下为实现冻结时的检查点，pending保留历史身份。当前结果见末节。
+
 | Check | Command or Method | Result | Evidence |
 | --- | --- | --- | --- |
 | Baseline | HEAD、clean与需求适用核对 | aac20f8；修改前clean | TASK/ticket96-red.md |
@@ -54,4 +56,14 @@
 
 ## Risks And Follow-up
 
+以下为冻结当时风险原文，当前状态以末节为准。
+
 applied为当前状态，静态检查不代表整票或业务通过。真实XMind往返、真实业务及宿主接受未验证。#95内部字母/数字小表述由最终fresh修复处理，本票保留。数值额度沿用无项目上限授权，历史失败不覆盖。
+
+## Current Independent Technical Review
+
+当前状态为validated，限定于本票冻结提交 `199fe003b49aeb8a46ed2f64f6ec5ddab32b85e4` 的独立模拟技术验收。六AC限定SIMULATION通过；原AC4命令证据pending已由原actor补录commands并独立增量复审闭合。
+
+准确依据为TASK/review96-result.md、ticket96-freeze.json及报告中逐项指向的真实行为证据。当前追加由CR-20261110-005登记，原提交、applied/pending行及历史失败均保留。此处复用并核对已有独立审查，没有重跑或补造历史行为。
+
+整规格12AC须绑定最终同一runtime另验，真实业务、原生XMind客户端往返、宿主/OS强制门及全局安装保持未验证。报告披露的提示条件、截图及历史工具归档限制沿用。

@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | applied |
+| Status | validated |
 | Target Skill | test-point-discovery |
 | Change Type | changed |
 | Scope | core-skill-md / references-and-assets / scripts-and-validation |
@@ -44,6 +44,8 @@
 
 ## Validation Evidence
 
+以下为实现冻结时的检查点，pending保留历史身份。当前结果见末节。
+
 | Check | Command or Method | Result | Evidence |
 | --- | --- | --- | --- |
 | Baseline / red | clean、准确HEAD、需求设计及现有机制核对 | 契约差距已保存，行为RED未执行 | TASK/ticket97-red.md |
@@ -57,4 +59,14 @@
 
 ## Risks And Follow-up
 
+以下为冻结当时风险原文，当前状态以末节为准。
+
 保持applied，行为待协调方按冻结hash补证。原生XMind客户端往返、真实业务、独立接收恢复不以本票静态检查替代。原始主题若初轮已识别，不得伪称找回遗漏，使用独立明确标注模拟前提的阶段5补充场景验证。定向验证不重复无关全仓检查，数值额度沿用现行无项目上限授权，历史失败保留。
+
+## Current Independent Technical Review
+
+当前状态为validated，限定于本票冻结提交 `b1e5493a082f32edd5b26ded729339a49fbba394` 的独立模拟技术验收。七AC限定SIMULATION通过；主场11轮与隔离覆盖补充分支两轮及原actor动作记录已独立回核。
+
+准确依据为TASK/review97-result.md、ticket97-freeze.json及报告中逐项指向的真实行为证据。当前追加由CR-20261110-005登记，原提交、applied/pending行及历史失败均保留。此处复用并核对已有独立审查，没有重跑或补造历史行为。
+
+整规格12AC须绑定最终同一runtime另验，真实业务、原生XMind客户端往返、宿主/OS强制门及全局安装保持未验证。报告披露的提示条件、截图及历史工具归档限制沿用。

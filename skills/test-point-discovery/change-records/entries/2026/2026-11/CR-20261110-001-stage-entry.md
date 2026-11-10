@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | applied |
+| Status | validated |
 | Target Skill | test-point-discovery |
 | Change Type | changed |
 | Scope | core-skill-md / references-and-assets / scripts-and-validation / agent-metadata / downstream-and-handoff |
@@ -40,6 +40,8 @@
 
 ## Validation Evidence
 
+以下为实现冻结时的检查点，pending保留历史身份。当前结果见末节。
+
 | Check | Command or Method | Result | Evidence |
 | --- | --- | --- | --- |
 | RED | 基线源码与v0.9/设计v0.3比对 | 直接入口及阶段身份静态冲突 | TASK/ticket95-red.md |
@@ -54,4 +56,14 @@
 
 ## Risks And Follow-up
 
+以下为冻结当时风险原文，当前状态以末节为准。
+
 当前applied，独立入口行为尚待验证，不代表#95整票通过。静态通过仅为candidate证据。两项既有P2为中文描述未含英文触发措辞、reader脚本经XMind参考间接可达。XMind真实客户端、真实业务和宿主接受未验证。本轮不新增业务展开，下游按其原有入口与授权执行。预算采用无项目数值上限的现行授权，历史失败保留。
+
+## Current Independent Technical Review
+
+当前状态为validated，限定于本票冻结提交 `aac20f80091215e9a66a0de27b2043023daa7e27` 的独立模拟技术验收。六条票AC及父001—004在限定入口SIMULATION范围通过；P3术语尾项由CR005修复。
+
+准确依据为TASK/review95-result.md、ticket95-freeze.json及报告中逐项指向的真实行为证据。当前追加由CR-20261110-005登记，原提交、applied/pending行及历史失败均保留。此处复用并核对已有独立审查，没有重跑或补造历史行为。
+
+整规格12AC须绑定最终同一runtime另验，真实业务、原生XMind客户端往返、宿主/OS强制门及全局安装保持未验证。报告披露的提示条件、截图及历史工具归档限制沿用。
