@@ -79,3 +79,13 @@ fresh接收TASK/final-v2-receiver/receipt.md及read-evidence.json实际只读准
 自然图EPERM/换行断言恢复、长命令与reviewer工具失败保持原证据及PS-INC-20261110-019/020/023/024/025等既有记录，详见主持报告。合成XMind仅格式及模拟语义，图片为1440×900视口。真实客户端导入往返、真实业务、程序直导、全局安装、宿主/OS强制门未验。七类仅资源一致性核读，未逐类重新业务演示；额外写入/回读失败恢复、部分具体批准、外部查证故障等未跑分支不纳入通过。
 
 最终行政提交的Standards/Spec双轴审查由协调方随后针对准确HEAD独立执行。本节登记已经发生的7b2验证，不预填该后续审查结论。最终静态及reader实际命令见TASK/final-administrative-static.json，行政与operative清单分列见TASK/final-freeze.json。
+
+## S-002 Administrative Deduplication
+
+基线为a5390cdc35d648627bd601c7579672cd61bb242d。TASK/final-v2-standards-review.md的S-002发现当前技术长摘要在九份行政记录复制。按writing-for-agents单一来源及create-skill追踪契约，完整7b2技术段保留本记录，index、五category及CR004/005末节各保留自身状态、范围、短验证与本节前方详情锚点。原有追踪字段、历史pending、失败及d07段逐字保留。本轮沿CR006行政收尾，仅九份CR文件。
+
+TASK/final-v2-spec-review.md及final-v2-acceptance.json已经独立核对82组双流、52个自然快照和22个operative文件，父12AC/#98六AC限定技术PASS，新增产品发现0。该结论仍绑定7b2行为版本与a539审查对象。本轮行政提交身份另列于TASK/final-delivery-freeze.json，后续准确行政HEAD独立审查由协调方执行。
+
+本轮实际create-skill --require-change-records及git diff --check退出0。全包引用/严格UTF-8/BOM/替换字符/敏感/状态和准确九文件写集检查见TASK/final-admin-dedup-static.json，最终命令双流与返回见TASK/final-admin-dedup-commands.json。编辑前后22文件逐项匹配原冻结，工作manifest为52d83f344aaa2c4cdd43ff2069444dfce38501bd0dc3ecef64052dc1c6851fb0。行政与operative工作/hash及raw Git blob分别登记于新freeze。原始九文件快照先同步完成并回读再编辑。
+
+行为与reader未变化，复用已有验证。本轮采用行政增量检查。原有完整7b2条件、失败、外层transcript缺失和未验证范围仍由上节承担，整体继续为validated-candidate。
