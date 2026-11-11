@@ -1,0 +1,6 @@
+interface:
+  display_name: "测试编写顾问"
+  short_description: "手动咨询测试编写阶段、材料缺口与入口，只读核对并给出建议"
+  default_prompt: "使用 $ask-test 根据当前任务材料核对阶段和必要缺口，建议下一入口；只咨询，不修改材料或启动下游。"
+policy:
+  allow_implicit_invocation: false
