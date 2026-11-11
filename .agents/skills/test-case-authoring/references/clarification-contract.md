@@ -36,6 +36,14 @@ dependencies; the helper only enforces the declared graph.
 
 A reply has `question_id`, `decision` (`formal`, `provisional`, `deferred`),
 `actual_reply`, and `updates`. Provisional replies also require `product_check`.
+For compound questions declare `answer_parts` as stable aspect names mapped to
+concrete descriptions (object, condition, behavior, subdivided when necessary).
+Replies supply only actual `answered_parts`; `partial` and `unknown` preserve
+incomplete replies without business authorization or candidate updates. The
+returned `remaining_parts` and Chinese chat ask the remaining question; unknown
+returns a full disposition question. Formal/provisional require all declared
+aspects; explicit deferred may leave them unknown. Summary carries accumulated
+aspects while all original replies and their source references remain in history.
 An update is `{"path":["cases",0,"title"],"value":"Reviewed business title"}`.
 Paths must have been declared in the question's `target_paths`. Business fields
 can be nested case content or separate data (context, operations, expectations,

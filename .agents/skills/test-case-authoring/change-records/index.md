@@ -2,6 +2,8 @@
 
 ## Latest Changes
 
+- CR-20261111-106: [Partial answers](entries/2026/2026-11/CR-20261111-106-partial-answers.md), applied; candidate pending independent behavior simulation.
+
 - CR-20261111-105: [Rule Q&A](entries/2026/2026-11/CR-20261111-105-rule-qa.md), applied; three-route actual simulation and independent local integration review completed; inherited validator findings retained.
 
 ## Category Index
