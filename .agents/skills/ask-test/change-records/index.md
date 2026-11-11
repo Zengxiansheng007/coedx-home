@@ -4,6 +4,7 @@
 
 | Date | Change ID | Summary | Status |
 | --- | --- | --- | --- |
+| 2026-11-11 | [CR-20261111-004](entries/2026/2026-11/CR-20261111-004-handoff.md) | AT04交接与提示词 | applied; behavior pending |
 | 2026-11-11 | [CR-20261111-002](entries/2026/2026-11/CR-20261111-002-process-diagnosis.md) | AT02流程诊断 | applied; behavior pending |
 | 2026-11-11 | [CR-20261111-003](entries/2026/2026-11/CR-20261111-003-content-quality.md) | AT03局部质量咨询 | applied; behavior pending |
 
