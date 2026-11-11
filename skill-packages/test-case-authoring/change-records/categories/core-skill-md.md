@@ -34,7 +34,7 @@ Trace rule Q&A changes in core-skill-md.
 - After: accumulated aspects and explicit unknown disposition; dependent reopening.
 - Why: issue 106.
 - Impact: same public Markdown adapter and three business routes.
-- Validation: public red-green regressions; independent dialogue pending.
+- Validation: public red-green regressions; actual 16-event dialogue and independent ticket review completed; 114 integrated regressions passed. Inherited validator findings remain.
 - Detail record: [CR-20261111-106](../entries/2026/2026-11/CR-20261111-106-partial-answers.md).
 
 ### CR-20261111-201 - Source semantics
@@ -64,5 +64,5 @@ PRE-02 review repair: answered/non-stale questions are historical, explicit empt
 - After: authorized report and attachment reads, readable gaps, existing target reuse, additive MD context/notes.
 - Why: issue 107.
 - Impact: existing P0 checker and rule transitions preserved.
-- Validation: public tests; independent dialogue and review remain pending.
+- Validation: public tests; actual two-round dialogue and independent ticket review completed; 114 integrated regressions passed. Inherited validator findings remain.
 - Detail record: [CR-20261111-107](../entries/2026/2026-11/CR-20261111-107-report-reconciliation.md).

@@ -44,7 +44,7 @@ Additive public interfaces preserve existing callers and candidate state. Report
 | Full regression | unittest discover scripts/test_*.py | 104 passed | private regression.txt |
 | Structure | validate_create_skill.py --require-change-records | same 7 inherited findings; no new record finding | private skill-validation.txt |
 | Mirror | SHA-256 of source/distribution | zero mismatches | private checks.json |
-| Behavioral simulation | fresh independent agent, actual sequential replies | pending Root validation | no successful transcript claimed |
+| Behavioral simulation | fresh independent agent, actual sequential replies | observed two actual rounds; unchanged V2 reused; missing attachment and object mismatch retained; P1/P2 stayed blocked | private qa107/dialogue-observed.md and dialogue-index.json |
 
 ## Safety And Privacy
 
@@ -52,6 +52,6 @@ Only synthetic test inputs and public contracts in the package. No dependency, e
 
 ## Risks And Follow-up
 
-Independent simulation and review remain required. Native binary evidence still needs an actual viewer and source-traced normalization. Program checks cannot authenticate the report producer or infer business success from arbitrary prose. Existing structural-validator findings remain open; applied status is not host acceptance.
+Independent ticket review found no blocking standards or specification issue (private review-106-107.md); integrated unittest discovery passed 114 tests (private integration-106-107-regression.txt). Full-batch post-integration review remains separate. Native binary evidence still needs an actual viewer and source-traced normalization. Program checks cannot authenticate the report producer or infer business success from arbitrary prose. Existing structural-validator findings remain open; applied status is not host acceptance.
 
 Refs: https://github.com/Zengxiansheng007/coedx-home/issues/107

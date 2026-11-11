@@ -2,10 +2,10 @@
 
 ## Latest Changes
 
-- CR-20261111-107: [Report reconciliation](entries/2026/2026-11/CR-20261111-107-report-reconciliation.md), applied; independent dialogue and review pending.
+- CR-20261111-107: [Report reconciliation](entries/2026/2026-11/CR-20261111-107-report-reconciliation.md), applied; actual two-round report reconciliation and independent ticket review completed; 114 integrated regressions passed.
 
 
-- CR-20261111-106: [Partial answers](entries/2026/2026-11/CR-20261111-106-partial-answers.md), applied; candidate pending independent behavior simulation.
+- CR-20261111-106: [Partial answers](entries/2026/2026-11/CR-20261111-106-partial-answers.md), applied; actual 16-event dialogue and independent ticket review completed; 114 integrated regressions passed.
 
 - CR-20261111-105: [Rule Q&A](entries/2026/2026-11/CR-20261111-105-rule-qa.md), applied; three-route actual simulation and independent local integration review completed; inherited validator findings retained.
 - CR-20261111-201: [Source semantics](entries/2026/2026-11/CR-20261111-201-source-semantics.md), applied; actual correction dialogue and exact-version simulated public review completed.
