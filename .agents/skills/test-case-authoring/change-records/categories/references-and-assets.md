@@ -19,5 +19,5 @@ Trace rule Q&A changes in references-and-assets.
 - After: single Markdown event source and Chinese full questions.
 - Why: issue 105 answer traceability.
 - Impact: existing computation seams preserved.
-- Validation: public regression; actual simulation pending.
+- Validation: public regression; observed formal/provisional/deferred simulations and independent local integration review completed. Inherited validator findings remain open; no host acceptance.
 - Detail record: [CR-20261111-105](../entries/2026/2026-11/CR-20261111-105-rule-qa.md).

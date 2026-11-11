@@ -2,7 +2,7 @@
 
 ## Latest Changes
 
-- CR-20261111-105: [Rule Q&A](entries/2026/2026-11/CR-20261111-105-rule-qa.md), applied; actual behavior validation pending.
+- CR-20261111-105: [Rule Q&A](entries/2026/2026-11/CR-20261111-105-rule-qa.md), applied; three-route actual simulation and independent local integration review completed; inherited validator findings retained.
 
 ## Category Index
 
@@ -12,4 +12,4 @@
 
 ## Open Risks
 
-Actual multi-turn simulation and independent review remain pending. No installation or execution acceptance.
+Inherited structural-validator findings remain open; applied is not host acceptance. Cross-stage append belongs to issue 110. No installation or execution acceptance.
