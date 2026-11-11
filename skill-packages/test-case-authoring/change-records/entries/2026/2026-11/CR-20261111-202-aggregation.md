@@ -48,7 +48,7 @@ Authoring, scoped review, Markdown and supported native XMind feedback consume t
 Only synthetic fixtures and generic implementation are packaged. Private requirements, business assets and client evidence remain outside the repository. No global install, network calls, publishing or business execution.
 
 ## Risks And Follow-up
-Candidate only; independent code review remains. Actual client evidence covers only the imported r1 hierarchy and original text, not business correctness, arbitrary clients or later title changes. The synthetic r1 closing step reused a save expectation: preserve that historical input and evidence, and use the separately corrected r2 fixture for later semantic demonstrations; r2 has not been imported. Semantic comparison is conservative exact structured equality plus aligned rendered descendants, not inference of natural-language synonyms. Nested object IDs remain significant; only generated top-level step IDs are ignored. Structural edits outside supported scalar feedback remain clarification work. Inherited validator findings are not claimed fixed by this ticket.
+Candidate only; limited independent re-review closed R1/R2/S1 on 2026-11-12; final combined-ticket review remains. Actual client evidence covers only the imported r1 hierarchy and original text, not business correctness, arbitrary clients or later title changes. The synthetic r1 closing step reused a save expectation: preserve that historical input and evidence, and use the separately corrected r2 fixture for later semantic demonstrations; r2 has not been imported. Semantic comparison is conservative exact structured equality plus aligned rendered descendants, not inference of natural-language synonyms. Nested object IDs remain significant; only generated top-level step IDs are ignored. Structural edits outside supported scalar feedback remain clarification work. Inherited validator findings are not claimed fixed by this ticket.
 
 ## Acceptance Coverage
 
@@ -79,4 +79,17 @@ Integrated PRE-01 tip 4a6b52e94b9828d613ac0127af86ca01f62377f5 after the initial
 
 The 106-test integrated run passed 105 tests and exposed one old PRE-01 literal-label assertion (ordinary XMind now says pending verification instead of pending clarification). Adapted that assertion to the actual unresolved steps/1 field under either label, retaining precise supplied step/action/data/outcome checks. The added data comparison initially detected legitimate provenance enrichment; the corrected comparison preserves every supplied data value and ID while allowing added provenance. All 3 affected source-semantics tests then passed. Original failed runs are retained; the other 105 tests were unchanged and not needlessly rerun.
 
-The 53-file source/mirror comparison and exact new client-sample reproduction passed on the merged renderer. The repair sample covers a valid answer, a stale answer, explicit absence of extra preparation and unknown preparation. Its affected-client check and independent re-review remain with Root; no claim extends the historical 127-topic import to this new sample.
+The 53-file source/mirror comparison and exact new client-sample reproduction passed on the merged renderer. The repair sample covers a valid answer, a stale answer, explicit absence of extra preparation and unknown preparation. Its affected-client check and independent re-review are now recorded below; the historical 127-topic import remains separate.
+
+### Local Integration Evidence Closure (2026-11-12)
+
+Frozen candidate: 4b23be72b9422db641329d2ee75b2a2d0e70b358, containing integration input 4a6b52e94b9828d613ac0127af86ca01f62377f5. Integration fast-forwarded this exact candidate; this closure changes records only.
+
+| Check | Method and result | Evidence retained outside the repository |
+|---|---|---|
+| Independent limited re-review | R1/R2/S1 closed; PRE-01 conflict resolution retained source semantics, technical handoff and Q&A behavior | review-initial.md, 2026-11-12 limited repair section |
+| Actual affected-client import | Root imported the synthetic repair sample into XMind and saved a separate native file; all 110/110 titles, full ancestor positions and order equal the source Markdown | pre02/root-repair-client-observation.md and pre02/repair-import-comparison.json |
+| Input binding | Native file 218192 bytes, SHA-256 05f0d819d06ee4aa91834b76bfc7e2b0ac5a0e7beadd8f0e7eaa2997025a8790; Markdown SHA-256 a574e1becad886ce6e86a11f440d98c32d1c9a6785ebdec51444362385636869 | Exact repair-sample comparison |
+| Regression evidence reused | Integrated run passed 105 of 106; after correcting the old label assertion, all 3 affected tests passed. No new product change in this closure; no repeat full-suite run | review-fix-integrated-final.txt and review-fix-integration-assertion-green-v2.txt |
+
+This closes the affected-client condition for AC-014 and the repair-sample hierarchy portion of AC-022. Keep the original 127-topic native evidence and all failed runs. PRE-03 title changes require their own affected-client verification. Status remains applied: 7 inherited validator findings remain, and local integration is not host installation acceptance or business execution.

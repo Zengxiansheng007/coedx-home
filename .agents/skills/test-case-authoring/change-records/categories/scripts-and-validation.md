@@ -42,7 +42,7 @@ Trace rule Q&A changes in scripts-and-validation.
 - After: semantic paths and shared preparation with source ownership.
 - Why: keep bulk reviews readable without changing execution meaning.
 - Impact: batch, scoped and feedback public interfaces.
-- Validation: 99 public regressions passed; actual XMind r1 import and complete 127-topic comparison passed. Independent code review and inherited validator findings remain.
+- Validation: 99 public regressions passed; actual XMind r1 import and complete 127-topic comparison passed. Limited independent re-review closed R1/R2/S1; actual repair-client 110/110 full-tree comparison passed. The 106-test run passed 105, then all 3 affected tests passed after assertion correction; inherited validator findings remain.
 - Detail record: [CR-20261111-202](../entries/2026/2026-11/CR-20261111-202-aggregation.md).
 
 PRE-02 review repair: answered/non-stale questions are historical, explicit empty-preparation notes stay in their group. Public regression and affected client sample are recorded in CR-20261111-202.
