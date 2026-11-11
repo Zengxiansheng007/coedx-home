@@ -17,6 +17,13 @@ def reply(identity, value=None, **extra):  # Actual synthetic test input, not di
 
 
 class ThreeRepairTests(unittest.TestCase):
+    def test_unbound_feedback_keeps_legacy_history_shape(self):
+        from feedback import prepare_feedback  # Legacy public feedback entry.
+        from test_feedback import confirm  # Existing explicit synthetic confirmation helper.
+        pending = prepare_feedback(scope()['batch'], 'chat', actual_reply='SIMULATED rename', changes=[dict(collection='cases', id='EDIT', path=['title'], value='Renamed')])
+        updated = confirm(pending)  # Empty optional identity bindings are not business evidence.
+        self.assertNotIn('case_bindings', updated['batch']['feedback_history'][-1])  # Keep legacy version input unchanged.
+
     def test_literal_identity_tokens_survive_both_views(self):
         batch = scope()['batch']  # English IDs are also legitimate business values.
         batch['cases'][0]['steps'][0]['operation'] = '输入业务字面值 EDIT 和 用例编号：EDIT'  # Literal must remain exact.

@@ -386,7 +386,8 @@ def apply_feedback(pending, confirmation, deletion_decisions=None):
         'summary': current, 'confirmation': confirmation, 'changes': pending['changes'], 'deletions': pending['deletions']})
     if pending.get('returned_source'):
         batch['feedback_history'][-1]['returned_source'] = copy.deepcopy(pending['returned_source'])
-    batch['feedback_history'][-1]['case_bindings'] = copy.deepcopy(pending.get('case_bindings', {}))  # Identity evidence is internal history.
+    if pending.get('case_bindings'):  # Empty optional metadata must not change historical semantic versions.
+        batch['feedback_history'][-1]['case_bindings'] = copy.deepcopy(pending['case_bindings'])  # Retain actual identity evidence only.
     # Keep enriched original doubts and their actual answer history so the
     # existing grill can reuse identical decisions on later feedback rounds.
     batch['questions'] = [copy.deepcopy(q) for q in pending['grill']['questions']
