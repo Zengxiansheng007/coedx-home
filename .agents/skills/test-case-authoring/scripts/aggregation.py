@@ -2,7 +2,7 @@
 import copy
 import json
 import hashlib
-from presentation import display_text
+from presentation import case_name  # Resolve generated applicability identities only.
 
 
 def _semantic(value):
@@ -77,12 +77,7 @@ def projection(batch, markdown):
             common['origins'] = []
         target['children'].append(source)
     for shared in groups.values():
-        shared['children'].insert(0, {'text': '适用用例：' + '、'.join(shared['members']), 'children': [], 'origins': []})
-    def translate(node):  # All public nodes, including references and history, share the same name projection.
-        node['text'] = display_text(batch, node['text'])
-        for child in node['children']:
-            translate(child)
-    translate(merged)
+        shared['children'].insert(0, {'text': '适用用例：' + '、'.join(case_name(batch, cid) for cid in shared['members']), 'children': [], 'origins': []})
     return lines[:3], merged
 
 
@@ -127,7 +122,6 @@ def expand_feedback(batch, flat_markdown, incoming, case_bindings=None):
                 node['text'] = node['text'][len(case['id']) + 1:]
                 break
         original_title = node['text']
-        node['text'] = display_text(batch, node['text'])
         for child in node['children']:
             legacy(child, path + [original_title] if original_title else path)
     legacy(actual, [])

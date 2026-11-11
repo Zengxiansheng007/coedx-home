@@ -183,8 +183,7 @@ def _views(batch):
     selected = {s['case_id']: s for s in batch['selection']}  # Clarification may add independent candidates.
     display = dict(batch, selection=[dict(selected.get(c['id'], {'case_id': c['id'], 'reason': '候选评审'}), action=selected.get(c['id'], {}).get('action', 'add')) for c in batch['cases']])
     tree = _render(display)['xmind_markdown']  # A single root replaces concatenated individual trees.
-    from presentation import display_text  # Keep ordinary and scoped human references consistent.
-    return display_text(batch, '\n'.join(v[0] for v in views)), tree
+    return '\n'.join(v[0] for v in views), tree  # Preserve literal input and expected text.
 
 
 def render_batch(batch):

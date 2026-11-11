@@ -35,6 +35,9 @@ def transition(state, action, payload):  # Called only through the record's expl
         pending['persisted_feedback'] = True  # Retain this task's full stable graph after application.
         pending['decision_question_ids'] = [q['id'] for q in pending['grill']['questions'] if not flow._answered(q)]  # Changes only, not old unrelated decisions.
         result = copy.deepcopy(pending['grill'])  # Continue normal respond and summarize on this session.
+        if state.get('coverage'):  # Retain recognized branches; require rereading against this feedback version.
+            result['coverage'] = copy.deepcopy(state['coverage'])
+            result['coverage']['revision'] = -1  # Prior closure is not current feedback coverage.
         result['feedback_proposal'] = pending['proposal_digest']  # Bind summary to exact proposed changes.
         pending['grill'] = copy.deepcopy(result)  # Freeze the same summary identity at application.
         result['feedback_pending'] = pending  # Disposable projection; events remain sole answer source.
@@ -45,7 +48,7 @@ def transition(state, action, payload):  # Called only through the record's expl
             raise ValueError('No feedback proposal is pending')  # Preserve the existing candidate.
         pending['grill'] = {k: copy.deepcopy(v) for k, v in state.items() if k not in ('feedback_pending', 'qa_record')}  # Current answers replace only the projection.
         old = {q['id']: q for q in state['feedback_pending']['grill']['questions']}  # Compare to the saved proposal frontier.
-        pending['decision_question_ids'] = sorted(set(pending['decision_question_ids']) | {q['id'] for q in state['questions'] if q['history'] != old[q['id']]['history']})  # Include actual later corrections only.
+        pending['decision_question_ids'] = sorted(set(pending['decision_question_ids']) | {q['id'] for q in state['questions'] if q['id'] not in old or q['history'] != old[q['id']]['history']})  # Include actual later corrections only.
         result = apply_feedback(pending, payload)  # Existing scope and exact summary checks.
         session = copy.deepcopy(result['review_session'])  # Full updated cases await review.
         session.pop('feedback_pending', None)  # This proposal has been applied.

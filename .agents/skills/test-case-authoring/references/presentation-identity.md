@@ -50,3 +50,7 @@ human-view file emission policy.
 
 Verify Chinese titles and hierarchy in the actual agreed XMind client. Static
 and synthetic native checks do not establish client or business acceptance.
+
+## Review repair boundary
+
+Resolve identities only in typed case_id/case_ids fields and generated applicability membership. A matching token in an operation, input value, expected text, path or actual reply is business content and must remain unchanged. Feedback must not interpret derived reference labels as independent editable title occurrences.

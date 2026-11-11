@@ -36,6 +36,8 @@ def _presentation(session):
     lines = []
     for q in pending:
         q = copy.deepcopy(q)  # Follow-up presentation never rewrites the original question.
+        if q.get('disposition_scope') == 'separate_impact':  # Show the actual scope before the reply.
+            lines.append('独立影响处置：' + q['scope_basis'] + '；当前用例前提不变，此问题不确认该分支业务规则。')  # No implicit rule confirmation.
         if q['history'] and q['history'][-1]['decision'] == 'unknown':  # An unknown answer requires an actual disposition question.
             q.update(reason='尚未明确的规则如何处置？原问题：' + q['reason'], options=['补充或核实规则后回答', '明确搁置相关内容，可指定后续向产品核实', '提供明确暂定预期及产品核对条件并授权继续'], recommendation='能查明时先补充规则；否则明确选择本轮处置', rationale='不知道只说明业务答案未知，处置仍需你的实际决定', boundary='搁置仅暂停相关内容；暂定需要明确预期和核对条件，沉默不作确认', example_kind='hypothetical', example='例如暂时不确定超限处理，可以明确搁置超限用例；独立明确内容继续整理。')  # Full Chinese dialogue, no assumed choice.
         if q.get('remaining_parts'):  # Show only the unresolved aspects without discarding known facts.
@@ -63,6 +65,10 @@ def start_grill(batch, questions):
     case_ids = {c['id'] for c in batch['cases']}
     previous = {q.get('id'): q for q in batch['questions'] if q.get('id')}
     for q in questions:
+        if q.get('disposition_scope', 'case_rule') not in ('case_rule', 'separate_impact'):  # Explicit semantic scope only.
+            raise ValueError('Unknown disposition scope')
+        if q.get('disposition_scope') == 'separate_impact' and (not q.get('scope_basis') or q['target_paths']):  # Scope-only questions cannot patch case rules.
+            raise ValueError('Separate impact requires scope basis and no candidate targets')
         if q.get('answer_parts') and (not isinstance(q['answer_parts'], dict) or any(not key or not value for key, value in q['answer_parts'].items())):  # Named business aspects must be meaningful.
             raise ValueError('Answer parts require stable names and descriptions')  # Reject ambiguous tracking.
         q.setdefault('answered_parts', {})  # Technical projection of actual supplied aspects.
@@ -203,11 +209,12 @@ def summarize(session):
     summary = {'content_version': result['batch']['content_version'], 'revision': result['revision'],
                'decisions': [{'question_id': q['id'], 'case_id': q['case_id'], 'field': q['field'],
                               'answered_parts': copy.deepcopy(q.get('answered_parts', {})),  # Carry earlier partial answers into the confirmed snapshot.
+                              **({'disposition_scope': q['disposition_scope'], 'scope_basis': q['scope_basis']} if q.get('disposition_scope') == 'separate_impact' else {}),  # Preserve actual impact disposition.
                               **({'rule_id': q['rule_id']} if q.get('rule_id') else {}),
                               'reply': q['history'][-1]} for q in questions.values() if _answered(q) and
                              not (set(q['depends_on']) & blocked)],
                'blocked_questions': [qid for qid in questions if qid in blocked and not _answered(questions[qid])],
-               'blocked_cases': sorted({q['case_id'] for q in questions.values() if q['id'] in blocked})}
+               'blocked_cases': sorted({q['case_id'] for q in questions.values() if q['id'] in blocked and q.get('disposition_scope') != 'separate_impact'})}  # Deferred prerequisites still block dependent case rules.
     if coverage:  # Preserve deferred/excluded facts and actual review scope in the confirmed snapshot.
         summary['coverage'] = copy.deepcopy(coverage)  # Disposition does not mean a known business rule.
     summary['id'] = _digest(summary)
@@ -216,6 +223,16 @@ def summarize(session):
         summary['id'] = _digest({k: v for k, v in summary.items() if k != 'id'})  # Bind new proposal identity.
     result['summary'] = summary
     return result
+
+
+def _collect_update(updates, update):  # One confirmed write set shared by both application paths.
+    key = tuple(update['path'])  # Exact business target identity.
+    for previous, value in updates.items():  # Parent-child writes also need explicit reconciliation.
+        if previous == key and value['value'] == update['value']:
+            return  # Equal proposals are idempotent.
+        if previous[:len(key)] == key or key[:len(previous)] == previous:
+            raise ValueError('Conflicting confirmed updates require clarification')  # No implicit last writer.
+    updates[key] = update  # Mutation happens only after the complete set passes.
 
 
 def _patch(batch, update):
@@ -294,7 +311,7 @@ def _apply_rule_decisions(case, decisions, *, blocked=False, supplied=False, pro
     if decisions:
         case.setdefault('rule_decisions', copy.deepcopy(decisions))
         case.setdefault('rule_decision_history', []).extend(copy.deepcopy(decisions))
-    states = [d['reply']['decision'] for d in indexed.values()]
+    states = [d['reply']['decision'] for d in indexed.values() if d.get('disposition_scope') != 'separate_impact']  # Retain separate impact history without changing current case rule status.
     case['rule_status'] = ('deferred' if blocked or 'deferred' in states else
                            'provisional' if 'provisional' in states else
                            'formal' if decisions or supplied else case['rule_status'])
@@ -314,10 +331,7 @@ def apply_summary(session, confirmation):
         if decision['case_id'] in current['blocked_cases']:
             continue
         for update in decision['reply'].get('updates', []):
-            key = tuple(update['path'])
-            if key in updates and updates[key] != update:
-                raise ValueError('Conflicting confirmed updates require clarification')
-            updates[key] = update
+            _collect_update(updates, update)  # Share atomic conflict validation with feedback.
     for update in updates.values():
         _patch(batch, update)
     _validate_content(batch)

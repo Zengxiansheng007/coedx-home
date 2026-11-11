@@ -77,3 +77,13 @@ the host before claiming full PRE-03 acceptance. Inherited validator findings re
 - AC-022 Chinese-title client import and independent actual dialogue: pending host.
 
 Refs: [Presentation identity](../../../../references/presentation-identity.md).
+
+## 2026-11-12 independent repair round
+
+Baseline: isolated combined candidate de414b0 (frozen PRE03 c9e3838, QA108 035b3e8, QA109 becd8f8; integration ef5d4b4).
+
+Typed case_id/case_ids and generated applicability references resolve to names; all business literal strings stay intact. Feedback scalar probes hold derived names fixed. Pure legacy feedback preserves unrelated cases. Prior actual native import compared 89/89 topics and title-return review completed at e92156c8c04f08d68c46b846ae956eca77559a48cadc71c646e156c30991f3f9 (root dialogue-result); new literal-collision behavior still needs affected review.
+
+Validation: public-entry regressions in test_three_repairs.py; red reproduces all three findings plus new-question KeyError. Full suite and create-skill results are retained by Root outside the package. No private materials or actual reply transcripts are bundled. Status remains applied pending independent affected dialogue and review. No installation, formal merge or business execution.
+
+Repair validation outcome: 129 standard-library tests pass; 71 source/mirror files match. create-skill --require-change-records retains 7 inherited findings (3 safety-negative fixture matches, 3 structure/resource findings, 1 description finding); not a clean validator pass or host acceptance. git diff --check passes. Prior PRE03 original client projection is byte-equivalent; prior sole Markdown replays without writing. Prior QA109 record remains unchanged but combined-version replay rejects its old exact summary; fresh affected simulation is required. Preserve all earlier failures and successful evidence at their original versions.

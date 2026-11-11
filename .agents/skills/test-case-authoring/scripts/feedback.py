@@ -81,9 +81,7 @@ def _markdown_changes(batch, markdown, case_bindings=None):
             return lines
         prefix = '  ' * (len(case['module_path']) + 1) + '- '
         trusted = {prefix + _cell(line) for key in ('final_review', 'review_history')
-                   if key in case for line in _business_lines({key: case[key]})}
-        from presentation import display_text
-        trusted |= {display_text(batch, line) for line in trusted}  # Accept only the exact Chinese projection of trusted metadata.
+                   if key in case for line in _business_lines({key: case[key]}, batch=batch)}  # Resolve only typed reference metadata.
         pending_line = prefix + '最终评审：pending'
         approved_line = prefix + '最终评审：approved'
         return [approved_line if line == pending_line else line for line in lines if line not in trusted]
@@ -136,7 +134,7 @@ def _markdown_changes(batch, markdown, case_bindings=None):
                 probe = copy.deepcopy(initial)
                 marker = 'TCAFEEDBACKLEAFMARKER'
                 _set(probe[collection][index], path, marker)
-                rendered = blocks(_render(probe, flat=True)['xmind_markdown'].splitlines())  # Probes cannot regroup nodes.
+                rendered = blocks(_render(probe, flat=True, reference_batch=initial)['xmind_markdown'].splitlines())  # Probe original fields, not derived reference labels.
                 for cid, lines in rendered.items():
                     for line_index, line in enumerate(lines):
                         if marker in line:
@@ -314,7 +312,19 @@ def apply_feedback(pending, confirmation, deletion_decisions=None):
     blocked = set(current['blocked_cases'])
     affected = set(pending['affected_case_ids']) - blocked
     active_decisions = [d for d in current['decisions'] if not pending.get('persisted_feedback') or d['question_id'] in pending['decision_question_ids']]  # Reused old decisions are not new edits.
-    affected.update(d['case_id'] for d in active_decisions if d['case_id'] not in blocked)  # Include actual changed rules and dependencies.
+    if pending.get('persisted_feedback'):  # Pure legacy feedback retains its explicitly computed affected scope.
+        affected.update(d['case_id'] for d in active_decisions if d['case_id'] not in blocked)  # Include actual changed rules and dependencies.
+    from clarification import _collect_update  # Reuse normal summary conflict semantics.
+    writes = {}  # Validate all effective changes before any candidate mutation.
+    for change in pending['changes']:
+        consumers = {change['id']} if change['collection'] == 'cases' else {c['id'] for c in batch['cases'] if change['id'] in _references(c)}
+        if not consumers & blocked:  # Deferred prerequisites preserve their original content.
+            index = next(i for i, item in enumerate(batch[change['collection']]) if item['id'] == change['id'])
+            _collect_update(writes, dict(path=[change['collection'], index] + change['path'], value=change['value']))
+    for decision in active_decisions:  # Include actual answer-derived updates in the same set.
+        if decision['case_id'] not in blocked:
+            for update in decision['reply'].get('updates', []):
+                _collect_update(writes, update)
     for change in pending['changes']:
         consumers = {change['id']} if change['collection'] == 'cases' else {c['id'] for c in batch['cases'] if change['id'] in _references(c)}
         if consumers & blocked:

@@ -158,3 +158,7 @@ authorized candidate directory. Candidate content is the common semantic source;
 formal derived files are not an update target. Review/merge/execution remain
 distinct. Formal ui-test readers, synchronization and business execution await
 their separate integration and approval.
+
+## Review repair boundary
+
+Before applying feedback, combine explicit proposals and current answer-derived writes. Unequal writes to the same path or overlapping parent/child paths require focused clarification; equal values deduplicate. A refused application preserves recorded answers and candidate content. New discoveries use append_questions on the same MD. Retain coverage from the prior phase as stale, reread sources and record_coverage before the new summary.

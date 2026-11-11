@@ -95,3 +95,5 @@ PRE-02 review repair: answered/non-stale questions are historical, explicit empt
 - Impact: candidate feedback only; no execution or merge.
 - Validation: 116 public-interface regressions passed; natural simulation pending.
 - Detail record: [CR-20261111-109](../entries/2026/2026-11/CR-20261111-109-feedback-clarification.md).
+
+2026-11-12 repair follow-up: CR-20261111-203 / CR-20261111-108 / CR-20261111-109 retain prior evidence and add typed-reference, explicit impact disposition, atomic conflict and feedback-discovery corrections. Candidate review remains pending; see each detail record.

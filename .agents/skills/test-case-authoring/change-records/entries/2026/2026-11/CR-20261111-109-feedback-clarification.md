@@ -48,3 +48,13 @@ Synthetic inputs only. Credential guards and scope/version checks remain in exis
 Candidate status only. Agent semantic coverage remains necessary; this adapter is not an OS enforcement boundary. Cross-stage task restoration belongs to issue 110. Inherited structure-validator findings remain separate. Cases remain unexecuted.
 
 Refs: https://github.com/Zengxiansheng007/coedx-home/issues/109
+
+## 2026-11-12 independent repair round
+
+Baseline: isolated combined candidate de414b0 (frozen PRE03 c9e3838, QA108 035b3e8, QA109 becd8f8; integration ef5d4b4).
+
+Feedback validates explicit proposals and answer updates together using the normal summary conflict collector before mutation. New feedback questions no longer cause frontier KeyError. Coverage survives feedback entry as stale and must be reread. Historical actual 21-event simulation completed at 7de04d470812a270c69b596fd29d56a45f177e57c872dd273bb1d92bb573167a (root dialogue-08-final-proof); this is prior healthy-path evidence, not repaired conflict acceptance.
+
+Validation: public-entry regressions in test_three_repairs.py; red reproduces all three findings plus new-question KeyError. Full suite and create-skill results are retained by Root outside the package. No private materials or actual reply transcripts are bundled. Status remains applied pending independent affected dialogue and review. No installation, formal merge or business execution.
+
+Repair validation outcome: 129 standard-library tests pass; 71 source/mirror files match. create-skill --require-change-records retains 7 inherited findings (3 safety-negative fixture matches, 3 structure/resource findings, 1 description finding); not a clean validator pass or host acceptance. git diff --check passes. Prior PRE03 original client projection is byte-equivalent; prior sole Markdown replays without writing. Prior QA109 record remains unchanged but combined-version replay rejects its old exact summary; fresh affected simulation is required. Preserve all earlier failures and successful evidence at their original versions.

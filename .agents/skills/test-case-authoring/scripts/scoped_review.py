@@ -18,7 +18,7 @@ BUSINESS_LABELS = {
     'context': '业务条件', 'role': '角色', 'initial_state': '初始状态',
     'priority': '优先级', 'priority_basis': '分级依据', 'maintenance_action': '维护建议',
     'rule_status': '规则确认', 'review_status': '最终评审', 'merge_status': '合并状态',
-    'execution_status': '执行状态', 'dependencies': '关联用例', 'case_id': '用例编号',
+    'execution_status': '执行状态', 'dependencies': '关联用例', 'case_id': '用例名称', 'case_ids': '用例名称',
     'module_path': '模块路径', 'purpose': '用途', 'required_state': '所需状态',
     'object_binding': '业务对象关联', 'object_ref': '业务对象', 'data_ref': '数据引用',
     'input': '输入', 'inputs': '输入', 'output': '产出', 'outputs': '产出',
@@ -31,7 +31,7 @@ BUSINESS_LABELS = {
 }
 
 
-def _business_lines(value, prefix=''):
+def _business_lines(value, prefix='', batch=None):
     """One labelled business projection used by both review formats.
 
     Unknown extensions are flattened to labelled leaves, never opaque JSON.
@@ -44,18 +44,21 @@ def _business_lines(value, prefix=''):
                 continue
             label = '' if key == 'text' else BUSINESS_LABELS.get(key, key.replace('_', ' '))
             heading = ' / '.join(p for p in (prefix, label) if p)
+            if key in ('case_id', 'case_ids') and batch is not None:  # Only declared identity fields resolve to titles.
+                from presentation import case_name  # Keep business strings untouched.
+                child = [case_name(batch, cid) for cid in child] if isinstance(child, list) else case_name(batch, child)  # Typed reference, never token substitution.
             if key == 'module_path' and isinstance(child, list):
                 lines.append(heading + '：' + ' / '.join(map(str, child)))
             else:
-                lines.extend(_business_lines(child, heading))
+                lines.extend(_business_lines(child, heading, batch))
         return lines
     if isinstance(value, list):
-        return [line for child in value for line in _business_lines(child, prefix)]
+        return [line for child in value for line in _business_lines(child, prefix, batch)]
     text = str(value) if value is not None else '待核对'
     return [prefix + '：' + text if prefix else text]
 
 
-def _render(batch, *, flat=False):  # Flat form is internal feedback provenance only.
+def _render(batch, *, flat=False, reference_batch=None):  # Flat probes keep derived reference labels fixed.
     tree = ['# 本轮范围副本（非全量）', '- 版本：' + batch['content_version'],
             '- 未展示不表示删除；关联展示不扩大功能验证范围']
     human = []
@@ -77,7 +80,7 @@ def _render(batch, *, flat=False):  # Flat form is internal feedback provenance 
             human.append(key + '：' + _cell(value))
         metadata = {key: value for key, value in case.items()
                     if key not in (*GROUPS, 'id', 'title', 'module_path', 'common_preconditions_note')}  # Preparation notes belong to their group, not generic metadata.
-        for line in _business_lines(metadata):
+        for line in _business_lines(metadata, batch=reference_batch or batch):  # Derived reference names are not editable scalar fields.
             tree.append(indent + '- ' + _cell(line))
             human.append(_cell(line))
         for group, label in zip(GROUPS, ('公共前置操作', '特殊前置操作', '测试步骤', '特殊后置操作')):
@@ -85,7 +88,7 @@ def _render(batch, *, flat=False):  # Flat form is internal feedback provenance 
                 continue
             tree.append(indent + '- ' + label)
             human.extend([label, '| 序号 | 操作 | 参数/数据 | 预期结果 |', '| --- | --- | --- | --- |'])
-            notes = _business_lines(case.get('common_preconditions_note', {})) if group == 'common_preconditions' else []  # Retain explicit preparation meaning, including alongside steps.
+            notes = _business_lines(case.get('common_preconditions_note', {}), batch=batch) if group == 'common_preconditions' else []  # Retain explicit preparation meaning, including alongside steps.
             for line in notes:  # One source note appears once under its preparation group.
                 tree.append(indent + '  - ' + _cell(line))
                 human.append(_cell(line))
@@ -94,15 +97,15 @@ def _render(batch, *, flat=False):  # Flat form is internal feedback provenance 
                 human.append('未提供，待核对')
             for i, step in enumerate(case.get(group, []), 1):
                 values = [line for ref in step.get('data_refs', [])
-                          for line in _business_lines(data[ref])] or ['无']
+                          for line in _business_lines(data[ref], batch=batch)] or ['无']
                 extensions = {k: v for k, v in step.items()
                               if k not in ('id', 'operation', 'data_refs', 'expected', 'verification')}
-                business_conditions = _business_lines(extensions)
+                business_conditions = _business_lines(extensions, batch=batch)
                 if business_conditions and values == ['无']:
                     values = []
                 values.extend(business_conditions)
-                expected = _business_lines(step.get('expected', [])) or ['待核对']
-                checks = _business_lines(step.get('verification', [])) or ['待核对']
+                expected = _business_lines(step.get('expected', []), batch=batch) or ['待核对']
+                checks = _business_lines(step.get('verification', []), batch=batch) or ['待核对']
                 operation = step.get('operation', '待核对')
                 tree.extend([indent + f'  - 步骤 {i}：' + _cell(operation), indent + '    - 参数/数据'])
                 tree.extend(indent + '      - ' + _cell(v) for v in values)
@@ -116,8 +119,7 @@ def _render(batch, *, flat=False):  # Flat form is internal feedback provenance 
                 human.append('待核对：' + _cell(question['field']))
     from aggregation import aggregate  # Share the lossless directory projection.
     markdown = '\n'.join(tree) + '\n'  # Retain scalar-source offsets for feedback.
-    from presentation import display_text  # Project references without modifying stable source identities.
-    return {'batch': copy.deepcopy(batch), 'human_view': display_text(batch, '\n'.join(human) + '\n'),
+    return {'batch': copy.deepcopy(batch), 'human_view': '\n'.join(human) + '\n',
             'xmind_markdown': markdown if flat else aggregate(batch, markdown)}
 
 

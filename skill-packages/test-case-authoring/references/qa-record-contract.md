@@ -79,3 +79,7 @@ actual_reply；实际报告选择用 record_note，read_notes 从同一 MD 回�
 复用来源：grill-with-docs 的完整提问及记录顺序、coverage 扩展 1.0.0 的
 来源核对义务、test-point-discovery 的中文对话与单一问答记录设计；不引入
 grill-system 的单题和独立 JSON 答案运行时。结构回归不能代替实际分轮对话。
+
+## Review repair boundary
+
+Repairs do not rewrite historical event payloads or confirmation hashes. Old tasks without new scope annotations keep their default blocking semantics. If an old disposition was misclassified, preserve the failed task and start an explicitly new synthetic validation task with source scope correctly declared; obtain fresh actual answers and version confirmation. This is a validation restart, not migration of prior approval.

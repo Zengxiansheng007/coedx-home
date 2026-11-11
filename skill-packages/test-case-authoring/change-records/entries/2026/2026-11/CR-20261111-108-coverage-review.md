@@ -56,3 +56,13 @@ Only synthetic regressions and public contracts are committed. No private source
 Actual source rediscovery, complete scope/priority questions and independent review remain pending. Baseline structural-validator findings are reported separately. Applied status is not semantic, business or host acceptance.
 
 Refs: https://github.com/Zengxiansheng007/coedx-home/issues/108
+
+## 2026-11-12 independent repair round
+
+Baseline: isolated combined candidate de414b0 (frozen PRE03 c9e3838, QA108 035b3e8, QA109 becd8f8; integration ef5d4b4).
+
+Separate impact disposition now requires explicit disposition_scope and scope_basis with no write targets; ordinary unknown rules and dependent cases remain blocked. Deferred history remains visible. Prior actual dialogue failure is preserved and requires a fresh synthetic task, not rewritten summary hashes.
+
+Validation: public-entry regressions in test_three_repairs.py; red reproduces all three findings plus new-question KeyError. Full suite and create-skill results are retained by Root outside the package. No private materials or actual reply transcripts are bundled. Status remains applied pending independent affected dialogue and review. No installation, formal merge or business execution.
+
+Repair validation outcome: 129 standard-library tests pass; 71 source/mirror files match. create-skill --require-change-records retains 7 inherited findings (3 safety-negative fixture matches, 3 structure/resource findings, 1 description finding); not a clean validator pass or host acceptance. git diff --check passes. Prior PRE03 original client projection is byte-equivalent; prior sole Markdown replays without writing. Prior QA109 record remains unchanged but combined-version replay rejects its old exact summary; fresh affected simulation is required. Preserve all earlier failures and successful evidence at their original versions.

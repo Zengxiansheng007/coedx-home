@@ -36,3 +36,5 @@ PRE-02 original client r1 evidence remains intact; this repair changes pending-q
 
 - Status: applied; independent dialogue pending.
 - Detail: [source coverage](entries/2026/2026-11/CR-20261111-108-coverage-review.md)
+
+2026-11-12 repair follow-up: CR-20261111-203 / CR-20261111-108 / CR-20261111-109 retain prior evidence and add typed-reference, explicit impact disposition, atomic conflict and feedback-discovery corrections. Candidate review remains pending; see each detail record.

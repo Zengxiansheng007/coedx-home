@@ -118,3 +118,7 @@ understood a user sentence. Evaluate that through the actual SKILL.md workflow
 with clearly simulated source material and natural-language user replies.
 Neither structural checks nor these simulations prove XMind desktop acceptance
 or cross-skill production integration.
+
+## Review repair boundary
+
+Scope-only independent impacts use disposition_scope=separate_impact plus scope_basis and empty target_paths. Show the scope distinction before asking; preserve actual deferred/unknown decisions. The default case_rule (including an empty target_paths list) and its dependency closure still block. See coverage-review.md for source classification; never relabel a necessary unknown rule to bypass a blocker.
