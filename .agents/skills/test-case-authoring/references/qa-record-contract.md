@@ -47,6 +47,9 @@ interpretation（归纳），暂定还需 authorized_expectation。程序添加
 answer_version、qa_ref，不能让用户手工维护技术字段。
 
 每次 advance_record 都先读取同一 MD，调用既有状态转换，原子保存再回读。
+报告核对的事实和完整问题用 record_context 保存 display 和 basis，不伪造
+actual_reply；实际报告选择用 record_note，read_notes 从同一 MD 回读。
+这两类事件不改变候选规则；具体顺序见[报告核对](report-reconciliation.md)。
 写失败时明确告知尚未保存的原话和停止位置；不得声称已记录或继续依赖
 该记录的汇总和更新。人工编辑导致正文/事件不一致时先核原话，保留冲突，
 不任意覆盖。该工具是本地工作流校验，不是宿主强制安全边界。

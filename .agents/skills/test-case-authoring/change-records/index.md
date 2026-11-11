@@ -2,6 +2,8 @@
 
 ## Latest Changes
 
+- CR-20261111-107: [Report reconciliation](entries/2026/2026-11/CR-20261111-107-report-reconciliation.md), applied; independent dialogue and review pending.
+
 - CR-20261111-105: [Rule Q&A](entries/2026/2026-11/CR-20261111-105-rule-qa.md), applied; actual three-route simulation and independent local integration review completed.
 - CR-20261111-201: [Source semantics](entries/2026/2026-11/CR-20261111-201-source-semantics.md), applied; actual correction dialogue and exact-version simulated public review completed.
 

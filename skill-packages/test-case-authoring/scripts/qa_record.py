@@ -13,7 +13,7 @@ def _replay(events):  # Technical projection has no independently editable answe
     first = events[0]  # Initial event binds task, stage and candidate version.
     state = flow.start_grill(first['batch'], first['questions'])  # Existing public seam.
     for event in events[1:]:  # Preserve correction order and original replies.
-        if event['action'] == 'record_note':  # Raw replies await semantic interpretation.
+        if event['action'] in ('record_note', 'record_context'):  # Report facts/questions and raw replies do not edit candidates.
             continue  # A note grants no business decision.
         if event['action'] not in ('respond', 'summarize', 'apply_summary', 'review', 'record_actions'):  # Validate loaded data too.
             raise ValueError('Unknown recorded action')  # Never dispatch arbitrary names from disk.
@@ -46,6 +46,10 @@ def read_record(path):  # Public read-back boundary.
     return _replay(_load(Path(path)))  # No separate session JSON required.
 
 
+def read_notes(path):  # Report selection resumes from the same authoritative MD.
+    return copy.deepcopy([event for event in _load(Path(path)) if event['action'] in ('record_note', 'record_context')])  # Disposable source projection, not a second answer file.
+
+
 def start_record(path, task_id, batch, questions):  # Save complete questions before exposing chat.
     path = Path(path).resolve()  # Bind one canonical path for the task.
     if not task_id or batch.get('qa_record'):  # Existing tasks must resume their bound record.
@@ -65,7 +69,7 @@ def start_record(path, task_id, batch, questions):  # Save complete questions be
 
 def advance_record(path, action, payload=None):  # Persist real user actions through existing public gates.
     path = Path(path).resolve()  # Keep the task binding stable.
-    if action not in ('record_note', 'respond', 'summarize', 'apply_summary', 'review', 'record_actions'):  # No dynamic arbitrary dispatch.
+    if action not in ('record_context', 'record_note', 'respond', 'summarize', 'apply_summary', 'review', 'record_actions'):  # No dynamic arbitrary dispatch.
         raise ValueError('Unknown Q&A action')  # Refuse unsupported effects.
     events = _load(path)  # Always start from the sole answer record.
     state = _replay(events)  # Reconstruct existing technical state.
@@ -80,7 +84,11 @@ def advance_record(path, action, payload=None):  # Persist real user actions thr
             reply['answer_version'] = len(question['history']) + 1  # Retain every correction.
             reply['qa_ref'] = f'{path}#{question["id"]}-A{reply["answer_version"]}'  # Candidate decisions cite this record.
     _credential_guard(payload)  # Protect actual replies and confirmation metadata.
-    if action == 'record_note':  # Save raw words before any dependent judgment.
+    if action == 'record_context':  # Save report facts or complete questions without inventing a user reply.
+        if not payload.get('display') or not payload.get('basis'):  # Context must cite its actual source or explicit gap.
+            raise ValueError('Context needs display and source basis')  # Incomplete context stays unsent.
+        updated = state  # Facts and questions grant no business authorization.
+    elif action == 'record_note':  # Save raw words before any dependent judgment.
         if not payload.get('actual_reply') or not payload.get('source_ref'):  # Preserve source identity.
             raise ValueError('Raw note needs actual reply and source')  # Do not create invented notes.
         updated = state  # Unknown business rules remain open.
@@ -88,6 +96,10 @@ def advance_record(path, action, payload=None):  # Persist real user actions thr
         method = getattr(flow, action)  # Allowlisted existing state transition.
         updated = method(state) if action == 'summarize' else method(state, payload)  # Reject invalid transitions before writes.
     event = dict(action=action, payload=payload, display=updated['chat'] if action == 'respond' else '')  # Save newly eligible questions before sending.
+    if action == 'record_context':  # Report-stage text remains visible in the sole task record.
+        event['display'] = payload['display']  # Exactly the text to send after successful read-back.
+    elif action == 'record_note':  # Actual non-rule answers must be readable without inspecting JSON.
+        event['display'] = '原话：' + payload['actual_reply'] + '\n来源：' + payload['source_ref']  # Preserve real words and provenance.
     new_events = events + [event]  # Preserve historical events unchanged.
     descriptor, temporary = tempfile.mkstemp(dir=path.parent, suffix='.tmp')  # Same-volume atomic publication.
     try:  # Failed writes leave the old source available.

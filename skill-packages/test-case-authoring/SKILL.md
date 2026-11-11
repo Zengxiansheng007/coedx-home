@@ -195,6 +195,11 @@ never become real business confirmation or execution evidence.
 ## Enter P1/P2 after P0
 
 When the user requests P1/P2, read [the P0 evidence contract](references/p0-evidence-contract.md).
+First follow [report reconciliation](references/report-reconciliation.md): read the
+authorized reports and necessary attachments before asking, reuse a still-valid
+target version, and save only remaining choices in the same task Q&A Markdown.
+Show business objects, versions, scope, results and specific gaps; choosing a
+report or a nearby/latest date never proves complete P0 success.
 Bind the complete approved P0 validation scope independently of review selection
 and partial merges. Read actual reports and necessary evidence; reconcile every
 case's identity, module, versions and functional result through the public batch
