@@ -211,6 +211,9 @@ def summarize(session):
     if coverage:  # Preserve deferred/excluded facts and actual review scope in the confirmed snapshot.
         summary['coverage'] = copy.deepcopy(coverage)  # Disposition does not mean a known business rule.
     summary['id'] = _digest(summary)
+    if session.get('feedback_proposal'):  # Exact textual proposals are part of feedback confirmation.
+        summary['feedback_proposal'] = session['feedback_proposal']  # Prevent reuse for another proposal on the same version.
+        summary['id'] = _digest({k: v for k, v in summary.items() if k != 'id'})  # Bind new proposal identity.
     result['summary'] = summary
     return result
 

@@ -85,3 +85,13 @@ PRE-02 review repair: answered/non-stale questions are historical, explicit empt
 - Impact: same MD and existing workflow boundaries.
 - Validation: public TDD regressions; actual dialogue pending.
 - Detail record: [CR-20261111-108](../entries/2026/2026-11/CR-20261111-108-coverage-review.md)
+
+### CR-20261111-109 - Feedback clarification
+
+- Section changed: persisted feedback entry and focused rule follow-up.
+- Before: pure feedback and rebuilt questions.
+- After: same-record proposals, partial replies, targeted reopening and exact-version review.
+- Why: preserve actual answers and approval scope.
+- Impact: candidate feedback only; no execution or merge.
+- Validation: 116 public-interface regressions passed; natural simulation pending.
+- Detail record: [CR-20261111-109](../entries/2026/2026-11/CR-20261111-109-feedback-clarification.md).

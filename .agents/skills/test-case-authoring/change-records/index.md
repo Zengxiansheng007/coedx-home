@@ -16,6 +16,8 @@
 
 ## Category Index
 
+- CR-20261111-109: [Feedback clarification](entries/2026/2026-11/CR-20261111-109-feedback-clarification.md), applied; public-interface regressions complete, natural simulation and independent review pending.
+
 - [core-skill-md](categories/core-skill-md.md)
 - [references-and-assets](categories/references-and-assets.md)
 - [scripts-and-validation](categories/scripts-and-validation.md)

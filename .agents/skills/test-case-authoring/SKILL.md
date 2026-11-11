@@ -145,7 +145,14 @@ never replace file inspection with self-authored JSON and call that a file test.
    If structure, identity or a repeated data edit is ambiguous, show the exact
    affected content in chat and interpret it explicitly instead of guessing.
 2. Show initial, latest accepted and proposed values and affected coverage links.
-   Use the existing batch grill to resolve changed rules. Ask deletion meaning
+   Append a review chapter through `advance_record(..., 'start_feedback', ...)`
+   in the existing task MD. Record clear edits as proposals (`clear_changes=True`),
+   then ask only ambiguous or changed rules with complete Chinese questions and
+   named answer aspects. Preserve stable IDs; `reopen_question_ids` reopens only
+   changed premises and dependencies, keeping unrelated answers and temporary
+   conditions. Reuse persisted `respond`/`summarize`, then `apply_feedback` after
+   actual summary agreement and `review_feedback` after showing full revised
+   affected cases. Old approval never approves the new version. Ask deletion meaning
    only for displayed cases actually missing with no explicit decision: exclude
    this round, deactivate long term retaining history, or restore. Retain an
    existing clear decision; new business changes still require their own review.
