@@ -171,7 +171,8 @@ def _question(qid, cid, field, reason, checks):
 
 
 def prepare_feedback(batch, channel, *, actual_reply, changes=None, markdown=None,
-                     removed_case_ids=None, deletion_decisions=None, source_version=None):
+                     removed_case_ids=None, deletion_decisions=None, source_version=None,
+                     clear_changes=False, questions=None):  # Persisted feedback may supply complete focused questions.
     """Locate proposed changes against first display and later accepted content."""
     _credential_guard([batch, actual_reply, changes, markdown, deletion_decisions])
     if not actual_reply or channel not in ('chat', 'markdown'):
@@ -210,6 +211,7 @@ def prepare_feedback(batch, channel, *, actual_reply, changes=None, markdown=Non
     if len(unique) != len(normalized):
         raise ValueError('Duplicate feedback field')
     deletions = []
+    supplied_questions = copy.deepcopy(questions)  # Preserve explicit rule identities and dependencies.
     questions = []
     decisions = deletion_decisions or {}
     for cid in removed_case_ids or []:
@@ -230,6 +232,10 @@ def prepare_feedback(batch, channel, *, actual_reply, changes=None, markdown=Non
     scope_identity = {'batch_id': batch['id'], 'copy_version': batch['initial_copy_baseline']['copy_version']}
     question_proposal = _digest(dict(scope_identity, proposal=proposal_digest))
     for index, change in enumerate(normalized):
+        if clear_changes:  # A clear textual proposal waits for summary, without redundant rule approval.
+            if change.get('rule_id') and not supplied_questions:  # Changed rules need their affected decision graph.
+                raise ValueError('Rule changes require focused clarification questions')  # Do not silently formalize a condition.
+            continue  # Retain proposal for the existing summary confirmation.
         ids = [change['id']] if change['collection'] == 'cases' else [c['id'] for c in batch['cases'] if change['id'] in _references(c)]
         field = '/'.join(map(str, change['path']))
         if change['collection'] == 'data':
@@ -243,7 +249,7 @@ def prepare_feedback(batch, channel, *, actual_reply, changes=None, markdown=Non
     for q in questions:
         if q['field'] == 'deletion':
             q['id'] += '-' + question_proposal
-    for index, doubt in enumerate(batch['questions']):
+    for index, doubt in enumerate(batch['questions'] if supplied_questions is None else []):
         origin = doubt.get('feedback_origin') or _digest(dict(scope_identity, question={
             k: v for k, v in doubt.items() if k not in ('history', 'stale')}))
         q = _question('existing-' + origin, doubt['case_id'], doubt['field'], doubt['reason'], [])
@@ -251,6 +257,9 @@ def prepare_feedback(batch, channel, *, actual_reply, changes=None, markdown=Non
         if doubt.get('rule_id'):
             q['rule_id'] = doubt['rule_id']
         questions.append(q)
+    if supplied_questions is not None:  # Preserve caller-enriched stable questions instead of rebuilding their graph.
+        questions.extend(supplied_questions)  # start_grill validates omissions and dependencies.
+        affected.update(q['case_id'] for q in supplied_questions if q.get('stale') or not q.get('history'))  # Reopened dependencies also need review.
     return {'batch': copy.deepcopy(batch), 'channel': channel, 'actual_reply': actual_reply,
             'base_version': batch['content_version'], 'changes': normalized, 'deletions': deletions,
             'affected_case_ids': sorted(affected), 'proposal_digest': proposal_digest,
@@ -283,6 +292,8 @@ def apply_feedback(pending, confirmation, deletion_decisions=None):
     batch.setdefault('initial_display_questions', copy.deepcopy(batch['questions']))
     blocked = set(current['blocked_cases'])
     affected = set(pending['affected_case_ids']) - blocked
+    active_decisions = [d for d in current['decisions'] if not pending.get('persisted_feedback') or d['question_id'] in pending['decision_question_ids']]  # Reused old decisions are not new edits.
+    affected.update(d['case_id'] for d in active_decisions if d['case_id'] not in blocked)  # Include actual changed rules and dependencies.
     for change in pending['changes']:
         consumers = {change['id']} if change['collection'] == 'cases' else {c['id'] for c in batch['cases'] if change['id'] in _references(c)}
         if consumers & blocked:
@@ -292,6 +303,12 @@ def apply_feedback(pending, confirmation, deletion_decisions=None):
         parent = _get(target, change['path'][:-1])
         if isinstance(parent, dict) and 'source' in parent:
             parent['source'] = 'user_decision'
+    from clarification import _patch  # Use the same validated business update seam as normal clarification.
+    for decision in active_decisions:  # Completed focused answers join the centralized write only now.
+        if decision['case_id'] not in blocked:  # Deferred dependencies remain unchanged.
+            for update in decision['reply'].get('updates', []):  # Only declared question targets passed respond.
+                _patch(batch, update)  # Candidate-only update with existing protected-field guards.
+                affected.add(decision['case_id'])  # Complete revised case must return to review.
     for deletion in pending['deletions']:
         cid = deletion['case_id']
         if cid in blocked:
@@ -320,7 +337,7 @@ def apply_feedback(pending, confirmation, deletion_decisions=None):
         case['review_status'] = 'pending'
         if 'final_review' in case:
             case.setdefault('review_history', []).append(case.pop('final_review'))
-        decisions = [d for d in current['decisions'] if d['case_id'] == case['id']]
+        decisions = [d for d in active_decisions if d['case_id'] == case['id']]  # Preserve unrelated provisional decisions without replaying them.
         product = pending.get('product_resolution')
         _apply_rule_decisions(case, decisions, blocked=case['id'] in blocked, product=product)
         case.setdefault('feedback_rule_history', []).extend(copy.deepcopy(decisions))
@@ -341,7 +358,7 @@ def apply_feedback(pending, confirmation, deletion_decisions=None):
     # Keep enriched original doubts and their actual answer history so the
     # existing grill can reuse identical decisions on later feedback rounds.
     batch['questions'] = [copy.deepcopy(q) for q in pending['grill']['questions']
-                          if q['id'].startswith('existing-')]
+                          if pending.get('persisted_feedback') or q['id'].startswith('existing-')]  # Same-task feedback retains the complete stable graph.
     batch['content_version'] = _digest({k: v for k, v in batch.items() if k != 'content_version'})
     result = _views(batch)
     result['batch'] = batch

@@ -15,10 +15,10 @@ def _replay(events):  # Technical projection has no independently editable answe
     for event in events[1:]:  # Preserve correction order and original replies.
         if event['action'] in ('record_note', 'record_context'):  # Report facts/questions and raw replies do not edit candidates.
             continue  # A note grants no business decision.
-        if event['action'] not in ('respond', 'summarize', 'apply_summary', 'review', 'record_actions'):  # Validate loaded data too.
+        if event['action'] not in ('respond', 'summarize', 'apply_summary', 'review', 'record_actions', 'start_feedback', 'apply_feedback', 'review_feedback'):  # Validate feedback replay too.
             raise ValueError('Unknown recorded action')  # Never dispatch arbitrary names from disk.
-        method = getattr(flow, event['action'])  # Actions are allowlisted before writing.
-        state = method(state) if event['action'] == 'summarize' else method(state, event['payload'])  # Rebuild derived candidate.
+        from feedback_record import transition  # Lazy adapter avoids import cycles.
+        state = transition(state, event['action'], event['payload'])  # Existing workflows share the same event source.
     state['qa_record'] = {'task_id': first['task_id'], 'path': first['path'], 'event_count': len(events)}  # Source binding only.
     return state  # Callers receive a disposable projection.
 
@@ -69,7 +69,7 @@ def start_record(path, task_id, batch, questions):  # Save complete questions be
 
 def advance_record(path, action, payload=None):  # Persist real user actions through existing public gates.
     path = Path(path).resolve()  # Keep the task binding stable.
-    if action not in ('record_context', 'record_note', 'respond', 'summarize', 'apply_summary', 'review', 'record_actions'):  # No dynamic arbitrary dispatch.
+    if action not in ('record_context', 'record_note', 'respond', 'summarize', 'apply_summary', 'review', 'record_actions', 'start_feedback', 'apply_feedback', 'review_feedback'):  # Explicit feedback phase entry only.
         raise ValueError('Unknown Q&A action')  # Refuse unsupported effects.
     events = _load(path)  # Always start from the sole answer record.
     state = _replay(events)  # Reconstruct existing technical state.
@@ -93,11 +93,13 @@ def advance_record(path, action, payload=None):  # Persist real user actions thr
             raise ValueError('Raw note needs actual reply and source')  # Do not create invented notes.
         updated = state  # Unknown business rules remain open.
     else:  # Existing public state transitions retain their gates.
-        method = getattr(flow, action)  # Allowlisted existing state transition.
-        updated = method(state) if action == 'summarize' else method(state, payload)  # Reject invalid transitions before writes.
+        from feedback_record import transition  # Reuse exact replay behavior before publishing.
+        updated = transition(state, action, payload)  # Validate before changing the record.
     event = dict(action=action, payload=payload, display=updated['chat'] if action == 'respond' else '')  # Save newly eligible questions before sending.
     if action == 'record_context':  # Report-stage text remains visible in the sole task record.
         event['display'] = payload['display']  # Exactly the text to send after successful read-back.
+    elif action == 'start_feedback':  # Same task, new review chapter with actual proposal and questions.
+        event['display'] = '评审回问\n原话：' + payload['actual_reply'] + '\n拟变更：' + json.dumps(updated['feedback_pending']['changes'], ensure_ascii=False) + '\n' + updated['chat']  # Record before displaying.
     elif action == 'record_note':  # Actual non-rule answers must be readable without inspecting JSON.
         event['display'] = '原话：' + payload['actual_reply'] + '\n来源：' + payload['source_ref']  # Preserve real words and provenance.
     new_events = events + [event]  # Preserve historical events unchanged.

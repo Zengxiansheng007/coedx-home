@@ -159,6 +159,9 @@ def summarize(session):
                'blocked_questions': [qid for qid in questions if qid in blocked and not _answered(questions[qid])],
                'blocked_cases': sorted({q['case_id'] for q in questions.values() if q['id'] in blocked})}
     summary['id'] = _digest(summary)
+    if session.get('feedback_proposal'):  # Exact textual proposals are part of feedback confirmation.
+        summary['feedback_proposal'] = session['feedback_proposal']  # Prevent reuse for another proposal on the same version.
+        summary['id'] = _digest({k: v for k, v in summary.items() if k != 'id'})  # Bind new proposal identity.
     result['summary'] = summary
     return result
 
