@@ -12,6 +12,7 @@ Trace rule Q&A changes in core-skill-md.
 | 2026-11-11 | CR-20261111-201 | Source semantics | fixed | Goal-bounded authoring and retained constraints | applied |
 
 | 2026-11-11 | CR-20261111-202 | Aggregation and review repair | fixed | Preserve preparation and answer state | applied |
+| 2026-11-11 | CR-20261111-107 | Report intake | changed | Read before asking; retain full P0 checker | applied |
 
 ## Detailed Records
 
@@ -46,3 +47,12 @@ Trace rule Q&A changes in core-skill-md.
 - Detail record: [CR-20261111-202](../entries/2026/2026-11/CR-20261111-202-aggregation.md).
 
 PRE-02 review repair: answered/non-stale questions are historical, explicit empty-preparation notes stay in their group. Public regression and affected client sample are recorded in CR-20261111-202.
+### CR-20261111-107 - Report reconciliation
+
+- Section changed: P0 report intake and sole task record.
+- Before: no file intake or report-context record entry.
+- After: authorized report and attachment reads, readable gaps, existing target reuse, additive MD context/notes.
+- Why: issue 107.
+- Impact: existing P0 checker and rule transitions preserved.
+- Validation: public tests; independent dialogue and review remain pending.
+- Detail record: [CR-20261111-107](../entries/2026/2026-11/CR-20261111-107-report-reconciliation.md).
