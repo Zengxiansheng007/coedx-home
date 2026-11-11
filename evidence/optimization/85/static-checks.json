@@ -1,0 +1,32 @@
+{
+  "skill_format_command": [
+    "C:/DevelopTool/Python311/python.exe",
+    "-X",
+    "utf8",
+    "-B",
+    "C:\\Users\\lenovo\\Documents\\ChatGPT\\ui-test\\work\\test-point-discovery-optimization-20261107\\workers\\85\\tools\\verification\\skill_format.py",
+    "C:\\Users\\lenovo\\Documents\\ChatGPT\\ui-test\\work\\test-point-discovery-optimization-20261107\\workers\\85\\skills\\test-point-discovery"
+  ],
+  "skill_format_exit": 0,
+  "skill_format_stdout": "Skill is valid!\n",
+  "skill_format_stderr": "",
+  "local_links_checked": 73,
+  "missing_links": [],
+  "source_markdown_files": 19,
+  "diff_check_exit": 0,
+  "diff_check_output": "",
+  "protected_paths": [
+    ".agents",
+    "skill-packages",
+    "skills/test-point-discovery/scripts",
+    "evidence/optimization/80",
+    "evidence/optimization/81",
+    "evidence/optimization/82",
+    "evidence/optimization/83",
+    "evidence/optimization/84"
+  ],
+  "protected_diff_exit": 0,
+  "protected_diff_output": "",
+  "ordinary_fixture_matches_active_fixture": true,
+  "source_manifest_sha256": "bcb94e52aef38fbd5c46a3ce1da3d8ddd870d8a2a0bbd50cdd6eb36a5a53dbf5"
+}

@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "status": "failed",
+  "scope": {
+    "source": "C:\\Users\\lenovo\\Documents\\ChatGPT\\ui-test\\work\\test-point-discovery-optimization-20261107\\workers\\80\\.agents\\skills",
+    "packages": "C:\\Users\\lenovo\\Documents\\ChatGPT\\ui-test\\work\\test-point-discovery-optimization-20261107\\workers\\80\\skill-packages",
+    "installed": null
+  },
+  "checks": [
+    {
+      "name": "dependencies",
+      "status": "passed",
+      "exit_code": 0,
+      "record": {
+        "path": "C:\\Users\\lenovo\\Documents\\ChatGPT\\ui-test\\work\\test-point-discovery-optimization-20261107\\workers\\80\\evidence\\optimization\\80\\checks\\dependencies.json",
+        "sha256": "7fa335760f013ffb31d38fe02ffd13276a2b5755a987aec86385f1b73a31f792"
+      }
+    },
+    {
+      "name": "workflow-tests",
+      "status": "failed",
+      "exit_code": 1,
+      "record": {
+        "path": "C:\\Users\\lenovo\\Documents\\ChatGPT\\ui-test\\work\\test-point-discovery-optimization-20261107\\workers\\80\\evidence\\optimization\\80\\checks\\workflow-tests.json",
+        "sha256": "c3e8d8c211c1ed73680a2b636ac23d9d7ad072961587bde9b348e7f74c554602"
+      }
+    },
+    {
+      "name": "verification-tests",
+      "status": "failed",
+      "exit_code": 1,
+      "record": {
+        "path": "C:\\Users\\lenovo\\Documents\\ChatGPT\\ui-test\\work\\test-point-discovery-optimization-20261107\\workers\\80\\evidence\\optimization\\80\\checks\\verification-tests.json",
+        "sha256": "4eee17d51da205e77b6dbe43cd42cb237249b4d29bc3db5b5f0a8f08383214c9"
+      }
+    },
+    {
+      "name": "authoring-tests",
+      "status": "passed",
+      "exit_code": 0,
+      "record": {
+        "path": "C:\\Users\\lenovo\\Documents\\ChatGPT\\ui-test\\work\\test-point-discovery-optimization-20261107\\workers\\80\\evidence\\optimization\\80\\checks\\authoring-tests.json",
+        "sha256": "faa54132e81e68387983c534cfb602b3d3381f61bad072da44d1e8651e514094"
+      }
+    },
+    {
+      "name": "skill-format",
+      "status": "passed",
+      "exit_code": 0,
+      "record": {
+        "path": "C:\\Users\\lenovo\\Documents\\ChatGPT\\ui-test\\work\\test-point-discovery-optimization-20261107\\workers\\80\\evidence\\optimization\\80\\checks\\skill-format.json",
+        "sha256": "5da63b3330504d9c56d7f6e8df7f00266b81dcbf3caf7b971304a2498e15b1c5"
+      }
+    },
+    {
+      "name": "registry",
+      "status": "passed",
+      "exit_code": 0,
+      "record": {
+        "path": "C:\\Users\\lenovo\\Documents\\ChatGPT\\ui-test\\work\\test-point-discovery-optimization-20261107\\workers\\80\\evidence\\optimization\\80\\checks\\registry.json",
+        "sha256": "f1264f82c7d621b97025dcf2e4699182d42af1b511c549cab476b2dd857d8fe5"
+      }
+    },
+    {
+      "name": "copies",
+      "status": "passed",
+      "exit_code": 0,
+      "record": {
+        "path": "C:\\Users\\lenovo\\Documents\\ChatGPT\\ui-test\\work\\test-point-discovery-optimization-20261107\\workers\\80\\evidence\\optimization\\80\\checks\\copies.json",
+        "sha256": "e34faf2b462567aed408369b29b982de33c46ad659db47cfe9e6af1be5dbb7cc"
+      }
+    }
+  ]
+}

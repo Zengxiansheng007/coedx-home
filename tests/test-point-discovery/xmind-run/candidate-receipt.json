@@ -1,0 +1,9 @@
+{
+  "accurate_version": "v3",
+  "accurate_before_sha256": "4e4fc9d692971719db05f9c490570c7ce78b25d1cbbc7fc92981ffa83bb43e5e",
+  "accurate_after_candidate_sha256": "4e4fc9d692971719db05f9c490570c7ce78b25d1cbbc7fc92981ffa83bb43e5e",
+  "candidate": "xmind-candidate.md",
+  "candidate_sha256": "804c67f19f1fbb7fe21dce74782cd5937ac91794c03d0fe20ed47e83711f32fd",
+  "status": "waiting_specific_review",
+  "device_v3_matches_D1": true
+}

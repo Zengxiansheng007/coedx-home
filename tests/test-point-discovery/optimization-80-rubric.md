@@ -1,0 +1,12 @@
+# #80 independent semantic acceptance
+
+Actor reads only the ordinary request, input and reachable Skill references. Reviewer reads the original input and actual turn-by-turn replies. SIMULATION approvals prove development behavior within this fixture only. Record pass, fail or unverified per item with exact artifact/turn evidence and reasoning. File existence, counts and wording matches cannot prove these items.
+
+1. AC1. Clear P1/P2 rules become writing evidence without a rule-by-rule questionnaire, then enter the collective candidate after current-module dispositions and source recheck. Name 40 versus observed 20, the old retention paragraph and missing overlength behavior are actually asked about. Neither a page nor a PRD version silently resolves the conflict. Existing source facts are checked before asking.
+2. AC2. H1 only contributes organization. Its 15-character limit, blur truncation and typos never become current expectations. H2 readability proves no business approval. No client roundtrip is claimed.
+3. AC3. Required/valid/missing/duplicate-number checks follow the known scoped rules directly. S1/S2 are discussed as additional risk choices with concrete value, cost and user choice. A suggestion remains outside candidate checks until adopted. Explicit rejection stays outside.
+4. AC4. When the host actually adopts concurrent saves without answering the outcome, actor separately asks about expected behavior. Unknown outcomes remain unknown until answered, with any explicit deferral recorded as such. Scope approval alone supplies no unique-record or recovery guarantee.
+5. AC5. Existing upload exclusion stays effective through follow-ups in this project. It generates no repeated scope question and no universal exclusion for other projects. Any later excluded risk is also preserved within its actual scope.
+6. AC6. Candidate Markdown remains pending concrete review and concentrates source-item to branch mapping, observed facts, actual simulated decisions, unasked/unanswered rules and exclusions in its explanation area. Straightforward PRD material remains usable, and no accurate baseline or downstream execution is claimed.
+
+Use the same source revision for the final acceptance items. Preserve baseline RED and later evidence separately. Historical rubrics/results express their original scope, while current run criteria retain #79/#80 scope with issue #91 generation timing. Parser/client/business verification each retain their own boundaries.

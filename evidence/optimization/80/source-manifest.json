@@ -1,0 +1,90 @@
+{
+  "baseline": "475b924a753a27437ea22664126b8a00edfe9543",
+  "purpose": "Frozen product bytes used for #80 GREEN entry execution",
+  "files": [
+    {
+      "path": "agents/openai.yaml",
+      "sha256": "e825b3e4c5a0be805eff0e5f040fff3de663dadeeeb48f03c03206fe149e3666"
+    },
+    {
+      "path": "references/async-exchange.md",
+      "sha256": "8d9d1287a9220dfa8347f2f98d0b251cfa870dfa7b999a7d0973d3e8155ad8f8"
+    },
+    {
+      "path": "references/dashboard-intake.md",
+      "sha256": "a604b2d3e0a5c679277105ee0e424bf297e5be9d3288c7d90217d7fe631a17e0"
+    },
+    {
+      "path": "references/feedback-review.md",
+      "sha256": "832a476380bebafdfa04ae6dee8007587988589738174e37137e6b83907a4424"
+    },
+    {
+      "path": "references/information-maintenance.md",
+      "sha256": "6ab052a75a72684f33b0f64f3ea2745be930ca57dfce1144db560ac3af4cb065"
+    },
+    {
+      "path": "references/method-boundary-values.md",
+      "sha256": "a1e51d0b5cd15907c2d8a08aa07f15ac21ffc0252f51c6bac8eb60a93101d489"
+    },
+    {
+      "path": "references/method-decision-tables.md",
+      "sha256": "a024d3e66877d449f1f04362ff670f98d14740ce70a091cec2f313a6483b4fd5"
+    },
+    {
+      "path": "references/method-equivalence-partitioning.md",
+      "sha256": "ccf594e6c98b0fbf4bb480e241ac8486193a7bf4b904d29f0f74de2c0975ab98"
+    },
+    {
+      "path": "references/method-error-guessing-checklist.md",
+      "sha256": "63efd53814ec161bd2894b44e0e773bcd976d7bc36a805c0747afe559d86d36f"
+    },
+    {
+      "path": "references/method-state-transition.md",
+      "sha256": "f207c6d7f056e34b1cb09ae55ca0f20b91a9c1806ce616a41bd8122d429c2452"
+    },
+    {
+      "path": "references/module-clarification.md",
+      "sha256": "4a4e494b7f6f72ce66168315b0700e2753f34008320ea4755232c27271aa6192"
+    },
+    {
+      "path": "references/planning-confirmation.md",
+      "sha256": "be0380a2a723b457966ba1f19f0f67dd70ea261c2069f508f991bf300ca9c7f6"
+    },
+    {
+      "path": "references/review-and-progress.md",
+      "sha256": "d797aa82740a3c19642f09005411bbcc8a2b75f23a40c71437947cc2d82a3dc9"
+    },
+    {
+      "path": "references/roles-entitlements.md",
+      "sha256": "8d74a2c6c5b410a5a276f74aec582e77011138d214fee7e4b659e66202513875"
+    },
+    {
+      "path": "references/rule-calculation.md",
+      "sha256": "4d44b92cbc5c8ad2d18f7db02692d81b103504871bf8f726ebe6949a24b37ddd"
+    },
+    {
+      "path": "references/single-file-handoff.md",
+      "sha256": "e76a669f0a706caa6bca14f076df1ba0d9e8dcbcbc772d798459e9afd7b1b3a6"
+    },
+    {
+      "path": "references/workflow-lifecycle.md",
+      "sha256": "a6f2ce93c7814fd3b1294bda339279214b184734aa52091f0ac4750d95ea3884"
+    },
+    {
+      "path": "references/writing-review.md",
+      "sha256": "0ecd216df9360bba44b5f5910bad3b13a69a7880c1930c87906a9efc1212080f"
+    },
+    {
+      "path": "references/xmind-feedback.md",
+      "sha256": "10ca1ec90bf257089054a47186c5da2ff7e77b09ed22470c5e405644711648ab"
+    },
+    {
+      "path": "scripts/read_xmind.py",
+      "sha256": "7ed1bf32a931f08b4e93dbab51f302b501c46dcc43a43cf93e5bad4487d0e254"
+    },
+    {
+      "path": "SKILL.md",
+      "sha256": "e348da1110ae8ad6b18b21fbfa273a872f797cedd706b7acf363340abfa37edd"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "identity": "SIMULATION edited Markdown input, no review result",
+  "source": "C:\\Users\\lenovo\\Documents\\ChatGPT\\ui-test\\work\\test-point-discovery-optimization-20261107\\workers\\86\\evidence\\optimization\\86\\controller-inputs\\accurate-v3-source.md",
+  "source_sha256": "be97c135ae0fdcc9dbb24b77af3a77278298db468e424271d8e46fdcaf815bba",
+  "source_version": "accurate v3, actually approved",
+  "feedback": "C:\\Users\\lenovo\\Documents\\ChatGPT\\ui-test\\work\\test-point-discovery-optimization-20261107\\workers\\86\\evidence\\optimization\\86\\controller-inputs\\returned-form-v3.md",
+  "feedback_sha256": "0683c33824e7c1538dcebf19a958c9a7585f5f6c7116ecf6357b598191fb29fb",
+  "preparation": "Body maximum added; form cancellation section omitted"
+}

@@ -1,0 +1,8 @@
+{
+  "status": "pass",
+  "evidence_files": 288,
+  "ac_rows": 24,
+  "story_rows": 52,
+  "errors": [],
+  "scope": "identity, coverage index and approved-content preservation only; semantic conclusions require actual outputs and review"
+}

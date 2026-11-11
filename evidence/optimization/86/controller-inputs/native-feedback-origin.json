@@ -1,0 +1,9 @@
+{
+  "identity": "SIMULATION synthetic one-sheet native-format input, no client result",
+  "source": "C:\\Users\\lenovo\\Documents\\ChatGPT\\ui-test\\work\\test-point-discovery-optimization-20261107\\workers\\86\\evidence\\optimization\\86\\controller-inputs\\accurate-v2-source.md",
+  "source_sha256": "74409871d6ab377625423c9768e45d999589c827bf8fff2c31f18987cdc1fdeb",
+  "source_version": "accurate v2, actually approved",
+  "feedback": "C:\\Users\\lenovo\\Documents\\ChatGPT\\ui-test\\work\\test-point-discovery-optimization-20261107\\workers\\86\\evidence\\optimization\\86\\controller-inputs\\synthetic-title-feedback-v2.xmind",
+  "feedback_sha256": "b03bd8727669ae2dac1916e4748d9a33ef93c91895b5feb441b208130619dd4b",
+  "changed_rule": "SMS title upper limit 10 to 12 only"
+}

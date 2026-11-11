@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "C:\Users\lenovo\Documents\ChatGPT\ui-test\work\test-point-discovery-optimization-20261107\workers\86\tests\test-point-discovery\check_xmind_outputs.py", line 31, in <module>
+    owner = next(p for p in Path(__file__).resolve().parents if (p / 'context/issues/75.md').exists())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+StopIteration

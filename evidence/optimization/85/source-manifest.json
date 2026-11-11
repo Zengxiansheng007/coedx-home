@@ -1,0 +1,114 @@
+{
+  "ticket": 85,
+  "baseline": "922493c2403b3fb8f11ab73e391df39c3915db41",
+  "identity": "physical-working-tree-files",
+  "files": [
+    {
+      "path": "skills/test-point-discovery/references/async-exchange.md",
+      "sha256": "f095afb2e6c1e4c837a2765418ddee5e616c491cc3ef5375caedc00e6dba7c31",
+      "bytes": 4988
+    },
+    {
+      "path": "skills/test-point-discovery/references/dashboard-intake.md",
+      "sha256": "a604b2d3e0a5c679277105ee0e424bf297e5be9d3288c7d90217d7fe631a17e0",
+      "bytes": 4830
+    },
+    {
+      "path": "skills/test-point-discovery/references/feedback-review.md",
+      "sha256": "90e6f80d4ee21b7352c9f9d87253456872c1020f2ac80d9fb9549bddf486208d",
+      "bytes": 4478
+    },
+    {
+      "path": "skills/test-point-discovery/references/information-maintenance.md",
+      "sha256": "fd3563b13eebdead8d913fbd70ad81c3bb6690b02dd12b6593fd83ffa22b8f41",
+      "bytes": 4084
+    },
+    {
+      "path": "skills/test-point-discovery/references/method-boundary-values.md",
+      "sha256": "f88fd40e93df2f72ee6ca48c9c031c16acbad13e7e7b535c554e7513c23ea59b",
+      "bytes": 1794
+    },
+    {
+      "path": "skills/test-point-discovery/references/method-decision-tables.md",
+      "sha256": "a024d3e66877d449f1f04362ff670f98d14740ce70a091cec2f313a6483b4fd5",
+      "bytes": 1673
+    },
+    {
+      "path": "skills/test-point-discovery/references/method-equivalence-partitioning.md",
+      "sha256": "9bd757f74fed666b765b33deb91ff9893aa9e63e4d3e3faa9fb54c658421d63f",
+      "bytes": 1640
+    },
+    {
+      "path": "skills/test-point-discovery/references/method-error-guessing-checklist.md",
+      "sha256": "63efd53814ec161bd2894b44e0e773bcd976d7bc36a805c0747afe559d86d36f",
+      "bytes": 3296
+    },
+    {
+      "path": "skills/test-point-discovery/references/method-state-transition.md",
+      "sha256": "f207c6d7f056e34b1cb09ae55ca0f20b91a9c1806ce616a41bd8122d429c2452",
+      "bytes": 1938
+    },
+    {
+      "path": "skills/test-point-discovery/references/module-clarification.md",
+      "sha256": "ef9f9ba69dfb87d5267b1ea81c54799e85ca798652fac91f04a5b6e4578864d9",
+      "bytes": 9346
+    },
+    {
+      "path": "skills/test-point-discovery/references/planning-confirmation.md",
+      "sha256": "1787476b6078a12ffcd82129df0b56ce622a1350f013fdb5f0d0882ade370e3c",
+      "bytes": 4246
+    },
+    {
+      "path": "skills/test-point-discovery/references/review-and-progress.md",
+      "sha256": "d8c0c1de58a834d4e2fd6e4050091fc442ba961abbe8b7d81aeeea9cae31a155",
+      "bytes": 4338
+    },
+    {
+      "path": "skills/test-point-discovery/references/roles-entitlements.md",
+      "sha256": "0b63103c6b49c8be4c63fb80bcc815c08ea13792a21abbbdb12a4ebfe19853bd",
+      "bytes": 6274
+    },
+    {
+      "path": "skills/test-point-discovery/references/rule-calculation.md",
+      "sha256": "1936a2d844001256310e5e44de1a403e382bd50354f927970f1129b9bc5a2fc4",
+      "bytes": 2919
+    },
+    {
+      "path": "skills/test-point-discovery/references/single-file-handoff.md",
+      "sha256": "e2a557d0bd525c569dbc49e0c8d0efea86e25c7889b28300d9849056049d40ac",
+      "bytes": 5033
+    },
+    {
+      "path": "skills/test-point-discovery/references/workflow-lifecycle.md",
+      "sha256": "3e2998be6ec632296d639ed959e0fd4f4dd901e01731d04fbd05087d58c285b4",
+      "bytes": 5081
+    },
+    {
+      "path": "skills/test-point-discovery/references/writing-review.md",
+      "sha256": "8e3ea5061b99a39cdb997344b362a6c18ade1025d2b1d0de262db563110e6cf7",
+      "bytes": 12742
+    },
+    {
+      "path": "skills/test-point-discovery/references/xmind-feedback.md",
+      "sha256": "10ca1ec90bf257089054a47186c5da2ff7e77b09ed22470c5e405644711648ab",
+      "bytes": 3852
+    },
+    {
+      "path": "skills/test-point-discovery/SKILL.md",
+      "sha256": "50eca76e2ff29044e1eb87eb6e7f4f5b08c91208ce1b3787b87bb3110d083a2d",
+      "bytes": 15237
+    }
+  ],
+  "actual_behavior_inputs": [
+    {
+      "path": "evidence/optimization/85/request.md",
+      "sha256": "27d9d09f9e220026ef97a99aad312767602acdded8b023cdb1c6cae9665fb653",
+      "bytes": 559
+    },
+    {
+      "path": "evidence/optimization/85/input.md",
+      "sha256": "70b098da1bce26cd3aa5a4b9568c8b66e1b713899f0d98b71bed68d9b7a47e3f",
+      "bytes": 1529
+    }
+  ]
+}
