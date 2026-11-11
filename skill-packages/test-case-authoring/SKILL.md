@@ -83,6 +83,15 @@ questioning entry. Use its persisted public adapter for live conversations;
 the pure batch API remains a computation and regression seam. Business
 interpretation remains your responsibility.
 
+Read [source coverage and scope decisions](references/coverage-review.md) at
+the first question, after every reply and before any summary. Actually reread
+original materials, reply history and direct dependencies to find unregistered
+rules; record each source item's disposition in the same MD. Add discoveries
+through `append_questions`, update `record_coverage`, and resolve or explicitly
+dispose of missing facts and scope choices before summarizing. A filled record
+does not establish semantic coverage. Keep approved full P0 validation separate
+from the current authoring batch and direct dependencies.
+
 ## Reconcile final product confirmation
 
 Read [the product reconciliation contract](references/product-reconciliation-contract.md)
@@ -178,8 +187,10 @@ never replace file inspection with self-authored JSON and call that a file test.
    Corrections append history and reopen only the affected dependency graph.
    Keep independent decisions and continue their evidence整理 while related content
    waits. During grill, change only Q&A records.
-4. Once all necessary questions are answered or explicitly deferred (including
-   their blocked dependencies), show the summary, proposed field changes,
+4. After the coverage-review procedure has actually revisited original sources,
+   history and direct dependencies, and necessary questions/source gaps are
+   resolved or explicitly disposed of (retaining deferred unknowns and impacts),
+   show the summary, proposed field changes,
    provisional conditions and blocked scope. Ask for agreement with this exact
    understanding. If the user corrects it, record the correction and regenerate
    the summary. For complete supplied content with no questions, show that content

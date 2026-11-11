@@ -75,3 +75,13 @@ PRE-02 review repair: answered/non-stale questions are historical, explicit empt
 - Impact: existing P0 checker and rule transitions preserved.
 - Validation: public tests; actual two-round dialogue and independent ticket review completed; 114 integrated regressions passed. Inherited validator findings remain.
 - Detail record: [CR-20261111-107](../entries/2026/2026-11/CR-20261111-107-report-reconciliation.md).
+
+### CR-20261111-108 - coverage-review
+
+- Section changed: coverage, scope and persisted discovery.
+- Before: registered-question closure and display-limited approval.
+- After: original-source review and preserved full approval.
+- Why: Issue 108 source omission and range requirements.
+- Impact: same MD and existing workflow boundaries.
+- Validation: public TDD regressions; actual dialogue pending.
+- Detail record: [CR-20261111-108](../entries/2026/2026-11/CR-20261111-108-coverage-review.md)

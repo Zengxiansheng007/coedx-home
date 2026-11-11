@@ -198,8 +198,8 @@ def build_scoped_review(catalog, batch_id, selection, approved_validation_scope=
     if not selected:
         raise ValueError('Select at least one case')
     scope = list(approved_validation_scope or [])
-    if len(set(scope)) != len(scope) or any(cid not in selected_ids for cid in scope):
-        raise ValueError('Validation scope must identify selected cases')
+    if len(set(scope)) != len(scope) or any(cid not in indexed and cid not in proposed for cid in scope):  # Full approved scope can include undisplayed catalog cases.
+        raise ValueError('Validation scope must identify known catalog or candidate cases')  # Reject unknown IDs without shrinking approval to the display.
     original_data = {d['id']: d for d in full['data']}
     if len(original_data) != len(full['data']):
         raise ValueError('Duplicate data identity')

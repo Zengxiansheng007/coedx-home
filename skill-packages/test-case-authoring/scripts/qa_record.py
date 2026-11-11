@@ -15,7 +15,7 @@ def _replay(events):  # Technical projection has no independently editable answe
     for event in events[1:]:  # Preserve correction order and original replies.
         if event['action'] in ('record_note', 'record_context'):  # Report facts/questions and raw replies do not edit candidates.
             continue  # A note grants no business decision.
-        if event['action'] not in ('respond', 'summarize', 'apply_summary', 'review', 'record_actions'):  # Validate loaded data too.
+        if event['action'] not in ('record_coverage', 'append_questions', 'respond', 'summarize', 'apply_summary', 'review', 'record_actions'):  # Validate loaded data too.
             raise ValueError('Unknown recorded action')  # Never dispatch arbitrary names from disk.
         method = getattr(flow, event['action'])  # Actions are allowlisted before writing.
         state = method(state) if event['action'] == 'summarize' else method(state, event['payload'])  # Rebuild derived candidate.
@@ -69,7 +69,7 @@ def start_record(path, task_id, batch, questions):  # Save complete questions be
 
 def advance_record(path, action, payload=None):  # Persist real user actions through existing public gates.
     path = Path(path).resolve()  # Keep the task binding stable.
-    if action not in ('record_context', 'record_note', 'respond', 'summarize', 'apply_summary', 'review', 'record_actions'):  # No dynamic arbitrary dispatch.
+    if action not in ('record_coverage', 'append_questions', 'record_context', 'record_note', 'respond', 'summarize', 'apply_summary', 'review', 'record_actions'):  # No dynamic arbitrary dispatch.
         raise ValueError('Unknown Q&A action')  # Refuse unsupported effects.
     events = _load(path)  # Always start from the sole answer record.
     state = _replay(events)  # Reconstruct existing technical state.
@@ -95,11 +95,13 @@ def advance_record(path, action, payload=None):  # Persist real user actions thr
     else:  # Existing public state transitions retain their gates.
         method = getattr(flow, action)  # Allowlisted existing state transition.
         updated = method(state) if action == 'summarize' else method(state, payload)  # Reject invalid transitions before writes.
-    event = dict(action=action, payload=payload, display=updated['chat'] if action == 'respond' else '')  # Save newly eligible questions before sending.
+    event = dict(action=action, payload=payload, display=updated['chat'] if action in ('respond', 'append_questions') else '')  # Save newly eligible questions before sending.
     if action == 'record_context':  # Report-stage text remains visible in the sole task record.
         event['display'] = payload['display']  # Exactly the text to send after successful read-back.
     elif action == 'record_note':  # Actual non-rule answers must be readable without inspecting JSON.
         event['display'] = '原话：' + payload['actual_reply'] + '\n来源：' + payload['source_ref']  # Preserve real words and provenance.
+    elif action == 'record_coverage':  # Keep source review readable beside its authoritative event.
+        event['display'] = '覆盖复核：' + payload['conclusion'] + '\n' + '\n'.join(f"{b['id']}：{b['topic']}；{b['status']}；来源：{b['source']}；依据：{b['basis']}；下一步：{b['next_step']}" for b in payload['branches'])  # Unknowns remain visible.
     new_events = events + [event]  # Preserve historical events unchanged.
     descriptor, temporary = tempfile.mkstemp(dir=path.parent, suffix='.tmp')  # Same-volume atomic publication.
     try:  # Failed writes leave the old source available.

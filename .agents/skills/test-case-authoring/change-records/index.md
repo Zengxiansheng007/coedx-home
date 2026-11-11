@@ -29,3 +29,8 @@ Cross-stage append belongs to issue 110. Historical simulation corrections remai
 No installation or execution acceptance.
 
 PRE-02 original client r1 evidence remains intact; this repair changes pending-question and explicit-preparation display. Preserve its separate affected-client evidence.
+
+## CR-20261111-108 - Coverage review
+
+- Status: applied; independent dialogue pending.
+- Detail: [source coverage](entries/2026/2026-11/CR-20261111-108-coverage-review.md)
