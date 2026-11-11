@@ -18,7 +18,11 @@ review gate. Formal integration is a separate capability.
    the compiler rejects recognizable inline secrets and never copies raw sources
    to its output. Human inspection is required for opaque secrets and personal
    data that patterns cannot identify.
-2. Read [the batch contract](references/batch-contract.md). Interpret the whole
+2. Before authoring, repairing, extending or presenting cases, read
+   [source semantics](references/source-semantics.md): determine the goal, correct
+   action/data/result ownership and complete its pre-presentation self-check.
+   Ask unresolved business questions through the existing clarification workflow
+   before choosing their behavior. Read [the batch contract](references/batch-contract.md). Interpret the whole
    input into its JSON interpretation. Account for every nonblank source line,
    including setup, comments, assertions and unsupported code. Preserve all
    business actions, supplied role/state, data, preparation and checks. Group

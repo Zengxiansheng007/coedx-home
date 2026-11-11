@@ -220,6 +220,8 @@ def _build_batch(text, interpretation, prd, input_kind):
             'common_preconditions': draft.get('common_preconditions', [])}
     if 'common_preconditions_note' in draft:
         case['common_preconditions_note'] = draft['common_preconditions_note']
+    if 'technical_handoff' in draft:  # Retain execution constraints outside business steps and data.
+        case['technical_handoff'] = draft['technical_handoff']  # The earlier privacy/source walk also covers these claims.
     questions = []
     for field in ('role', 'initial_state'):
         if not case['context'].get(field):

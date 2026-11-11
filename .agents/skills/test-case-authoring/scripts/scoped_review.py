@@ -13,7 +13,7 @@ GROUPS = ('common_preconditions', 'special_preconditions', 'steps', 'special_pos
 
 TECHNICAL_FIELDS = frozenset(('id', 'source', 'lines', 'basis', 'provenance',
     'semantic_version', 'data_version', 'assertion_id', 'assertion_ids', 'operator',
-    'build_fingerprint', 'sha256', 'content_hash'))
+    'build_fingerprint', 'sha256', 'content_hash', 'technical_handoff'))  # Keep constraints in the candidate, outside business projections.
 BUSINESS_LABELS = {
     'context': '业务条件', 'role': '角色', 'initial_state': '初始状态',
     'priority': '优先级', 'priority_basis': '分级依据', 'maintenance_action': '维护建议',
