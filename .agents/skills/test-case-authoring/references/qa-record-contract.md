@@ -14,8 +14,9 @@
 
 收到真实答复后逐项核对对象、行为和条件，再记录原话、对话来源与归纳。
 “不知道”不等于搁置或暂定，先保留原话并继续问处置；未取得明确决定前
-不要调用 respond 关闭该题。此类待归纳原话可作为同一 MD 的附加记录，
-不得改写既有事件块；先用 record_note 保存并回读。
+先用 record_note 保存并回读原话，再调用 respond 记录 partial 或 unknown；
+两者都保持问题未决，返回完整追问必须在正常对话实际发送并等待答复。
+不得改写既有事件块。仅记录未知而没有实际追问不算完成。
 
 - formal：实际明确确认的规则，记录确认者来源，不冒充产品确认。
 - provisional：明确授权的暂定预期 authorized_expectation，以及待产品
@@ -45,6 +46,18 @@ questions 沿用 clarification 字段，另需 evidence、boundary、example_kin
 沿用 decision/updates 等字段，另需 source_ref（实际对话或材料定位）、
 interpretation（归纳），暂定还需 authorized_expectation。程序添加
 answer_version、qa_ref，不能让用户手工维护技术字段。
+
+复合问题增加 answer_parts 字典（稳定子项名→具体问题描述），分别核对对象、
+条件、行为；同一维度有多个可独立回答的检查时继续细分。答复的 answered_parts
+只填原话明确提供的子项；程序累积已答并返回 remaining_parts，已答项不重问。
+partial/unknown 是答复完整性状态，不新增业务授权路径，且不可带候选 updates。
+formal/provisional 需全部子项明确；deferred 可明确搁置未知内容，仍不补出规则。
+完成回答后的 summary 同时携带累计 answered_parts，历史答复与 qa_ref 保留在同一MD。
+若采用暂定路径，应明确写出各剩余子项的暂定预期及产品核对条件。
+
+依赖按具体规则声明，不以同一用例或字段为由关联全部问题。独立题同轮展示；
+当前轮未答题保留，依赖等真实前提。改口只重开声明的后代，保留其历史，
+重新核对受影响子项；无关明确答复仍有效。不要把候选待汇总状态当成可执行。
 
 每次 advance_record 都先读取同一 MD，调用既有状态转换，原子保存再回读。
 报告核对的事实和完整问题用 record_context 保存 display 和 basis，不伪造

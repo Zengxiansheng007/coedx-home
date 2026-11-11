@@ -155,14 +155,23 @@ never replace file inspection with self-authored JSON and call that a file test.
    Save the complete questions and read them back before sending. Ask **all** returned independent questions in the same chat
    message, including options, recommendation, reason, example and affected
    objects. Use chat prose, not question cards. Hold dependent questions for the
-   next eligible round. A partial response answers only the questions it names.
+   next eligible round. Before asking a compound rule, declare named `answer_parts`
+   for its object, conditions and behavior; separate several checks within a dimension
+   when each can be answered independently. A reply answers only its stated aspects.
 3. Save the actual reply and source with `advance_record(..., 'record_note', ...)`
    and read it back before interpreting formal, provisional or deferred decisions.
    Provisional authorization must retain the condition still needing product
    verification. Ambiguous "passed" grants no additional action. Record actual
    words, source, interpretation and proposed content changes through the same
-   MD adapter; corrections append history and invalidate
-   dependent answers for rechecking. During grill, change only Q&A records.
+   MD adapter. Map actual supplied aspects to `answered_parts`; use `partial` for
+   an incomplete reply and `unknown` for an explicit unknown, then send the returned
+   complete follow-up in chat and wait. Unknown is not a three-way business decision.
+   For "必填、最多100字", retain those conditions and actually ask the unanswered
+   overflow behavior. If "不知道" follows, ask the returned disposition question;
+   only an explicit choice permits deferral or provisional authorization.
+   Corrections append history and reopen only the affected dependency graph.
+   Keep independent decisions and continue their evidence整理 while related content
+   waits. During grill, change only Q&A records.
 4. Once all necessary questions are answered or explicitly deferred (including
    their blocked dependencies), show the summary, proposed field changes,
    provisional conditions and blocked scope. Ask for agreement with this exact
