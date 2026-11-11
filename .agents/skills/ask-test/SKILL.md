@@ -22,6 +22,10 @@ description: "测试编写顾问。Use only when the user explicitly invokes $as
 
 用户询问测试点组织、粒度、重复、局部覆盖或用例预期表达时，读取[局部质量建议](references/content-quality.md)，并按只读咨询步骤核对实际适用的编写规则及相关原始材料。建议只覆盖本次问题；正式改稿或完整评审由用户另行调用原编写入口。
 
+## 衔接与接续
+
+用户咨询交给 ui-test、返回 P1/P2、切换 Skill 或跨对话接续时，读取[交接与提示词](references/handoff.md)。普通概念答疑直接回答；ui-test 内部探索、定位器、脚本或运行排障仅说明职责边界并指向其适用入口。交接建议与可复制提示词在本对话交付，不发送或执行。
+
 ## Safety
 
 用户询问流程异常、未问即转产品或跳过确认时，读取[流程偏离诊断](references/process-diagnosis.md)，按实际适用规则与记录对照，区分遗漏、冲突、能力缺口及证据不足，建议局部恢复。
@@ -37,3 +41,5 @@ description: "测试编写顾问。Use only when the user explicitly invokes $as
 本包为候选说明，不是独立宿主强制边界。加载本文件不证明宿主已遵循手动策略。
 
 流程诊断从仓库 `tests/ask-test/process-request.md` 实走，独立评审者使用 `process-rubric.md`，按实际答复、来源和动作评审，不预填结果。
+
+衔接场景使用仓库 `tests/ask-test/handoff-request.md`，独立评审者使用 `handoff-rubric.md`；保留逐场真实回答、动作和材料前后状态，模拟交接不证明真实生产链或宿主调用验收。
