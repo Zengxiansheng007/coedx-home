@@ -34,6 +34,8 @@ from qa_record import start_record, read_record, advance_record
 session = start_record(qa_path, task_id, batch, questions)
 # 只有保存并回读成功，才全文发送 session['chat']，然后等待实际回复。
 session = advance_record(qa_path, 'respond', actual_replies)
+# 实际回读原始来源、答复历史和直接依赖，发现新问题先 append_questions 并等待实际答复。
+session = advance_record(qa_path, 'record_coverage', actual_source_review)
 session = advance_record(qa_path, 'summarize')
 # 以中文展示 summary 中实际决定、拟更新、暂定条件及阻塞范围，等待汇总确认。
 session = advance_record(qa_path, 'apply_summary', actual_confirmation)
@@ -46,6 +48,10 @@ questions 沿用 clarification 字段，另需 evidence、boundary、example_kin
 沿用 decision/updates 等字段，另需 source_ref（实际对话或材料定位）、
 interpretation（归纳），暂定还需 authorized_expectation。程序添加
 answer_version、qa_ref，不能让用户手工维护技术字段。
+
+每轮和汇总前按[来源覆盖流程](coverage-review.md)实际检查原始条目去向，
+用 append_questions 追加遗漏题、record_coverage 保存主题和处置；两者同样
+写入本 MD 后回读。全部登记题已答完不等于来源覆盖完成。
 
 复合问题增加 answer_parts 字典（稳定子项名→具体问题描述），分别核对对象、
 条件、行为；同一维度有多个可独立回答的检查时继续细分。答复的 answered_parts

@@ -96,6 +96,22 @@ def start_grill(batch, questions):
                           'summary_confirmation': None, 'actions': []})
 
 
+def append_questions(session, questions):  # Add discoveries without restarting answered questions.
+    result = copy.deepcopy(session)  # Leave caller and candidate untouched.
+    if not questions or set(_question_map(session)) & {q['id'] for q in questions}:  # Stable IDs are never recycled.
+        raise ValueError('New questions need unused identities')  # Corrections use respond instead.
+    if any(q.get('history') or q.get('answered_parts') for q in questions):  # Discovery cannot invent answers.
+        raise ValueError('New questions cannot contain answers')  # Wait for actual user input.
+    for question in questions:  # Apply the same persisted presentation contract.
+        if not all(question.get(key) for key in ('evidence', 'boundary', 'example_kind')) or question['example_kind'] not in ('hypothetical', 'evidence'):  # Explicit provenance.
+            raise ValueError('Question needs evidence, boundary and example kind')  # Incomplete questions remain unsent.
+    checked = start_grill(session['batch'], session['questions'] + questions)  # Reuse graph and field validation.
+    result['questions'].extend(checked['questions'][len(session['questions']):])  # Retain original histories exactly.
+    result['revision'] += 1  # Invalidate prior summaries and coverage observations.
+    result['summary'] = result['summary_confirmation'] = None  # Discovery requires a new understanding snapshot.
+    return _presentation(result)  # Save this returned presentation before sending.
+
+
 def respond(session, replies):
     """Record actual replies only; never edit candidate content during grill."""
     _credential_guard(replies)
@@ -143,11 +159,45 @@ def respond(session, replies):
     return _presentation(result)
 
 
+def record_coverage(session, observation):  # Record Agent source review without claiming semantic proof.
+    _credential_guard(observation)  # Source notes obey the existing privacy boundary.
+    result = copy.deepcopy(session)  # Never modify the caller or candidate.
+    scope = observation.get('scope', {})  # Authoring scope is separate from approved P0 validation.
+    if set(scope.get('batch_cases', [])) != {c['id'] for c in session['batch']['cases']} or 'direct_dependencies' not in scope or not scope.get('p0_scope_ref'):  # Require explicit scope identities.
+        raise ValueError('Coverage needs current batch, direct dependencies and full P0 scope reference')  # Display subsets cannot silently replace scope.
+    if not observation.get('sources') or not observation.get('history_basis') or not observation.get('conclusion'):  # Require actual read observations.
+        raise ValueError('Coverage needs source findings, history read basis and limitations')  # This is an audit record, not a truth oracle.
+    if any(not source.get('ref') or not source.get('finding') for source in observation['sources']):  # Locate the original text and its disposition.
+        raise ValueError('Each reread source needs a location and finding')  # Filenames alone are insufficient audit context.
+    branches = observation.get('branches', [])  # Include unasked and fact-blocked themes.
+    if len({b['id'] for b in branches}) != len(branches):  # Stable branch identity within the review.
+        raise ValueError('Duplicate coverage branch')  # No hidden overwritten themes.
+    previous = session.get('coverage', {}).get('branches', [])  # Retain previously recognized themes.
+    if not {b['id'] for b in previous} <= {b['id'] for b in branches}:  # Disposal requires a recorded state, not omission.
+        raise ValueError('Recognized coverage branch omitted')  # Preserve unresolved facts.
+    questions = _question_map(session)  # User decisions come from existing actual answers.
+    for branch in branches:  # Check structure and disposition provenance only.
+        if not all(branch.get(key) for key in ('id', 'topic', 'source', 'basis', 'next_step')) or 'dependencies' not in branch:  # Complete operational context.
+            raise ValueError('Incomplete coverage branch')  # Agent must supply meaningful observations.
+        if branch.get('status') not in ('unchecked', 'fact_pending', 'question_pending', 'waiting', 'resolved', 'deferred', 'excluded', 'not_applicable'):  # Separate facts and decisions.
+            raise ValueError('Unknown coverage disposition')  # No ambiguous completion label.
+        if branch['status'] in ('deferred', 'excluded'):  # Explicit user scope decisions are not Agent findings.
+            question = questions.get(branch.get('question_id'))  # Same task's actual Q history.
+            if not question or not _answered(question) or question['history'][-1]['decision'] != ('deferred' if branch['status'] == 'deferred' else 'formal'):  # Do not manufacture authorization.
+                raise ValueError('Coverage disposition requires an actual matching question decision')  # Semantic scope matching remains Agent responsibility.
+    result['coverage'] = dict(copy.deepcopy(observation), revision=session['revision'])  # Any subsequent reply/discovery requires recheck.
+    result['summary'] = result['summary_confirmation'] = None  # New findings need a fresh snapshot.
+    return result  # Persist through the sole Q&A adapter.
+
+
 def summarize(session):
     """Produce the exact decision snapshot to confirm in chat before updating."""
     result = copy.deepcopy(session)
     questions = _question_map(result)
     blocked = _blocked(questions)
+    coverage = result.get('coverage')  # Legacy pure callers retain their existing computation contract.
+    if coverage and (coverage['revision'] != result['revision'] or any(b['status'] in ('unchecked', 'fact_pending', 'question_pending', 'waiting') for b in coverage['branches'])):  # Explicit unresolved observations never disappear with an empty frontier.
+        raise ValueError('Coverage recheck or unresolved source disposition required')  # Live Skill must actually reread sources before recording closure.
     if any(not _answered(q) and q['id'] not in blocked for q in questions.values()):
         raise ValueError('Required questions remain unanswered')
     summary = {'content_version': result['batch']['content_version'], 'revision': result['revision'],
@@ -158,6 +208,8 @@ def summarize(session):
                              not (set(q['depends_on']) & blocked)],
                'blocked_questions': [qid for qid in questions if qid in blocked and not _answered(questions[qid])],
                'blocked_cases': sorted({q['case_id'] for q in questions.values() if q['id'] in blocked})}
+    if coverage:  # Preserve deferred/excluded facts and actual review scope in the confirmed snapshot.
+        summary['coverage'] = copy.deepcopy(coverage)  # Disposition does not mean a known business rule.
     summary['id'] = _digest(summary)
     result['summary'] = summary
     return result

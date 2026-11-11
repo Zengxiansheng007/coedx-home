@@ -140,7 +140,7 @@ class ScopedReviewTests(unittest.TestCase):
                 build_scoped_review(broken, 'scope-5', [])
         with self.assertRaises(ValueError):
             build_scoped_review(catalog(), 'scope-5', [
-                {'case_id': 'EDIT', 'action': 'reuse', 'reason': 'Reuse'}], ['OTHER'])
+                {'case_id': 'EDIT', 'action': 'reuse', 'reason': 'Reuse'}], ['UNKNOWN'])  # Undisplayed known IDs remain approved; unknown IDs remain invalid.
 
     def test_file_entry_preserves_full_input_and_writes_distinct_review_artifacts(self):
         with tempfile.TemporaryDirectory() as directory:

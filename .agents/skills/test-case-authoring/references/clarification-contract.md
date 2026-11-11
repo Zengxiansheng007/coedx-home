@@ -16,6 +16,8 @@ from clarification import start_grill, respond, summarize, apply_summary, review
 session = start_grill(batch, enriched_questions)
 # Show session['chat'] in conversation; it contains the whole eligible round.
 session = respond(session, replies)  # only actual answers; repeat for later rounds
+# Live conversations must actually reread sources/history/dependencies and persist
+# record_coverage through qa_record before summarize; see coverage-review.md.
 session = summarize(session)       # show session['summary'] to the user
 session = apply_summary(session, confirmation)
 session = review(session, final_review)
@@ -33,6 +35,13 @@ question ID, or explicitly bind the same rule_id, only when the actual user
 answer revises that same rule. A field path locates content, not rule identity.
 Cyclic/unknown dependencies are rejected. The agent must check semantic
 dependencies; the helper only enforces the declared graph.
+
+For unregistered source findings use `append_questions(session, questions)`;
+old answers remain intact and new IDs must be unused. For each actual source
+review use `record_coverage(session, observation)` as described in
+[coverage review](coverage-review.md). These pure seams are also available as
+same-name actions in the sole MD adapter. A later reply or discovery invalidates
+the recorded review revision; unresolved source branches block its summary.
 
 A reply has `question_id`, `decision` (`formal`, `provisional`, `deferred`),
 `actual_reply`, and `updates`. Provisional replies also require `product_check`.
