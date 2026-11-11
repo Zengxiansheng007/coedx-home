@@ -4,7 +4,12 @@
 
 - CR-20261111-203: [Chinese identity](entries/2026/2026-11/CR-20261111-203-presentation-identity.md), applied; client and actual dialogue validation pending.
 
-- CR-20261111-105: [Rule Q&A](entries/2026/2026-11/CR-20261111-105-rule-qa.md), applied; actual three-route simulation and independent local integration review completed.
+- CR-20261111-107: [Report reconciliation](entries/2026/2026-11/CR-20261111-107-report-reconciliation.md), applied; independent dialogue and review pending.
+
+
+- CR-20261111-106: [Partial answers](entries/2026/2026-11/CR-20261111-106-partial-answers.md), applied; candidate pending independent behavior simulation.
+
+- CR-20261111-105: [Rule Q&A](entries/2026/2026-11/CR-20261111-105-rule-qa.md), applied; three-route actual simulation and independent local integration review completed; inherited validator findings retained.
 - CR-20261111-201: [Source semantics](entries/2026/2026-11/CR-20261111-201-source-semantics.md), applied; actual correction dialogue and exact-version simulated public review completed.
 
 - CR-20261111-202: [Semantic aggregation](entries/2026/2026-11/CR-20261111-202-aggregation.md), applied; R1/R2/S1 closed by limited independent re-review; actual repair-client 110/110 full-tree comparison passed.

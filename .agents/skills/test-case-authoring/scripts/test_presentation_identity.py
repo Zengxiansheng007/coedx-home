@@ -7,6 +7,16 @@ from feedback import prepare_feedback
 
 
 class PresentationIdentityTests(unittest.TestCase):
+    def test_legacy_displayed_ids_keep_scalar_feedback_compatible(self):
+        from test_feedback import scope
+        original = scope()
+        legacy = original['xmind_markdown'].replace('- Save a notice\n', '- EDIT Save a notice\n', 1)
+        offset = legacy.index('- Accounts')
+        legacy = legacy[:offset] + legacy[offset:].replace('- Save a notice\n', '- LINK Save a notice\n', 1)
+        edited = legacy.replace('Saved message is visible', '模拟：保存成功')
+        pending = prepare_feedback(original['batch'], 'markdown', markdown=edited, actual_reply='模拟：修改历史英文编号稿的预期')
+        self.assertEqual({c['id'] for c in pending['changes']}, {'EDIT', 'LINK'})
+
     def test_same_title_reordered_cases_need_business_binding_not_position(self):
         from scoped_review import build_scoped_review
         from test_scoped_review import catalog

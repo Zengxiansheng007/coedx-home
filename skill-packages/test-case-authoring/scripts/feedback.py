@@ -191,7 +191,7 @@ def _question(qid, cid, field, reason, checks):
 def prepare_feedback(batch, channel, *, actual_reply, changes=None, markdown=None,
                      removed_case_ids=None, deletion_decisions=None, source_version=None, case_bindings=None):
     """Locate proposed changes against first display and later accepted content."""
-    _credential_guard([batch, actual_reply, changes, markdown, deletion_decisions])
+    _credential_guard([batch, actual_reply, changes, markdown, deletion_decisions, case_bindings])  # Binding replies follow the same credential boundary.
     if not actual_reply or channel not in ('chat', 'markdown'):
         raise ValueError('Actual feedback and supported channel required')
     initial = _initial(batch)

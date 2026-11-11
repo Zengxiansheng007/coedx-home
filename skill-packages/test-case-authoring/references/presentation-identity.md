@@ -31,6 +31,8 @@ Changed or identical subtrees without unambiguous binding raise `ValueError` and
 return to clarification. Matching never uses Chinese title or ordinal alone.
 Paths and applicability are generated structure: clarify their changes. Shared
 preparation edits still propose changes for every owner.
+Historical generated English-ID headings remain valid explicit identity at the
+exact baseline version and module path. New rendering never reproduces them.
 
 For native XMind, `inspect_xmind_feedback(path)` exposes Markdown/topics for agent
 inspection; pass clarified `case_bindings` to `prepare_xmind_feedback` or

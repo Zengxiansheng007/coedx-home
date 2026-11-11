@@ -28,10 +28,14 @@ execution or formal synchronization.
 
 Supported files are local ZIP archives with exactly one `content.json` review
 sheet, its root topic and ordered `children.attached` tree. Root title, version,
-module paths, case IDs, labels and topology correspond to the generated scoped
+module paths, Chinese case titles, labels and topology correspond to the generated scoped
 review Markdown. Scalar edits and whole-case removal follow the Markdown
 feedback rules, including repeated shared-data agreement and three-way conflict
 checks. Native topic IDs are storage identities, never business case identities.
+Read [the presentation identity contract](presentation-identity.md) for agent-side
+inspection and business-clarified return bindings; users do not maintain technical
+identity fields. Historical generated ID headings remain supported at their exact
+baseline version/path. New Chinese-title client imports require fresh evidence.
 Generated operation topics use `步骤 1：...` rather than a Markdown numbered-list
 marker: the target client otherwise creates an empty wrapper above operation,
 data and expectation, changing the required parent/child relationship.

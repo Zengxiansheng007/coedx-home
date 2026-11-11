@@ -8,7 +8,7 @@ def _question_map(session):
 
 
 def _answered(q):
-    return bool(q['history']) and not q.get('stale', False)
+    return bool(q['history']) and not q.get('stale', False) and q['history'][-1]['decision'] in ('formal', 'provisional', 'deferred') and (not q.get('remaining_parts') or q['history'][-1]['decision'] == 'deferred')  # A partial answer is not a business disposition.
 
 
 def _blocked(questions):
@@ -25,15 +25,22 @@ def _presentation(session):
     # Hold a round open for partial replies: newly eligible questions join only
     # after all questions already presented in that round have been answered.
     pending = [questions[qid] for qid in session.get('round_ids', [])
-               if not _answered(questions[qid]) and qid not in _blocked(questions)]
+               if not _answered(questions[qid]) and qid not in _blocked(questions) and all(_answered(questions[d]) for d in questions[qid]['depends_on'])]  # A corrected premise can invalidate an already shown question.
     if not pending:
         pending = [q for q in questions.values() if not _answered(q) and
                    all(_answered(questions[d]) and questions[d]['history'][-1]['decision'] != 'deferred'
                        for d in q['depends_on'])]
         session['round_ids'] = [q['id'] for q in pending]
     session['round_questions'] = copy.deepcopy(pending)
+    session['round_ids'] = [q['id'] for q in pending]  # Accept replies only to the current eligible presentation.
     lines = []
     for q in pending:
+        q = copy.deepcopy(q)  # Follow-up presentation never rewrites the original question.
+        if q['history'] and q['history'][-1]['decision'] == 'unknown':  # An unknown answer requires an actual disposition question.
+            q.update(reason='尚未明确的规则如何处置？原问题：' + q['reason'], options=['补充或核实规则后回答', '明确搁置相关内容，可指定后续向产品核实', '提供明确暂定预期及产品核对条件并授权继续'], recommendation='能查明时先补充规则；否则明确选择本轮处置', rationale='不知道只说明业务答案未知，处置仍需你的实际决定', boundary='搁置仅暂停相关内容；暂定需要明确预期和核对条件，沉默不作确认', example_kind='hypothetical', example='例如暂时不确定超限处理，可以明确搁置超限用例；独立明确内容继续整理。')  # Full Chinese dialogue, no assumed choice.
+        if q.get('remaining_parts'):  # Show only the unresolved aspects without discarding known facts.
+            lines.append('已答：' + '；'.join(f'{q["answer_parts"][key]}：{value}' for key, value in q.get('answered_parts', {}).items()))  # Preserve partial interpretation.
+            lines.append('仍需回答：' + '；'.join(q['answer_parts'][key] for key in q['remaining_parts']))  # Concrete follow-up scope.
         lines.extend([f"{q['id']}：{q['reason']}",  # Stable identity in normal Chinese prose.
                       f"适用对象：{q['case_id']}；核对项：{', '.join(q['affected_checks'])}",  # Retain affected scope.
                       '证据：' + str(q.get('evidence', '未提供，需核对来源')),  # Separate observations from suggestions.
@@ -56,6 +63,10 @@ def start_grill(batch, questions):
     case_ids = {c['id'] for c in batch['cases']}
     previous = {q.get('id'): q for q in batch['questions'] if q.get('id')}
     for q in questions:
+        if q.get('answer_parts') and (not isinstance(q['answer_parts'], dict) or any(not key or not value for key, value in q['answer_parts'].items())):  # Named business aspects must be meaningful.
+            raise ValueError('Answer parts require stable names and descriptions')  # Reject ambiguous tracking.
+        q.setdefault('answered_parts', {})  # Technical projection of actual supplied aspects.
+        q.setdefault('remaining_parts', list(q.get('answer_parts', {})))  # Missing aspects start open.
         for field in ('id', 'reason', 'recommendation', 'rationale', 'example', 'affected_checks'):
             if not q.get(field):
                 raise ValueError('Incomplete chat question')
@@ -94,8 +105,17 @@ def respond(session, replies):
         q = questions[reply['question_id']]
         if not _answered(q) and q['id'] not in result['round_ids']:
             raise ValueError('Question not yet presented')
-        if reply['decision'] not in ('formal', 'provisional', 'deferred') or not reply.get('actual_reply', '').strip():
+        if reply['decision'] not in ('formal', 'provisional', 'deferred', 'partial', 'unknown') or not reply.get('actual_reply', '').strip():
             raise ValueError('Explicit actual reply and three-way decision required')
+        parts = reply.get('answered_parts', {})  # Agent maps actual words to declared aspects.
+        if not isinstance(parts, dict) or any(key not in q.get('answer_parts', {}) or not str(value).strip() for key, value in parts.items()):  # Do not create undeclared answers.
+            raise ValueError('Unknown or empty answer aspect')  # Preserve the current question scope.
+        if reply['decision'] in ('partial', 'unknown') and reply.get('updates'):  # Incomplete answers are notes, not candidate changes.
+            raise ValueError('Incomplete answers cannot propose content updates')  # Wait for an explicit complete disposition.
+        q['answered_parts'] = dict(q.get('answered_parts', {}), **parts)  # Retain answers from earlier turns.
+        q['remaining_parts'] = [key for key in q.get('answer_parts', {}) if key not in q['answered_parts']]  # Derive omissions precisely.
+        if reply['decision'] in ('formal', 'provisional') and q['remaining_parts']:  # Explicit choice alone cannot invent missing behavior.
+            raise ValueError('Required answer aspects remain unanswered')  # Continue the same stable question.
         if reply['decision'] == 'provisional' and not reply.get('product_check'):
             raise ValueError('Provisional rule needs product verification condition')
         if reply['decision'] == 'deferred' and reply.get('updates'):
@@ -110,8 +130,12 @@ def respond(session, replies):
             descendants = expanded
         for qid in descendants - {q['id']}:
             questions[qid]['stale'] = True
+            questions[qid]['answered_parts'] = {}  # Old dependency answers remain in history, not active evidence.
+            questions[qid]['remaining_parts'] = list(questions[qid].get('answer_parts', {}))  # Require reconfirmation after premise changes.
         q['history'].append(copy.deepcopy(reply))
         q['stale'] = False
+        if not _answered(q) and q['id'] not in result['round_ids']:  # A correction may reopen the premise itself.
+            result['round_ids'].append(q['id'])  # Show it alongside other independent unanswered questions.
     if replies:
         result['revision'] += 1
         result['summary'] = None
@@ -128,6 +152,7 @@ def summarize(session):
         raise ValueError('Required questions remain unanswered')
     summary = {'content_version': result['batch']['content_version'], 'revision': result['revision'],
                'decisions': [{'question_id': q['id'], 'case_id': q['case_id'], 'field': q['field'],
+                              'answered_parts': copy.deepcopy(q.get('answered_parts', {})),  # Carry earlier partial answers into the confirmed snapshot.
                               **({'rule_id': q['rule_id']} if q.get('rule_id') else {}),
                               'reply': q['history'][-1]} for q in questions.values() if _answered(q) and
                              not (set(q['depends_on']) & blocked)],

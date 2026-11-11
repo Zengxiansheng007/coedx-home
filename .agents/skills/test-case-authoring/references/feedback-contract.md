@@ -43,7 +43,11 @@ or explicit interpretation at the existing authoring boundary, retaining history
 Returned Markdown is the generated `xmind_markdown` hierarchy from the initial
 scope copy or a current same-version review display, not arbitrary Markdown or native XMind. Edit business scalar leaves
 (title, operations, expected and verification text, context or data) while retaining
-labels, hierarchy, order, header/version, IDs and row counts. Whole-case removals
+labels, hierarchy, header/version and row counts. Case identity follows the
+[Chinese presentation contract](presentation-identity.md): stable IDs remain
+internal; edited subtrees need agent-maintained business clarification bindings.
+Historic generated ID headings remain explicit identity within the exact baseline
+version and module path. Whole-case removals
 include their full module subtree. Repeated projections of one data leaf must
 agree. Unsupported structural edits fail closed and return to chat clarification.
 Markup entities use the renderer's escaping. For native returns use

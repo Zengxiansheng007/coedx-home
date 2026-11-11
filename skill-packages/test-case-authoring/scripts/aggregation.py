@@ -120,6 +120,17 @@ def expand_feedback(batch, flat_markdown, incoming, case_bindings=None):
     if lines[:3] != header:
         raise ValueError('Markdown header/version must match initial display')
     actual = _parse(lines[3:])
+    def legacy(node, path):  # Historic generated IDs remain explicit source identity within the exact baseline path.
+        for case in batch['cases']:
+            if path == case['module_path'] and node['text'].startswith(case['id'] + ' '):
+                node['legacy_case_id'] = case['id']
+                node['text'] = node['text'][len(case['id']) + 1:]
+                break
+        original_title = node['text']
+        node['text'] = display_text(batch, node['text'])
+        for child in node['children']:
+            legacy(child, path + [original_title] if original_title else path)
+    legacy(actual, [])
     output = flat_markdown.splitlines()
     removed = set()
     bindings = case_bindings or {}  # Only explicit business clarification may bind edited cases.
@@ -140,7 +151,7 @@ def expand_feedback(batch, flat_markdown, incoming, case_bindings=None):
         for child in wanted['children']:
             if child.get('case_id'):
                 binding = bindings.get(child['case_id'])
-                matches = [n for n in remaining if (_fingerprint(n) == binding.get('returned_digest') if binding else _shape(n) == _shape(child))]  # Never use title or ordinal as identity.
+                matches = [n for n in remaining if (_fingerprint(n) == binding.get('returned_digest') if binding else n.get('legacy_case_id') == child['case_id'] or (not n.get('legacy_case_id') and _shape(n) == _shape(child)))]  # Legacy explicit IDs or complete bound content; never title/ordinal.
                 if len(matches) > 1:
                     raise ValueError('Ambiguous identical cases; clarify the business distinction')
                 found = matches[0] if matches else None
