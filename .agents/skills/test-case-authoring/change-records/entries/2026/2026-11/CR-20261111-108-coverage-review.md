@@ -66,3 +66,11 @@ Separate impact disposition now requires explicit disposition_scope and scope_ba
 Validation: public-entry regressions in test_three_repairs.py; red reproduces all three findings plus new-question KeyError. Full suite and create-skill results are retained by Root outside the package. No private materials or actual reply transcripts are bundled. Status remains applied pending independent affected dialogue and review. No installation, formal merge or business execution.
 
 Repair validation outcome: 129 standard-library tests pass; 71 source/mirror files match. create-skill --require-change-records retains 7 inherited findings (3 safety-negative fixture matches, 3 structure/resource findings, 1 description finding); not a clean validator pass or host acceptance. git diff --check passes. Prior PRE03 original client projection is byte-equivalent; prior sole Markdown replays without writing. Prior QA109 record remains unchanged but combined-version replay rejects its old exact summary; fresh affected simulation is required. Preserve all earlier failures and successful evidence at their original versions.
+
+## 2026-11-12 local integration evidence
+
+Frozen candidate 6679a11172b35a2810d6fe419390f5a0d76021f3 fast-forwarded from ef5d4b4 under Root authorization. This follow-up changes evidence records only.
+
+QA108: code repair and independent review passed; whole-ticket state remains pending_behavior_validation. Fresh actual host-driven synthetic dialogue is in progress, and original failure stays failed. Applied candidate inspection is still required. Issue 110 waits for Root to confirm that actual behavior; local candidate integration does not close 108.
+
+Independent re-review closed three P1 findings and the composition issue; six focused tests passed. Reuse 129 full tests before the optional-metadata fix and 24 affected tests afterward, without repeating unchanged suites. Private actual/review evidence stays outside the package; historical versions/failures remain. Seven inherited scanner findings (3 P0 / 3 P1 / 1 P2) remain, not a clean scan. No publishing, Issue closure, installation or business execution.

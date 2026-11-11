@@ -97,3 +97,11 @@ PRE-02 review repair: answered/non-stale questions are historical, explicit empt
 - Detail record: [CR-20261111-109](../entries/2026/2026-11/CR-20261111-109-feedback-clarification.md).
 
 2026-11-12 repair follow-up: CR-20261111-203 / CR-20261111-108 / CR-20261111-109 retain prior evidence and add typed-reference, explicit impact disposition, atomic conflict and feedback-discovery corrections. Candidate review remains pending; see each detail record.
+
+## 2026-11-12 local integration evidence
+
+Frozen candidate 6679a11172b35a2810d6fe419390f5a0d76021f3 fast-forwarded from ef5d4b4 under Root authorization. This follow-up changes evidence records only.
+
+CR-20261111-203/109 actual-path evidence and independent repair review are complete; CR-20261111-108 remains pending_behavior_validation. See detail records.
+
+Independent re-review closed three P1 findings and the composition issue; six focused tests passed. Reuse 129 full tests before the optional-metadata fix and 24 affected tests afterward, without repeating unchanged suites. Private actual/review evidence stays outside the package; historical versions/failures remain. Seven inherited scanner findings (3 P0 / 3 P1 / 1 P2) remain, not a clean scan. No publishing, Issue closure, installation or business execution.
