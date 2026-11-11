@@ -9,7 +9,7 @@ Trace rule Q&A changes in references-and-assets.
 | Date | Change ID | Section | Change Type | Summary | Status |
 |---|---|---|---|---|---|
 | 2026-11-11 | CR-20261111-105 | Rule clarification | changed | Persist complete dialogue | applied |
-
+| 2026-11-11 | CR-20261111-201 | Source semantics | fixed | Goal-bounded authoring and retained constraints | applied |
 | 2026-11-11 | CR-20261111-106 | Partial answers | fixed | Retain remaining aspects and dependencies | applied |
 
 ## Detailed Records
@@ -33,3 +33,13 @@ Trace rule Q&A changes in references-and-assets.
 - Impact: same public Markdown adapter and three business routes.
 - Validation: public red-green regressions; independent dialogue pending.
 - Detail record: [CR-20261111-106](../entries/2026/2026-11/CR-20261111-106-partial-answers.md).
+
+### CR-20261111-201 - Source semantics
+
+- Section changed: source interpretation and technical handoff.
+- Before: generic source comparison; separate technical handoff dropped by conversion.
+- After: explicit authoring checks and candidate-only technical constraints.
+- Why: wrong data ownership cannot be repaired by rendering.
+- Impact: existing candidate and presentation contracts; no business execution.
+- Validation: 97 candidate tests passed; actual multi-turn correction and exact-version public review completed for three simulated cases. Historical missed questions and orchestration failures retained; no host acceptance.
+- Detail record: [CR-20261111-201](../entries/2026/2026-11/CR-20261111-201-source-semantics.md).

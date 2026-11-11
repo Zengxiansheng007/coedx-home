@@ -21,6 +21,7 @@ The input object contains:
 | `steps` | Nonempty ordered complete business steps |
 | `common_preconditions` | Ordered preparation steps; empty only when none is supplied |
 | `common_preconditions_note` | Optional source claim preserving an explicit statement that no extra preparation is needed |
+| `technical_handoff` | Optional source-traced claims for execution controls; retained on the case outside business views; never removes authority requirements |
 | `recording_coverage` | Ranges and business/technical accounting reasons for every nonblank line |
 
 A claim is `{"text":"business statement","source":"recording","lines":[2,3]}`.
