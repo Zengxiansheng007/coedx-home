@@ -156,10 +156,12 @@ class FeedbackTests(unittest.TestCase):
 
     def test_ambiguous_deletion_uses_grill_and_explicit_deactivation_retains_history(self):
         original = scope()
-        # Delete a whole generated case subtree, including its hierarchy.
+        # Delete only the case subtree; shared directories belong to remaining cases.
         lines = original['xmind_markdown'].splitlines()
-        next_header = next(i for i, line in enumerate(lines) if '- LINK ' in line)
-        edited = '\n'.join(lines[:3] + lines[next_header - 5:]) + '\n'
+        start = next(i for i, line in enumerate(lines) if '- EDIT ' in line)
+        depth = len(lines[start]) - len(lines[start].lstrip())
+        end = next((i for i in range(start + 1, len(lines)) if len(lines[i]) - len(lines[i].lstrip()) <= depth), len(lines))
+        edited = '\n'.join(lines[:start] + lines[end:]) + '\n'
         pending = prepare_feedback(original['batch'], 'markdown', markdown=edited,
             actual_reply='SIMULATED: removed a case')
         question = next(q for q in pending['grill']['round_questions'] if q['field'] == 'deletion')

@@ -64,7 +64,9 @@ def _markdown_changes(batch, markdown):
     if len(incoming) > 1 and incoming[1] == '- 版本：' + batch['content_version']:
         initial = copy.deepcopy(batch)
         initial['cases'] = [c for c in initial['cases'] if c.get('feedback_disposition') != 'excluded_this_round']
-    original = _render(initial)['xmind_markdown'].splitlines()
+    from aggregation import expand_feedback  # Restore source bindings before scalar interpretation.
+    flat = _render(initial, flat=True)['xmind_markdown']  # Freeze the original per-case source layout.
+    original = flat.splitlines()
     if incoming[:3] != original[:3]:
         raise ValueError('Markdown header/version must match initial display')
     def normalize_review_metadata(cid, lines):
@@ -83,6 +85,11 @@ def _markdown_changes(batch, markdown):
         pending_line = prefix + '最终评审：pending'
         approved_line = prefix + '最终评审：approved'
         return [approved_line if line == pending_line else line for line in lines if line not in trusted]
+
+    for case in initial['cases']:  # Normalize trusted review-only changes before structural matching.
+        incoming = normalize_review_metadata(case['id'], incoming)
+        original = normalize_review_metadata(case['id'], original)
+    incoming = expand_feedback(initial, '\n'.join(original), '\n'.join(incoming)).splitlines()
 
     def blocks(lines):
         headers = []
@@ -111,7 +118,7 @@ def _markdown_changes(batch, markdown):
                 probe = copy.deepcopy(initial)
                 marker = 'TCAFEEDBACKLEAFMARKER'
                 _set(probe[collection][index], path, marker)
-                rendered = blocks(_render(probe)['xmind_markdown'].splitlines())
+                rendered = blocks(_render(probe, flat=True)['xmind_markdown'].splitlines())  # Probes cannot regroup nodes.
                 for cid, lines in rendered.items():
                     for line_index, line in enumerate(lines):
                         if marker in line:

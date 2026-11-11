@@ -13,7 +13,7 @@ GROUPS = ('common_preconditions', 'special_preconditions', 'steps', 'special_pos
 
 TECHNICAL_FIELDS = frozenset(('id', 'source', 'lines', 'basis', 'provenance',
     'semantic_version', 'data_version', 'assertion_id', 'assertion_ids', 'operator',
-    'build_fingerprint', 'sha256', 'content_hash'))
+    'build_fingerprint', 'sha256', 'content_hash', 'summary_id', 'content_version'))  # Nested hashes are provenance; the batch header retains its version.
 BUSINESS_LABELS = {
     'context': '业务条件', 'role': '角色', 'initial_state': '初始状态',
     'priority': '优先级', 'priority_basis': '分级依据', 'maintenance_action': '维护建议',
@@ -55,7 +55,7 @@ def _business_lines(value, prefix=''):
     return [prefix + '：' + text if prefix else text]
 
 
-def _render(batch):
+def _render(batch, *, flat=False):  # Flat form is internal feedback provenance only.
     tree = ['# 本轮范围副本（非全量）', '- 版本：' + batch['content_version'],
             '- 未展示不表示删除；关联展示不扩大功能验证范围']
     human = []
@@ -110,8 +110,10 @@ def _render(batch):
             if question['case_id'] == case['id']:
                 tree.append(indent + '- 待核对：' + _cell(question['field']))
                 human.append('待核对：' + _cell(question['field']))
+    from aggregation import aggregate  # Share the lossless directory projection.
+    markdown = '\n'.join(tree) + '\n'  # Retain scalar-source offsets for feedback.
     return {'batch': copy.deepcopy(batch), 'human_view': '\n'.join(human) + '\n',
-            'xmind_markdown': '\n'.join(tree) + '\n'}
+            'xmind_markdown': markdown if flat else aggregate(batch, markdown)}
 
 
 def render_review_batch(batch):
