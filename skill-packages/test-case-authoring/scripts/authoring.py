@@ -108,7 +108,7 @@ def _view_one(batch):
     case = batch['cases'][0]
     data = {item['id']: item for item in batch['data']}
     version = batch['content_version']
-    human = [f"# {case['id']} {case['title']}", f"版本：{version}",
+    human = [f"# {case['title']}", f"版本：{version}",  # Identity belongs to the candidate, not its heading.
              '模块：' + ' / '.join(case['module_path']),
              '优先级：' + case['priority'] + '；依据：' + case['priority_basis'],
              f"规则：{case['rule_status']}；评审：{case['review_status']}；合并：{case['merge_status']}；执行：{case['execution_status']}"]
@@ -183,7 +183,8 @@ def _views(batch):
     selected = {s['case_id']: s for s in batch['selection']}  # Clarification may add independent candidates.
     display = dict(batch, selection=[dict(selected.get(c['id'], {'case_id': c['id'], 'reason': '候选评审'}), action=selected.get(c['id'], {}).get('action', 'add')) for c in batch['cases']])
     tree = _render(display)['xmind_markdown']  # A single root replaces concatenated individual trees.
-    return '\n'.join(v[0] for v in views), tree
+    from presentation import display_text  # Keep ordinary and scoped human references consistent.
+    return display_text(batch, '\n'.join(v[0] for v in views)), tree
 
 
 def render_batch(batch):

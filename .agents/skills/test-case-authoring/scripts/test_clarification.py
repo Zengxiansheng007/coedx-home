@@ -71,7 +71,7 @@ class ClarificationTests(unittest.TestCase):
                          '[SIMULATED] summary matches my understanding')
         for view in ('human_view', 'xmind_markdown'):
             self.assertIn('Save tentative draft', result[view])
-            self.assertIn('INDEPENDENT-P0', result[view])
+            self.assertIn(result['batch']['cases'][1]['title'], result[view])  # Public title; stable identity stays in the batch.
             self.assertIn(result['batch']['content_version'], result[view])
             self.assertIn('Confirm title with product before next release', result[view])
         self.assertNotEqual(result['batch']['content_version'], batch['content_version'])

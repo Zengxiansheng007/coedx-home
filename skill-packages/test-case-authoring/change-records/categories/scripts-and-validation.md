@@ -46,3 +46,12 @@ Trace rule Q&A changes in scripts-and-validation.
 - Detail record: [CR-20261111-202](../entries/2026/2026-11/CR-20261111-202-aggregation.md).
 
 PRE-02 review repair: answered/non-stale questions are historical, explicit empty-preparation notes stay in their group. Public regression and affected client sample are recorded in CR-20261111-202.
+
+### CR-20261111-203 - Chinese identity
+- Section changed: public presentation and feedback.
+- Before: visible English IDs supplied feedback identity.
+- After: Chinese business names and explicitly clarified internal return bindings.
+- Why: rename and same-name cases must preserve stable records.
+- Impact: ordinary/scoped views, Markdown and supported native returns.
+- Validation: public TDD and feedback regressions; independent dialogue/client validation pending.
+- Detail record: [CR-20261111-203](../entries/2026/2026-11/CR-20261111-203-presentation-identity.md).

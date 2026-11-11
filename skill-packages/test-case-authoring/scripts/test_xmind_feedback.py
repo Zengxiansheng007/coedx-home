@@ -7,6 +7,7 @@ from pathlib import Path
 
 from test_feedback import scope, confirm
 from xmind_feedback import prepare_xmind_feedback
+from identity_test_support import bound_cases
 
 
 class XmindFeedbackTests(unittest.TestCase):
@@ -36,12 +37,13 @@ class XmindFeedbackTests(unittest.TestCase):
             for child in topic.get('children', {}).get('attached', []):
                 revise(child)
         revise(root)
+        edited = original['xmind_markdown'].replace('Sample notice', 'Revised synthetic notice').replace('Saved message is visible', 'Revised saved message is visible')  # Explicit known fixture edits.
         with tempfile.TemporaryDirectory() as directory:
             returned = Path(directory) / 'returned.xmind'
             with zipfile.ZipFile(returned, 'w') as archive:
                 archive.writestr('content.json', json.dumps([{'rootTopic': root}]))
             pending = prepare_xmind_feedback(original['batch'], returned,
-                actual_reply='SIMULATED: edited native file')
+                actual_reply='SIMULATED: edited native file', case_bindings=bound_cases(original['batch'], edited))
             self.assertEqual(pending['status'], 'ready_for_clarification')
             self.assertEqual(pending['channel'], 'xmind')
             self.assertEqual(len(pending['changes']), 3)  # shared data and two case expectations
@@ -60,7 +62,7 @@ class XmindFeedbackTests(unittest.TestCase):
             for broken in ('identity', 'path', 'notes', 'second_sheet'):
                 changed = copy.deepcopy(root)
                 def break_topic(topic):
-                    if topic['title'].startswith('EDIT '):
+                    if topic['title'] == 'Save a notice':
                         if broken == 'identity':
                             topic['title'] = 'UNKNOWN unknown case'
                         if broken == 'notes':

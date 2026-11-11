@@ -5,6 +5,12 @@ description: Turn a supplied Playwright recording or complete handwritten P0 and
 
 # P0 authoring and batch clarification
 
+Before display, rename, same-name feedback or Markdown/native return, read
+[the presentation identity contract](references/presentation-identity.md).
+Use Chinese business titles and retain P0/P1/P2. Keep stable IDs internal; ask
+about business role, state, path and intended change when identity is unclear.
+Users never maintain IDs or subtree hashes. Both views use one candidate version.
+
 The converter handles one independent P0 input at a time. Batch clarification
 accepts one or more candidate cases. Native XMind returns enter the same feedback
 review gate. Formal integration is a separate capability.

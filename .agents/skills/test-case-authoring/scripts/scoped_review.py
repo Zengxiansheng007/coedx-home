@@ -68,7 +68,7 @@ def _render(batch, *, flat=False):  # Flat form is internal feedback provenance 
             indent += '  '
         tree.append(indent + '- ' + _cell(case['id'] + ' ' + case.get('title', '待核对')))
         indent += '  '
-        human.extend(['# ' + _cell(case['id'] + ' ' + case.get('title', '待核对')),
+        human.extend(['# ' + _cell(case.get('title', '待核对')),
                       '版本：' + batch['content_version'], '模块：' + ' / '.join(map(_cell, case['module_path']))])
         note = selection[case['id']]
         for key, value in [('入选用途', note['action'] + '：' + note['reason']),
@@ -116,7 +116,8 @@ def _render(batch, *, flat=False):  # Flat form is internal feedback provenance 
                 human.append('待核对：' + _cell(question['field']))
     from aggregation import aggregate  # Share the lossless directory projection.
     markdown = '\n'.join(tree) + '\n'  # Retain scalar-source offsets for feedback.
-    return {'batch': copy.deepcopy(batch), 'human_view': '\n'.join(human) + '\n',
+    from presentation import display_text  # Project references without modifying stable source identities.
+    return {'batch': copy.deepcopy(batch), 'human_view': display_text(batch, '\n'.join(human) + '\n'),
             'xmind_markdown': markdown if flat else aggregate(batch, markdown)}
 
 

@@ -24,7 +24,7 @@ def expansion():
     cases = []
     for identity in ('LOW', 'HIGH'):
         case = copy.deepcopy(full['cases'][0])
-        case.update(id=identity, title='SIMULATED boundary ' + identity, priority='P1',
+        case.update(id=identity, title='模拟下界' if identity == 'LOW' else '模拟上界', priority='P1',  # Business titles are independent of stable codes.
                     priority_basis='SIMULATED: high impact, corruption risk, rare use',
                     priority_factors={'importance': 'high', 'risk': 'corruption', 'frequency': 'rare'},
                     data_preparation='SIMULATED: use isolated prepared note')
@@ -126,7 +126,7 @@ class ExtensionTests(unittest.TestCase):
         self.assertEqual(session['batch']['cases'][0]['rule_status'], 'formal')
         self.assertEqual(session['batch']['cases'][0]['review_status'], 'pending')
         rendered = render_extension(session['batch'], case_id='LOW')
-        self.assertIn('LOW', rendered['human_view'])
+        self.assertIn('模拟下界', rendered['human_view'])
         self.assertNotIn('# HIGH ', rendered['human_view'])
         self.assertEqual(rendered['coverage']['content_version'], session['batch']['content_version'])
         self.assertIn(session['batch']['content_version'], rendered['xmind_markdown'])

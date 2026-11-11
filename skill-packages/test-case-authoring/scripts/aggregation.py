@@ -1,6 +1,8 @@
 """Lossless hierarchy projection with reversible source-line bindings."""
 import copy
 import json
+import hashlib
+from presentation import display_text
 
 
 def _semantic(value):
@@ -51,6 +53,7 @@ def projection(batch, markdown):
             target = node
             source = source['children'][0]  # Flat source has exactly one path branch per case.
         source['case_id'] = case['id']
+        source['text'] = source['text'][len(case['id']) + 1:]  # The flat source alone retains the English identity prefix.
         common = next(n for n in source['children'] if n['text'] == '公共前置操作')
         if case.get('common_preconditions'):
             refs = [ref for step in case['common_preconditions'] for ref in step.get('data_refs', [])]
@@ -75,6 +78,11 @@ def projection(batch, markdown):
         target['children'].append(source)
     for shared in groups.values():
         shared['children'].insert(0, {'text': '适用用例：' + '、'.join(shared['members']), 'children': [], 'origins': []})
+    def translate(node):  # All public nodes, including references and history, share the same name projection.
+        node['text'] = display_text(batch, node['text'])
+        for child in node['children']:
+            translate(child)
+    translate(merged)
     return lines[:3], merged
 
 
@@ -90,7 +98,22 @@ def aggregate(batch, markdown):
     return '\n'.join(lines) + '\n'
 
 
-def expand_feedback(batch, flat_markdown, incoming):
+def _fingerprint(node):
+    return hashlib.sha256(json.dumps(_shape(node), ensure_ascii=False).encode('utf-8')).hexdigest()  # Bind the complete returned subtree.
+
+
+def feedback_topics(markdown):
+    """Inspect return topics for agent-side binding after business clarification."""
+    result = []
+    def visit(node, path):
+        for child in node['children']:
+            result.append(dict(title=child['text'], path=path, returned_digest=_fingerprint(child)))  # No inferred source identity.
+            visit(child, path + [child['text']])
+    visit(_parse(markdown.splitlines()[3:]), [])
+    return result
+
+
+def expand_feedback(batch, flat_markdown, incoming, case_bindings=None):
     """Expand edits through exact baseline bindings before existing feedback review."""
     header, expected = projection(batch, flat_markdown)
     lines = incoming.splitlines()
@@ -99,6 +122,13 @@ def expand_feedback(batch, flat_markdown, incoming):
     actual = _parse(lines[3:])
     output = flat_markdown.splitlines()
     removed = set()
+    bindings = case_bindings or {}  # Only explicit business clarification may bind edited cases.
+    if set(bindings) - {c['id'] for c in batch['cases']}:
+        raise ValueError('Unknown feedback binding identity')
+    for binding in bindings.values():
+        if not binding.get('actual_reply') or binding.get('source_version') != batch['content_version']:
+            raise ValueError('Feedback identity needs a current version and actual business reply')
+    used = set()
     def remove_cases(node):  # Omitted complete branches retain explicit deletion clarification.
         if node.get('case_id'):
             removed.add(node['case_id'])
@@ -109,8 +139,15 @@ def expand_feedback(batch, flat_markdown, incoming):
         remaining = list(got['children'])
         for child in wanted['children']:
             if child.get('case_id'):
-                prefix = child['case_id'] + ' '
-                found = next((n for n in remaining if n['text'].startswith(prefix)), None)
+                binding = bindings.get(child['case_id'])
+                matches = [n for n in remaining if (_fingerprint(n) == binding.get('returned_digest') if binding else _shape(n) == _shape(child))]  # Never use title or ordinal as identity.
+                if len(matches) > 1:
+                    raise ValueError('Ambiguous identical cases; clarify the business distinction')
+                found = matches[0] if matches else None
+                if binding:
+                    if found is None:
+                        raise ValueError('Returned subtree differs from clarified binding')
+                    used.add(child['case_id'])
                 if found is None:
                     removed.add(child['case_id'])
                     continue
@@ -129,11 +166,14 @@ def expand_feedback(batch, flat_markdown, incoming):
                     raise ValueError('Directory or applicability edit needs explicit interpretation')
                 for origin in child['origins']:
                     old = output[origin + 3]
-                    output[origin + 3] = old[:len(old) - len(old.lstrip())] + '- ' + found['text']
+                    prefix = child['case_id'] + ' ' if child.get('case_id') else ''  # Restore internal identity for the existing scalar mapper.
+                    output[origin + 3] = old[:len(old) - len(old.lstrip())] + '- ' + prefix + found['text']
             match(child, found)
         if remaining:
             raise ValueError('Unknown Markdown identity or structure')
     match(expected, actual)
+    if used != set(bindings):
+        raise ValueError('Unused identity binding; clarify the actual returned scope')
     if removed:
         starts = []
         for index, line in enumerate(output[3:], 3):

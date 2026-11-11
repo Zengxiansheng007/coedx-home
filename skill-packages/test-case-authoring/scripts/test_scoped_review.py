@@ -100,7 +100,7 @@ class ScopedReviewTests(unittest.TestCase):
         self.assertEqual(changes[0]['before'], full['cases'][0]['title'])
         self.assertEqual(changes[0]['after'], 'Revised synthetic title')
         self.assertEqual(changes[0]['coverage_impact'], 'CHECK-1 revised')
-        self.assertIn('NEW', result['xmind_markdown'])
+        self.assertEqual(result['xmind_markdown'].count('- Revised synthetic title\n'), 2)  # Same-name independent candidates both remain visible.
         self.assertIn('Revised synthetic value', result['xmind_markdown'])
 
     def test_shared_data_change_cannot_silently_modify_a_related_record(self):
@@ -129,7 +129,7 @@ class ScopedReviewTests(unittest.TestCase):
         self.assertNotIn('priority_basis', result['batch']['cases'][0])
         self.assertTrue(any(q['field'] == 'priority_basis' for q in result['batch']['questions']))
         for text in ('特殊前置操作', '特殊后置操作', 'Bind synthetic account',
-                     'Restore synthetic account', 'Same synthetic object', 'LINK', '待核对'):
+                     'Restore synthetic account', 'Same synthetic object', '关联用例（名称待核对）', '待核对'):
             self.assertIn(text, result['xmind_markdown'])
         self.assertIn('| 序号 | 操作 | 参数/数据 | 预期结果 |', result['human_view'])
 

@@ -16,6 +16,7 @@ from clarification import start_grill, respond, summarize, apply_summary  # Exer
 
 def synthetic_scope():
     full = catalog()  # Reuse a source-traced synthetic catalog.
+    full['cases'][1]['title'] = '保存关联资料'  # Make the shared-tree fixture distinguishable without public English IDs.
     for case in full['cases'][:2]:
         case['module_path'] = ['模拟项目', '同名平台', '同名平台', '资料', '保存']  # Semantic levels remain separate.
         case['common_preconditions'] = [copy.deepcopy(case['steps'][1])]  # Identical complete preparation.
@@ -82,7 +83,7 @@ class AggregationTests(unittest.TestCase):
             self.assertEqual(tree.count('- 模拟项目\n'), 1)
             self.assertEqual(tree.count('- 同名平台\n'), 2)
             self.assertEqual(tree.count('步骤 1：准备模拟资料'), 1)
-            self.assertIn('适用用例：EDIT、LINK', tree)
+            self.assertIn('适用用例：Save a notice、保存关联资料', tree)
             self.assertNotIn('OTHER ', tree)
         self.assertEqual(result['batch'], batch)
 
@@ -120,7 +121,7 @@ class AggregationTests(unittest.TestCase):
         single['cases'] = single['cases'][:1]
         tree = render_batch(single)['xmind_markdown']
         self.assertEqual(tree.count('准备模拟资料'), 1)
-        self.assertIn('适用用例：EDIT', tree)
+        self.assertIn('适用用例：Save a notice', tree)
         self.assertIn('执行时仍须完成', tree)
 
     def test_special_groups_and_case_data_are_preserved_after_shared_projection(self):

@@ -51,7 +51,7 @@ def _initial(batch):
     return result
 
 
-def _markdown_changes(batch, markdown):
+def _markdown_changes(batch, markdown, case_bindings=None):
     """Read scalar edits of the generated hierarchy; reject structural ambiguity.
 
     Probe the actual renderer to bind each visible leaf to its existing business
@@ -82,14 +82,32 @@ def _markdown_changes(batch, markdown):
         prefix = '  ' * (len(case['module_path']) + 1) + '- '
         trusted = {prefix + _cell(line) for key in ('final_review', 'review_history')
                    if key in case for line in _business_lines({key: case[key]})}
+        from presentation import display_text
+        trusted |= {display_text(batch, line) for line in trusted}  # Accept only the exact Chinese projection of trusted metadata.
         pending_line = prefix + '最终评审：pending'
         approved_line = prefix + '最终评审：approved'
         return [approved_line if line == pending_line else line for line in lines if line not in trusted]
 
+    from aggregation import feedback_topics  # Validate raw identity evidence before trusted metadata normalization.
+    raw_topics = feedback_topics('\n'.join(incoming))
     for case in initial['cases']:  # Normalize trusted review-only changes before structural matching.
         incoming = normalize_review_metadata(case['id'], incoming)
         original = normalize_review_metadata(case['id'], original)
-    incoming = expand_feedback(initial, '\n'.join(original), '\n'.join(incoming)).splitlines()
+    if case_bindings:
+        normalized_bindings = copy.deepcopy(case_bindings)
+        normalized_topics = feedback_topics('\n'.join(incoming))
+        for cid, binding in normalized_bindings.items():
+            raw = [t for t in raw_topics if t['returned_digest'] == binding.get('returned_digest')]
+            if len(raw) != 1:
+                raise ValueError('Identity evidence does not uniquely bind the raw return')
+            if any(t['returned_digest'] == binding['returned_digest'] for t in normalized_topics):
+                continue  # Most returns require no projection-only normalization.
+            topics = [t for t in normalized_topics if t['path'] == raw[0]['path'] and t['title'] == raw[0]['title']]
+            if len(topics) != 1:
+                raise ValueError('Trusted metadata normalization is ambiguous; clarify')
+            binding['returned_digest'] = topics[0]['returned_digest']  # Same raw topic, only trusted review metadata differs.
+        case_bindings = normalized_bindings
+    incoming = expand_feedback(initial, '\n'.join(original), '\n'.join(incoming), case_bindings).splitlines()  # Clarified mapping binds edits to the displayed version.
 
     def blocks(lines):
         headers = []
@@ -171,7 +189,7 @@ def _question(qid, cid, field, reason, checks):
 
 
 def prepare_feedback(batch, channel, *, actual_reply, changes=None, markdown=None,
-                     removed_case_ids=None, deletion_decisions=None, source_version=None):
+                     removed_case_ids=None, deletion_decisions=None, source_version=None, case_bindings=None):
     """Locate proposed changes against first display and later accepted content."""
     _credential_guard([batch, actual_reply, changes, markdown, deletion_decisions])
     if not actual_reply or channel not in ('chat', 'markdown'):
@@ -183,7 +201,7 @@ def prepare_feedback(batch, channel, *, actual_reply, changes=None, markdown=Non
     if channel == 'markdown':
         if changes or removed_case_ids or markdown is None:
             raise ValueError('Read Markdown itself, not a substituted interpretation')
-        changes, removed_case_ids = _markdown_changes(batch, markdown)
+        changes, removed_case_ids = _markdown_changes(batch, markdown, case_bindings)
         current_source = markdown.splitlines()[1] == '- 版本：' + batch['content_version']
     normalized, affected = [], set()
     for change in changes or []:
@@ -227,6 +245,7 @@ def prepare_feedback(batch, channel, *, actual_reply, changes=None, markdown=Non
             q['example'] = 'SIMULATED: exclude this round; keep the existing record active'
             questions.append(q)
     proposal_digest = _digest({'changes': normalized, 'deletions': deletions})
+    binding_digest = _digest(case_bindings or {})  # Bind identity evidence separately from shared product proposals.
     scope_identity = {'batch_id': batch['id'], 'copy_version': batch['initial_copy_baseline']['copy_version']}
     question_proposal = _digest(dict(scope_identity, proposal=proposal_digest))
     for index, change in enumerate(normalized):
@@ -254,7 +273,7 @@ def prepare_feedback(batch, channel, *, actual_reply, changes=None, markdown=Non
     return {'batch': copy.deepcopy(batch), 'channel': channel, 'actual_reply': actual_reply,
             'base_version': batch['content_version'], 'changes': normalized, 'deletions': deletions,
             'affected_case_ids': sorted(affected), 'proposal_digest': proposal_digest,
-            'grill': start_grill(batch, questions)}
+            'grill': start_grill(batch, questions), 'case_bindings': copy.deepcopy(case_bindings or {}), 'binding_digest': binding_digest}  # Preserve actual identity clarification with the proposal.
 
 
 def _views(batch):
@@ -267,6 +286,8 @@ def apply_feedback(pending, confirmation, deletion_decisions=None):
     """Apply one explicitly agreed summary atomically; all effects stay candidate-side."""
     _credential_guard([pending, confirmation, deletion_decisions])
     current = summarize(pending['grill'])['summary']
+    if pending.get('binding_digest') != _digest(pending.get('case_bindings', {})):
+        raise ValueError('Identity clarification changed after presentation')
     proposal = {'changes': pending['changes'], 'deletions': pending['deletions']}
     if pending.get('product_resolution'):
         proposal['product_resolution'] = pending['product_resolution']
@@ -338,6 +359,7 @@ def apply_feedback(pending, confirmation, deletion_decisions=None):
         'summary': current, 'confirmation': confirmation, 'changes': pending['changes'], 'deletions': pending['deletions']})
     if pending.get('returned_source'):
         batch['feedback_history'][-1]['returned_source'] = copy.deepcopy(pending['returned_source'])
+    batch['feedback_history'][-1]['case_bindings'] = copy.deepcopy(pending.get('case_bindings', {}))  # Identity evidence is internal history.
     # Keep enriched original doubts and their actual answer history so the
     # existing grill can reuse identical decisions on later feedback rounds.
     batch['questions'] = [copy.deepcopy(q) for q in pending['grill']['questions']

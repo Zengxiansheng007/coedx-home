@@ -46,7 +46,7 @@ class DependencyTests(unittest.TestCase):
         self.assertEqual(result['batch']['cases'][1], full['cases'][1])
         self.assertEqual(result['batch']['approved_validation_scope'], [])
         for view in ('human_view', 'xmind_markdown'):
-            for word in ('LINK', 'prepare linked object', 'enabled', 'object_id', 'long_term'):
+            for word in ('Save a notice', 'prepare linked object', 'enabled', 'object_id', 'long_term'):
                 self.assertIn(word, result[view])
         self.assertNotIn('特殊后置操作', result['human_view'])
 

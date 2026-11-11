@@ -5,6 +5,7 @@ from scoped_review import build_scoped_review
 from test_scoped_review import catalog
 from feedback import prepare_feedback, apply_feedback
 from clarification import respond, summarize
+from identity_test_support import bound_cases  # Bind only known synthetic edits after explicit fixture decisions.
 
 
 def scope():
@@ -56,7 +57,7 @@ class FeedbackTests(unittest.TestCase):
         for markdown in (shown, render_extension(batch)['xmind_markdown']):
             # This expectation appears in both cases; edit both deliberately.
             edited = markdown.replace(old, 'SIMULATED revised boundary expectation')
-            pending = prepare_feedback(batch, 'markdown', markdown=edited,
+            pending = prepare_feedback(batch, 'markdown', markdown=edited, case_bindings=bound_cases(batch, edited),
                 actual_reply='SIMULATED: edit expected result in the displayed file')
             self.assertEqual(len(pending['changes']), 2)
             updated = confirm(pending)['batch']
@@ -141,13 +142,13 @@ class FeedbackTests(unittest.TestCase):
         updated_result = confirm(pending)
         updated = updated_result['batch']
         changed = original['xmind_markdown'].replace('初始状态：signed in', '初始状态：authorized')
-        next_pending = prepare_feedback(updated, 'markdown', markdown=changed,
+        next_pending = prepare_feedback(updated, 'markdown', markdown=changed, case_bindings=bound_cases(original['batch'], changed),
             actual_reply='SIMULATED: change initial state only')
         newer = confirm(next_pending)['batch']
         self.assertEqual(newer['cases'][0]['title'], 'Accepted title')
         self.assertEqual(newer['cases'][0]['context']['initial_state'][0]['text'], 'authorized')
         latest_file = updated_result['xmind_markdown'].replace('初始状态：signed in', '初始状态：authorized')
-        from_latest = confirm(prepare_feedback(updated, 'markdown', markdown=latest_file,
+        from_latest = confirm(prepare_feedback(updated, 'markdown', markdown=latest_file, case_bindings=bound_cases(updated, latest_file),
             actual_reply='SIMULATED: edit latest display'))['batch']
         self.assertEqual(from_latest['cases'][0]['context']['initial_state'][0]['text'], 'authorized')
         conflict = original['xmind_markdown'].replace(original['batch']['cases'][0]['title'], 'Conflicting title')
@@ -158,7 +159,7 @@ class FeedbackTests(unittest.TestCase):
         original = scope()
         # Delete only the case subtree; shared directories belong to remaining cases.
         lines = original['xmind_markdown'].splitlines()
-        start = next(i for i, line in enumerate(lines) if '- EDIT ' in line)
+        start = next(i for i, line in enumerate(lines) if line.strip() == '- Save a notice')  # Fixture explicitly selects its first Notes case.
         depth = len(lines[start]) - len(lines[start].lstrip())
         end = next((i for i in range(start + 1, len(lines)) if len(lines[i]) - len(lines[i].lstrip()) <= depth), len(lines))
         edited = '\n'.join(lines[:start] + lines[end:]) + '\n'
@@ -205,7 +206,7 @@ class FeedbackTests(unittest.TestCase):
         chat = prepare_feedback(batch, 'chat', changes=changes,
             actual_reply='SIMULATED: use Synthetic revised value')
         edited = original['xmind_markdown'].replace(value, 'Synthetic revised value')
-        markdown = prepare_feedback(batch, 'markdown', markdown=edited,
+        markdown = prepare_feedback(batch, 'markdown', markdown=edited, case_bindings=bound_cases(batch, edited),
             actual_reply='SIMULATED: edited attached Markdown')
         self.assertEqual(chat['changes'], markdown['changes'])
         self.assertEqual(batch['data'][0]['value'], value)
