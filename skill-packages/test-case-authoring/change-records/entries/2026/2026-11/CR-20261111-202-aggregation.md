@@ -60,3 +60,14 @@ Candidate only; independent code review remains. Actual client evidence covers o
 | AC-022 hierarchy portion | Passed for exact r1 client input | Real menu import, native save and 127-topic complete comparison; later PRE-03 titles require new import |
 
 Refs: [Aggregation contract](../../../../references/aggregation-contract.md).
+
+## Independent Review Repair R1 / R2
+
+Repair baseline: 4d44a93229afd6f48fbf3323aaddc4fdd98769f4; integration input 46b654a2e6b438d8223a6dc63155e3115f65c744. The prior 99-test and actual 127-topic client evidence remains historical; it did not cover these display regressions.
+
+- R1: shared rendering previously listed every question as unresolved. Both public entries now omit valid answered questions from pending nodes, retain history, and display unanswered or stale questions.
+- R2: shared rendering previously contradicted a source-backed no-preparation note with an unknown placeholder. The note now appears once inside common preparation; only missing preparation and missing notes yield the placeholder. Notes alongside actual preparation steps are preserved.
+- S1: clarify stack and semantic-parent operations with local right-side comments.
+- TDD: each new public regression failed for its intended display assertion before the respective fix. An earlier test setup with one option was rejected and retained separately. Pre-integration full suite: 101 tests passed. Integrated verification is recorded separately.
+- Merge resolution: preserve both CR-105 and CR-202 index/ledger entries; retain the integrated Q&A adapter, clarification changes and Skill instructions. No clarification API changes made by this repair.
+- Acceptance impact: AC-014 display correction and REQ-014 consistency require the new affected-client sample; original r1 import remains valid for its exact original input, not evidence for this correction. No PRE-03/04 changes or business execution.

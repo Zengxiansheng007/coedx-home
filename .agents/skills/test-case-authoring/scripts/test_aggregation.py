@@ -11,6 +11,7 @@ from scoped_review import build_scoped_review
 from test_scoped_review import catalog
 from feedback import prepare_feedback  # Public return boundary retains shared owners.
 from xmind_feedback import prepare_xmind_feedback  # Synthetic native files exercise supported return format.
+from clarification import start_grill, respond, summarize, apply_summary  # Exercise real answer history.
 
 
 def synthetic_scope():
@@ -25,6 +26,52 @@ def synthetic_scope():
 
 
 class AggregationTests(unittest.TestCase):
+    def test_explicit_empty_preparation_is_under_its_group_and_unknown_remains_pending(self):
+        for scoped in (False, True):  # Explicit absence and unknown absence have different business meaning.
+            batch = synthetic_scope()['batch']
+            batch['cases'] = batch['cases'][:1]
+            batch['questions'] = [q for q in batch['questions'] if q['case_id'] == 'EDIT']
+            if not scoped:
+                batch.pop('kind')
+            case = batch['cases'][0]
+            case['common_preconditions'] = []
+            note = 'SIMULATED 无需额外准备；沿用已登录状态'
+            case['common_preconditions_note'] = {'text': note, 'source': 'recording', 'lines': [1, 1]}
+            before = copy.deepcopy(batch)
+            shown = render_batch(batch)
+            for view in ('human_view', 'xmind_markdown'):
+                self.assertEqual(shown[view].count(note), 1)
+                self.assertNotIn('未提供，待核对', shown[view])
+                self.assertGreater(shown[view].index(note), shown[view].index('公共前置操作'))
+            self.assertEqual(batch, before)
+            case.pop('common_preconditions_note')
+            unknown = render_batch(batch)
+            for view in ('human_view', 'xmind_markdown'):
+                self.assertIn('未提供，待核对', unknown[view])
+
+    def test_answered_questions_are_not_pending_but_stale_answers_are_in_both_entries(self):
+        for scoped in (False, True):  # Both public projections share the same unresolved predicate.
+            batch = synthetic_scope()['batch']
+            if not scoped:
+                batch.pop('kind')
+            questions = [dict(q, id='SIM-Q' + str(i), depends_on=[], options=['formal', 'deferred'],
+                recommendation='formal', rationale='SIMULATED supplied rule', example='SIMULATED example',
+                affected_checks=['SIM-CHECK'], target_paths=[]) for i, q in enumerate(batch['questions'])]
+            session = start_grill(batch, questions)
+            replies = [dict(question_id=q['id'], decision='formal', actual_reply='SIMULATED confirmed rule') for q in session['round_questions']]
+            session = summarize(respond(session, replies))
+            result = apply_summary(session, {'confirmed': True, 'summary_id': session['summary']['id'], 'actual_reply': 'SIMULATED agreed summary'})
+            self.assertTrue(all(q.get('history') and not q.get('stale') for q in result['batch']['questions']))
+            for view in ('human_view', 'xmind_markdown'):
+                self.assertNotIn('待核对：', result[view])
+                self.assertNotIn('待澄清：', result[view])
+            changed = copy.deepcopy(result['batch'])
+            changed['questions'][0]['stale'] = True  # A later invalidation must remain visible until reanswered.
+            pending = render_batch(changed)
+            field = changed['questions'][0]['field']
+            self.assertIn('待核对：' + field, pending['xmind_markdown'])
+            self.assertIn(field, pending['human_view'])
+
     def test_batch_and_scope_share_one_semantic_path_and_preparation(self):
         result = synthetic_scope()  # Exercise the scoped entry first.
         batch = copy.deepcopy(result['batch'])  # Rendering must preserve source content.

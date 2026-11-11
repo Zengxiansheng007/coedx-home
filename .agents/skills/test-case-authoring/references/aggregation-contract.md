@@ -9,3 +9,5 @@ Compare complete ordered preparation, role and initial context, dependencies, re
 Markdown and supported native XMind scalar feedback expand through the generated baseline's source bindings. A shared edit proposes changes for every applicable owner and enters the existing clarification/review flow. Structural or ambiguous changes require explicit interpretation; no candidate is silently modified. Generated applicability and paths are structural, not editable business scalars.
 
 Before delivery check selected cases against source, semantic levels, preparation owners and special groups. Test the actual Markdown in the agreed XMind client and record version and visible hierarchy separately from static checks. Without that client evidence report import unverified. This does not execute business cases.
+
+Retain answered question history without pending labels while answers remain valid; display unanswered and stale questions as pending. Put explicit preparation notes inside the preparation group. An empty list with an explicit no-preparation note is known absence, whereas an empty list without a note remains unknown.

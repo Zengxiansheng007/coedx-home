@@ -1,5 +1,10 @@
 # Public batch clarification contract
 
+For actual conversations, use [the single Markdown adapter](qa-record-contract.md)
+to save questions before sending and actual replies before dependent judgments.
+The pure functions below are computation seams; their returned session is a
+derived projection, never a second independently editable business answer source.
+
 `scripts/clarification.py` provides pure Python entry points. They accept and
 return JSON-compatible batch/session objects without files, network, browser,
 execution or merge side effects. Use `scripts/authoring.py` for initial recording

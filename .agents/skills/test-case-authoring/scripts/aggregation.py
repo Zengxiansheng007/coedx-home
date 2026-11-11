@@ -15,12 +15,12 @@ def _parse(lines):
     root = {'text': '', 'children': [], 'origins': []}  # Virtual root retains source offsets.
     stack = [(-1, root)]
     for index, line in enumerate(lines):
-        depth = (len(line) - len(line.lstrip())) // 2
+        depth = (len(line) - len(line.lstrip())) // 2  # Two spaces encode one Markdown child level.
         node = {'text': line.strip()[2:], 'children': [], 'origins': [index]}
-        while stack[-1][0] >= depth:
-            stack.pop()
-        stack[-1][1]['children'].append(node)
-        stack.append((depth, node))
+        while stack[-1][0] >= depth:  # Leave completed siblings before attaching this topic.
+            stack.pop()  # The remaining stack top is the exact semantic parent.
+        stack[-1][1]['children'].append(node)  # Preserve sibling order from the source.
+        stack.append((depth, node))  # Subsequent deeper topics belong to this node.
     return root
 
 
@@ -40,9 +40,9 @@ def projection(batch, markdown):
     merged = {'text': '', 'children': [], 'origins': []}
     data = {d['id']: d for d in batch['data']}
     groups = {}
-    for case, branch in zip(batch['cases'], root['children']):
-        target, source = merged, branch
-        for level, part in enumerate(case['module_path']):
+    for case, branch in zip(batch['cases'], root['children']):  # The flat source supplies one branch per case.
+        target, source = merged, branch  # Walk source hierarchy and shared target in lockstep.
+        for level, part in enumerate(case['module_path']):  # Match level and ancestor, never text globally.
             node = next((n for n in target['children'] if n.get('directory') == (level, part)), None)
             if node is None:
                 node = dict(text=source['text'], children=[], origins=[], directory=(level, part))

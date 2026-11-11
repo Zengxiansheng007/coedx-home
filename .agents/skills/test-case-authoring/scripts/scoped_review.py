@@ -76,7 +76,7 @@ def _render(batch, *, flat=False):  # Flat form is internal feedback provenance 
             tree.append(indent + '- ' + key + '：' + _cell(value))
             human.append(key + '：' + _cell(value))
         metadata = {key: value for key, value in case.items()
-                    if key not in (*GROUPS, 'id', 'title', 'module_path')}
+                    if key not in (*GROUPS, 'id', 'title', 'module_path', 'common_preconditions_note')}  # Preparation notes belong to their group, not generic metadata.
         for line in _business_lines(metadata):
             tree.append(indent + '- ' + _cell(line))
             human.append(_cell(line))
@@ -85,7 +85,11 @@ def _render(batch, *, flat=False):  # Flat form is internal feedback provenance 
                 continue
             tree.append(indent + '- ' + label)
             human.extend([label, '| 序号 | 操作 | 参数/数据 | 预期结果 |', '| --- | --- | --- | --- |'])
-            if not case.get(group):
+            notes = _business_lines(case.get('common_preconditions_note', {})) if group == 'common_preconditions' else []  # Retain explicit preparation meaning, including alongside steps.
+            for line in notes:  # One source note appears once under its preparation group.
+                tree.append(indent + '  - ' + _cell(line))
+                human.append(_cell(line))
+            if not case.get(group) and not notes:  # Only an actually unspecified empty group is unknown.
                 tree.append(indent + '  - 未提供，待核对')
                 human.append('未提供，待核对')
             for i, step in enumerate(case.get(group, []), 1):
@@ -107,7 +111,7 @@ def _render(batch, *, flat=False):  # Flat form is internal feedback provenance 
                 tree.append(indent + '      - 验证点：' + _cell('；'.join(checks)))
                 human.append(f'| {i} | {_cell(operation)} | {_cell("；".join(values))} | 预期：{_cell("；".join(expected))}；验证点：{_cell("；".join(checks))} |')
         for question in batch['questions']:
-            if question['case_id'] == case['id']:
+            if question['case_id'] == case['id'] and (not question.get('history') or question.get('stale')):  # Preserve history but display only unanswered or invalidated questions.
                 tree.append(indent + '- 待核对：' + _cell(question['field']))
                 human.append('待核对：' + _cell(question['field']))
     from aggregation import aggregate  # Share the lossless directory projection.

@@ -34,11 +34,14 @@ def _presentation(session):
     session['round_questions'] = copy.deepcopy(pending)
     lines = []
     for q in pending:
-        lines.extend([f"{q['id']}: {q['reason']}",
-                      f"Affected: {q['case_id']}; checks: {', '.join(q['affected_checks'])}",
-                      'Options: ' + '; '.join(q['options']),
-                      'Recommendation: ' + q['recommendation'],
-                      'Reason: ' + q['rationale'], 'Example: ' + q['example']])
+        lines.extend([f"{q['id']}：{q['reason']}",  # Stable identity in normal Chinese prose.
+                      f"适用对象：{q['case_id']}；核对项：{', '.join(q['affected_checks'])}",  # Retain affected scope.
+                      '证据：' + str(q.get('evidence', '未提供，需核对来源')),  # Separate observations from suggestions.
+                      '选项：' + '；'.join(q['options']) + '。也可自定义回答。',  # Preserve user agency.
+                      '推荐：' + q['recommendation'],  # A recommendation is never an answer.
+                      '理由：' + q['rationale'],  # Explain the current choice.
+                      '代价与边界：' + q.get('boundary', '未确认规则保持待定'),  # State uncertainty explicitly.
+                      ('假设例子：' if q.get('example_kind', 'hypothetical') == 'hypothetical' else '证据例子：') + q['example']])  # Mark provenance.
     session['chat'] = '\n'.join(lines)
     return session
 
