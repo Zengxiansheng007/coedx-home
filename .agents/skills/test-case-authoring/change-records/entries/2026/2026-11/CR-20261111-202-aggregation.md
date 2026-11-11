@@ -71,3 +71,12 @@ Repair baseline: 4d44a93229afd6f48fbf3323aaddc4fdd98769f4; integration input 46b
 - TDD: each new public regression failed for its intended display assertion before the respective fix. An earlier test setup with one option was rejected and retained separately. Pre-integration full suite: 101 tests passed. Integrated verification is recorded separately.
 - Merge resolution: preserve both CR-105 and CR-202 index/ledger entries; retain the integrated Q&A adapter, clarification changes and Skill instructions. No clarification API changes made by this repair.
 - Acceptance impact: AC-014 display correction and REQ-014 consistency require the new affected-client sample; original r1 import remains valid for its exact original input, not evidence for this correction. No PRE-03/04 changes or business execution.
+
+
+### Integrated Repair Verification
+
+Integrated PRE-01 tip 4a6b52e94b9828d613ac0127af86ca01f62377f5 after the initial #105 merge. Authoring retains technical_handoff in candidate data; shared rendering excludes it while preserving nested-version filtering, aggregation and R1/R2 corrections. Both record sets remain.
+
+The 106-test integrated run passed 105 tests and exposed one old PRE-01 literal-label assertion (ordinary XMind now says pending verification instead of pending clarification). Adapted that assertion to the actual unresolved steps/1 field under either label, retaining precise supplied step/action/data/outcome checks. The added data comparison initially detected legitimate provenance enrichment; the corrected comparison preserves every supplied data value and ID while allowing added provenance. All 3 affected source-semantics tests then passed. Original failed runs are retained; the other 105 tests were unchanged and not needlessly rerun.
+
+The 53-file source/mirror comparison and exact new client-sample reproduction passed on the merged renderer. The repair sample covers a valid answer, a stale answer, explicit absence of extra preparation and unknown preparation. Its affected-client check and independent re-review remain with Root; no claim extends the historical 127-topic import to this new sample.
