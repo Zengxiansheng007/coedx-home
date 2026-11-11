@@ -37,7 +37,7 @@ Legacy single-aspect questions remain compatible. Compound live questions must d
 
 ## Validation Evidence
 
-Three public-interface red-green slices observed: partial rejected before implementation; unknown lacked disposition prompt; reopened premise wrongly left FOLLOW eligible. First full regression: 99 passed. Latest combined regression and validator outputs are retained outside the repository under ticket qa106 evidence. Actual multi-turn behavior remains pending independent host simulation; candidate only.
+Three public-interface red-green slices observed: partial rejected before implementation; unknown lacked disposition prompt; reopened premise wrongly left FOLLOW eligible. First full regression: 99 passed. Latest combined regression and validator outputs are retained outside the repository under ticket qa106 evidence. Actual 16-event host simulation completed: partial and unknown remained open, only declared dependencies were revisited after 100-to-80 correction, the old summary was not applied, and the new summary was applied once before exact-version final simulated review. Private qa106/dialogue-observed.md and dialogue-index.json retain actual replies and source hashes. Independent ticket review found no blocking standards or specification issue (private review-106-107.md). Integrated unittest discovery passed 114 tests (private integration-106-107-regression.txt).
 
 ## Safety And Privacy
 
@@ -45,6 +45,6 @@ Synthetic inputs only; credential guards retained. No private requirement text, 
 
 ## Risks And Follow-up
 
-Actual multi-turn simulation and independent review pending. Aspect completeness does not prove semantic correctness or source coverage. Scope discovery, feedback and cross-stage recovery belong to later tickets. All candidate cases remain unexecuted.
+Full-batch post-integration review remains separate; ticket-level simulation and independent review are complete. Existing structural-validator findings remain open; applied status is not host acceptance. Aspect completeness does not prove semantic correctness or source coverage. Scope discovery, feedback and cross-stage recovery belong to later tickets. All candidate cases remain unexecuted.
 
 Refs: https://github.com/Zengxiansheng007/coedx-home/issues/106

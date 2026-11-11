@@ -50,9 +50,9 @@ unchanged. No UI-Test assets, global installation or business execution changed.
 |---|---|---|---|
 | TDD | Public identity tests before implementation | Failed as expected, then passed for initial slices | Private PRE-03 logs |
 | Feedback regression | Existing 8 public feedback tests | Passed after trusted review metadata normalization | Private execution log |
-| Combined regression and mirror | Full skill discovery, byte comparison | Final result recorded in handoff | Private PRE-03 evidence |
+| Combined regression and mirror | Full skill discovery, byte comparison | 118 tests passed after integrating 106/107; final mirror proof in handoff | Private PRE-03 evidence |
 | Real dialogue and XMind client | Independent host exercise | Pending at implementation handoff | Host-owned evidence |
-| Skill validator | require-change-records | Inherited findings retained; final output in handoff | Private PRE-03 evidence |
+| Skill validator | require-change-records | Exactly seven inherited findings (3 P0 / 3 P1 / 1 P2); not passed | Private PRE-03 evidence |
 
 ## Safety And Privacy
 Synthetic inputs only. Source requirements and transcripts remain private outside
@@ -63,5 +63,17 @@ Candidate only. Completely indistinguishable returns require business clarificat
 and chat-based correction; arbitrary native annotations and structural edits remain
 unsupported. Client import and actual multi-turn simulation must be completed by
 the host before claiming full PRE-03 acceptance. Inherited validator findings remain.
+
+## Acceptance Coverage
+
+- AC-015: public tests cover both views, rename, distinct same-name cases and
+  reordered subtrees with exact binding; internal IDs and other cases persist.
+- AC-021 identity: both projections retain the candidate version; binding changes,
+  stale versions and ambiguous returns fail; existing summary and review gates stay.
+- Related dependencies and unselected records: existing dependency/partial-merge
+  public regressions passed in the 118-test combined run.
+- Historical generated ID headings: accurate baseline/path matching preserves
+  scalar feedback without title or ordinal inference; new output hides those IDs.
+- AC-022 Chinese-title client import and independent actual dialogue: pending host.
 
 Refs: [Presentation identity](../../../../references/presentation-identity.md).
