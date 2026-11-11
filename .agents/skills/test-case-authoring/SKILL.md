@@ -63,7 +63,10 @@ separately invoked testing skill. Formal integration remains unverified.
 
 Read [the clarification contract](references/clarification-contract.md) before
 starting or resuming questions, applying a summary, or recording final review.
-Use its public batch API; business interpretation remains your responsibility.
+Read [the single Q&A record contract](references/qa-record-contract.md) for every
+questioning entry. Use its persisted public adapter for live conversations;
+the pure batch API remains a computation and regression seam. Business
+interpretation remains your responsibility.
 
 ## Reconcile final product confirmation
 
@@ -139,14 +142,17 @@ never replace file inspection with self-authored JSON and call that a file test.
    recommendation, reason and concrete example. Add dependencies only where
    the answer needs an earlier rule. Propose alternatives rather than treating
    observations or AI suggestions as established expectations.
-2. Start the grill. Ask **all** returned independent questions in the same chat
+2. Start the grill through `start_record`, binding the task's unique Q&A MD.
+   Save the complete questions and read them back before sending. Ask **all** returned independent questions in the same chat
    message, including options, recommendation, reason, example and affected
    objects. Use chat prose, not question cards. Hold dependent questions for the
    next eligible round. A partial response answers only the questions it names.
-3. Interpret the actual reply into formal, provisional or deferred decisions.
+3. Save the actual reply and source with `advance_record(..., 'record_note', ...)`
+   and read it back before interpreting formal, provisional or deferred decisions.
    Provisional authorization must retain the condition still needing product
    verification. Ambiguous "passed" grants no additional action. Record actual
-   words and proposed content changes; corrections append history and invalidate
+   words, source, interpretation and proposed content changes through the same
+   MD adapter; corrections append history and invalidate
    dependent answers for rechecking. During grill, change only Q&A records.
 4. Once all necessary questions are answered or explicitly deferred (including
    their blocked dependencies), show the summary, proposed field changes,

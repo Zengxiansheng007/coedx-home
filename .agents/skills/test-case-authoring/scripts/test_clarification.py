@@ -26,7 +26,7 @@ class ClarificationTests(unittest.TestCase):
         batch, questions = fixture()
         session = start_grill(batch, questions)
         self.assertEqual([q['id'] for q in session['round_questions']], ['Q1', 'Q2'])
-        self.assertIn('Recommendation', session['chat'])
+        self.assertIn('推荐：', session['chat'])  # Public chat now uses Chinese labels.
         self.assertIn('recipient delivery', session['chat'])
         reply = {'question_id': 'Q1', 'decision': 'formal', 'actual_reply': '[SIMULATED] use proposed rule', 'updates': []}
         updated = respond(session, [reply])
