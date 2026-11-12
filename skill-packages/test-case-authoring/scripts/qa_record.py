@@ -80,7 +80,7 @@ def checkpoint_record(path, stage, candidate_path, sources, next_step):  # Save 
         raise ValueError('Candidate differs from Q&A projection; reconcile affected content first')  # No automatic overwrite.
     if stage not in ('p0', 'report', 'p1-p2', 'review') or not next_step or not sources:  # TCA stages, not another workflow.
         raise ValueError('Recovery needs a TCA stage, actual sources and next action')  # No empty handoff.
-    known = {q['id'] for q in state['questions']}  # Dependencies use permanent question IDs.
+    known = {q['id'] for stage_state in state.get('prior_stages', []) + [state] for q in stage_state['questions']}  # Source dependencies retain permanent IDs across stages.
     bindings = []  # Store identities and digests, never another business answer.
     for source in sources:  # Every supplied source is actually read.
         source_path = Path(source['path']).resolve()  # Explicit authorized source path.

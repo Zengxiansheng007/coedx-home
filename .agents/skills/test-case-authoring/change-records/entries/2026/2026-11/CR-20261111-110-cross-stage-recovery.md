@@ -48,3 +48,5 @@ No external calls, dependency install, global writes or business execution. Exis
 Candidate only. A byte difference identifies a review need, not its business meaning. Legacy records require actual source/candidate inspection before their first checkpoint. Source/MD conflicts are not silently repaired. The workflow is not an OS enforcement boundary. Root owns real six-entry and fresh-context validation.
 
 Refs: https://github.com/Zengxiansheng007/coedx-home/issues/110
+
+Pre-review cross-stage check: a later checkpoint must allow source bindings to an earlier stage's permanent Q ID. Added a failing public-stage checkpoint assertion, then extended lookup to retained prior stages. The five targeted recovery tests pass after this one-line correction. No independent review or behavior acceptance had started; earlier 135-test full result and failures remain historical. Actual QA108/109 records replay unchanged with exact candidate equality; 73 mirrored files match. Structure validation retains the same seven inherited findings (3 P0 negative credential fixtures, 3 P1, 1 P2), not a clean pass.
