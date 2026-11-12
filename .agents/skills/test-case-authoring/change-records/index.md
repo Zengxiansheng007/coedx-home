@@ -139,3 +139,19 @@ findings and the separately requested host-promotion gate-contract finding remai
 no scanner/host acceptance is claimed. Issue 110 actual behavior acceptance remains
 Root-owned and is not inferred from this repair. External evidence:
 evidence/final-comments-equivalence.json and evidence/final-review-fix-handoff.md.
+
+
+### CR-20261111-110 actual combined acceptance completed - 2026-11-12
+
+The agreed synthetic behavior acceptance is now complete on reviewed product
+6d6c88e49e194967b87a7d11020db313c70bf7c8: independent Spec review passed all
+10 issue-110 ACs with zero new findings. This supersedes prior pending behavior
+and review statements for this bounded simulation; historical entries remain.
+The sole Q&A has 58 events and 15 unique answer anchors. Public read_record and
+resume_record independently confirm full candidate equality, unchanged Q&A bytes
+and no final recovery conflicts. Final exact version
+3fec851c420c882f88d46bca7d3e77e15c31d62c76484cd623f19ae05cc0a591 has two
+approved/not_run/not_merged synthetic cases. Candidate status remains applied;
+this is not host acceptance, execution readiness, installation or publishing.
+See CR110 detail and external evidence/qa110/final-review/acceptance.md and
+final-inspection.json under the local task evidence root, outside this repository.

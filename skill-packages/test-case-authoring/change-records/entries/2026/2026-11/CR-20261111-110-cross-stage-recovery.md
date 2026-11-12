@@ -79,3 +79,66 @@ PRE04 composition, six-entry interaction, fresh-context stage continuation,
 actual save failure and source inconsistency must be observed by Root on the
 combined candidate. Public regression or this merge does not establish those
 acceptance results. No global install, business execution or publication.
+
+
+## Actual combined behavior and final verification - 2026-11-12
+
+Root released this metadata registration after the independent final Spec review
+closed all 10 agreed issue-110 simulation ACs with zero new Spec findings.
+The reviewed product is 6d6c88e49e194967b87a7d11020db313c70bf7c8; its comment-only
+delta from c3eeef7135460d89b7d118e87ec3251e4f9f9625 has verified AST/token
+equivalence and independent STD-01 closure, with zero remaining new Standards
+findings. This entry explicitly supersedes earlier whole-ticket behavior/review
+pending statements for the observed synthetic scope. All original records stay.
+
+Three actual actors covered P0, report reconciliation, P1/P2 and review. Two
+fresh-context resumptions used the same Q&A and actual candidate/source files.
+Six decision entries were exercised, including partial/unknown follow-up,
+provisional conditions, omitted coverage, scope/priority, feedback and recovery.
+The host sent replies only after actual questions or complete candidate display;
+summary confirmation and exact-version final review remained separate.
+
+The first save-lock injection was ineffective and is retained as such. The
+second caused a real local WinError5 during record_note; Q&A bytes stayed
+unchanged and the actor stopped before review or downstream artifacts. After
+the owned handle was released, disk reread preceded one missing note/review/
+checkpoint; no repeated P0 summary application occurred. Later same-version
+candidate tampering and a changed source were both detected. Recovery preserved
+the originals and unrelated decisions, clarified only the affected priority and
+existing unanswered state question, then applied one confirmed feedback round
+and one separately approved final review.
+
+Independent public read_record/resume_record exited successfully: 58 events,
+15 unique answer anchors, entire final candidate equal to Q&A replay, Q&A bytes
+unchanged by inspection, final conflicts empty and checkpoint present. Exact
+version 3fec851c420c882f88d46bca7d3e77e15c31d62c76484cd623f19ae05cc0a591 has
+two approved/not_run/not_merged cases. The original full P0 scope remains one
+case; extension approval does not replace that baseline. No human-view file was
+created. Earlier unapproved stage wording, failed injection and conflict files
+remain available rather than rewritten as successes.
+
+Remaining sample limits: provisional option/default conditions still require
+product confirmation; a navigation path is unknown under explicit write-first
+authorization; exclusions and downstream deferral remain in coverage. This is
+not execution readiness, a new XMind client import, real business evidence,
+formal synchronization, global installation or external publication.
+
+Reuse completed seven-stage repository checks: dependencies, workflow (67),
+verification (8), authoring (146), format, registry and copies; 221 tests total.
+The metadata-only registration does not rerun them. Existing protection evidence
+reports 55 protected files unchanged, and 79 source/package pairs agree. Normal
+create-skill scanning remains rejected with seven inherited findings; the extra
+host-gate scan remains rejected with eight including the missing promotion gate.
+Neither scanner result is relabelled passed. CR status stays applied, not host
+accepted, and no additional installation or promotion authority is inferred.
+
+External evidence locations, relative to the local task root outside this repo:
+- evidence/qa110/fresh-context-host-observations.md
+- evidence/qa110/save-lock-r1-host.json and save-lock-r2-host.json
+- test-output/qa110-dialogue/actual-trajectory.md and actor-b-observations.md
+- test-output/qa110-dialogue/resume-c-actual-trajectory-and-evidence.json
+- evidence/qa110/final-review/acceptance.md and final-inspection.json
+- evidence/final-spec.md, final-standards.md and final-checks-and-protection.md
+
+Only generic synthetic results and external references are registered here;
+the original Q&A, source materials, reports and private inputs are not packaged.
