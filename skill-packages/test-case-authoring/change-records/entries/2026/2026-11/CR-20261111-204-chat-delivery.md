@@ -133,3 +133,29 @@ This supersedes earlier natural-dialogue pending statements for these samples.
 PRE04 is locally accepted in this bounded simulated scope under Root release.
 No new XMind client import, business execution, global install or publication
 is claimed. Inherited seven validator findings and all old failures remain.
+
+
+### CR-20261111-204 / STD-01 final Standards annotation repair (2026-11-12)
+
+Baseline: c3eeef7135460d89b7d118e87ec3251e4f9f9625. The final two-axis review
+reported zero new Spec findings and one P3 Standards finding (STD-01).
+Added concise right-side explanations in aggregation.py for preparation-sharing
+semantics/shape, source ownership and omitted-case block bounds, and in feedback.py
+for raw-to-normalized identity evidence. No executable behavior, signatures,
+fixtures, QA records or historic evidence changed. This is a minimal-change
+annotation repair within CR-204; candidate status stays applied.
+
+Validation: both changed Python files have identical ASTs excluding positional
+attributes and identical (type, string) token streams after CRLF/LF normalization,
+excluding comments and position/source-line metadata. The initial token comparison
+reported only Git LF versus checkout CRLF newline tokens; ASTs and token counts
+already matched. The corrected verifier keeps every executable token unchanged.
+Source/package byte identity and git diff --check
+were checked. Root's seven passed checks on the baseline, including 146 authoring
+tests, are reused; no new tests or full-suite rerun are warranted by equivalent
+executable content. Only comments and this traceability note were added; manual
+diff review found no credentials or private business data. Seven inherited scanner
+findings and the separately requested host-promotion gate-contract finding remain;
+no scanner/host acceptance is claimed. Issue 110 actual behavior acceptance remains
+Root-owned and is not inferred from this repair. External evidence:
+evidence/final-comments-equivalence.json and evidence/final-review-fix-handoff.md.

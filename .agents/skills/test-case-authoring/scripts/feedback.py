@@ -97,24 +97,24 @@ def _markdown_layout_changes(batch, markdown, case_bindings=None, *, legacy=Fals
         return [approved_line if line == pending_line else line for line in lines if line not in trusted]
 
     from aggregation import feedback_topics  # Validate raw identity evidence before trusted metadata normalization.
-    raw_topics = feedback_topics('\n'.join(incoming))
+    raw_topics = feedback_topics('\n'.join(incoming))  # Retain raw returned digests as the identity-evidence baseline.
     for case in initial['cases']:  # Normalize trusted review-only changes before structural matching.
-        incoming = normalize_review_metadata(case['id'], incoming)
-        original = normalize_review_metadata(case['id'], original)
-    if case_bindings:
-        normalized_bindings = copy.deepcopy(case_bindings)
-        normalized_topics = feedback_topics('\n'.join(incoming))
-        for cid, binding in normalized_bindings.items():
-            raw = [t for t in raw_topics if t['returned_digest'] == binding.get('returned_digest')]
-            if len(raw) != 1:
-                raise ValueError('Identity evidence does not uniquely bind the raw return')
-            if any(t['returned_digest'] == binding['returned_digest'] for t in normalized_topics):
+        incoming = normalize_review_metadata(case['id'], incoming)  # Remove only trusted projection metadata from the return.
+        original = normalize_review_metadata(case['id'], original)  # Apply the same normalization to the baseline comparison.
+    if case_bindings:  # Translate only explicitly supplied identity evidence.
+        normalized_bindings = copy.deepcopy(case_bindings)  # Preserve the caller's original raw-return bindings.
+        normalized_topics = feedback_topics('\n'.join(incoming))  # Compute digests after trusted metadata normalization.
+        for cid, binding in normalized_bindings.items():  # Resolve each clarified case independently.
+            raw = [t for t in raw_topics if t['returned_digest'] == binding.get('returned_digest')]  # Evidence must first match the unnormalized return.
+            if len(raw) != 1:  # Missing or duplicate raw topics cannot establish identity.
+                raise ValueError('Identity evidence does not uniquely bind the raw return')  # Require clarification instead of guessing an owner.
+            if any(t['returned_digest'] == binding['returned_digest'] for t in normalized_topics):  # Unchanged subtrees retain their exact digest.
                 continue  # Most returns require no projection-only normalization.
-            topics = [t for t in normalized_topics if t['path'] == raw[0]['path'] and t['title'] == raw[0]['title']]
-            if len(topics) != 1:
-                raise ValueError('Trusted metadata normalization is ambiguous; clarify')
+            topics = [t for t in normalized_topics if t['path'] == raw[0]['path'] and t['title'] == raw[0]['title']]  # Locate the same topic after review-only metadata removal.
+            if len(topics) != 1:  # Translation must preserve an unambiguous topic location.
+                raise ValueError('Trusted metadata normalization is ambiguous; clarify')  # Stop when normalization cannot uniquely preserve identity.
             binding['returned_digest'] = topics[0]['returned_digest']  # Same raw topic, only trusted review metadata differs.
-        case_bindings = normalized_bindings
+        case_bindings = normalized_bindings  # Use normalized digests only for the following structural match.
     incoming = expand_feedback(initial, '\n'.join(original), '\n'.join(incoming), case_bindings).splitlines()  # Clarified mapping binds edits to the displayed version.
 
     def blocks(lines):

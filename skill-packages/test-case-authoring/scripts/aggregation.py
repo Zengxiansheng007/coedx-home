@@ -55,29 +55,29 @@ def projection(batch, markdown):
         source['case_id'] = case['id']
         source['text'] = source['text'][len(case['id']) + 1:]  # The flat source alone retains the English identity prefix.
         common = next(n for n in source['children'] if n['text'] == '公共前置操作')
-        if case.get('common_preconditions'):
-            refs = [ref for step in case['common_preconditions'] for ref in step.get('data_refs', [])]
+        if case.get('common_preconditions'):  # Only explicit preparation steps can form a shared group.
+            refs = [ref for step in case['common_preconditions'] for ref in step.get('data_refs', [])]  # Referenced data contributes its meaning, not just its ID.
             steps = [{k: v for k, v in step.items() if k != 'id'} for step in case['common_preconditions']]  # Only local step identity is irrelevant.
-            meaning = [case.get('context'), case.get('dependencies'), steps,
-                       [data[ref] for ref in refs], case.get('common_preconditions_note')]
-            key = (tuple(case['module_path']), json.dumps([_semantic(meaning), _shape(common)], sort_keys=True, ensure_ascii=False))
-            if key not in groups:
-                shared = copy.deepcopy(common)
-                shared['text'] += ' ' + str(1 + sum(k[0] == key[0] for k in groups))
-                shared['members'] = []
+            meaning = [case.get('context'), case.get('dependencies'), steps,  # Context and dependencies constrain safe sharing.
+                       [data[ref] for ref in refs], case.get('common_preconditions_note')]  # Preserve preparation data and explanatory meaning.
+            key = (tuple(case['module_path']), json.dumps([_semantic(meaning), _shape(common)], sort_keys=True, ensure_ascii=False))  # Share only within one module path with equal meaning and descendant shape.
+            if key not in groups:  # First equivalent case establishes the shared preparation branch.
+                shared = copy.deepcopy(common)  # Keep the case branch independently editable.
+                shared['text'] += ' ' + str(1 + sum(k[0] == key[0] for k in groups))  # Number groups within their module path.
+                shared['members'] = []  # Collect applicability without changing case identities.
                 shared['origins'] = []  # Group title is generated, never a business edit.
-                groups[key] = shared
-                target['children'].append(shared)
-            else:
-                shared = groups[key]
-                for left, right in zip(shared['children'], common['children']):
-                    _merge_origins(left, right)
-            shared['members'].append(case['id'])
-            common['children'] = [{'text': '适用：' + shared['text'] + '（执行时仍须完成）', 'children': [], 'origins': []}]
-            common['origins'] = []
-        target['children'].append(source)
-    for shared in groups.values():
-        shared['children'].insert(0, {'text': '适用用例：' + '、'.join(case_name(batch, cid) for cid in shared['members']), 'children': [], 'origins': []})
+                groups[key] = shared  # Reuse this exact semantic and structural group later.
+                target['children'].append(shared)  # Place shared preparation under its owning module.
+            else:  # Equivalent preparation reuses the established branch.
+                shared = groups[key]  # Retain the original displayed group identity.
+                for left, right in zip(shared['children'], common['children']):  # Equal shapes ensure corresponding descendants align.
+                    _merge_origins(left, right)  # Shared edits must reach every owning source line.
+            shared['members'].append(case['id'])  # Track each case that still requires these steps.
+            common['children'] = [{'text': '适用：' + shared['text'] + '（执行时仍须完成）', 'children': [], 'origins': []}]  # Replace repeated display with an explicit execution obligation.
+            common['origins'] = []  # Generated applicability text is not a writable business leaf.
+        target['children'].append(source)  # Keep each individual case after its shared preparation.
+    for shared in groups.values():  # Final membership is available after all cases are projected.
+        shared['children'].insert(0, {'text': '适用用例：' + '、'.join(case_name(batch, cid) for cid in shared['members']), 'children': [], 'origins': []})  # Display names while preserving internal member IDs.
     return lines[:3], merged
 
 
@@ -179,16 +179,16 @@ def expand_feedback(batch, flat_markdown, incoming, case_bindings=None):
     match(expected, actual)
     if used != set(bindings):
         raise ValueError('Unused identity binding; clarify the actual returned scope')
-    if removed:
-        starts = []
-        for index, line in enumerate(output[3:], 3):
-            for case in batch['cases']:
-                if line.startswith('  ' * len(case['module_path']) + '- ' + case['id'] + ' '):
-                    starts.append((index - len(case['module_path']), case['id']))
-        kept = output[:3]
-        for pos, (start, cid) in enumerate(starts):
-            end = starts[pos + 1][0] if pos + 1 < len(starts) else len(output)
-            if cid not in removed:
-                kept.extend(output[start:end])
-        output = kept
+    if removed:  # Rebuild the flat source only when complete cases were omitted.
+        starts = []  # Collect original block boundaries before removing any lines.
+        for index, line in enumerate(output[3:], 3):  # Skip the header while retaining absolute line offsets.
+            for case in batch['cases']:  # Bind block starts to known case identities.
+                if line.startswith('  ' * len(case['module_path']) + '- ' + case['id'] + ' '):  # Match the case at its exact module depth.
+                    starts.append((index - len(case['module_path']), case['id']))  # Include the flat branch's module ancestors in its block.
+        kept = output[:3]  # Preserve the immutable display header.
+        for pos, (start, cid) in enumerate(starts):  # Keep source order across surviving case blocks.
+            end = starts[pos + 1][0] if pos + 1 < len(starts) else len(output)  # Stop before the next block, or at the source end.
+            if cid not in removed:  # Omission affects only the explicitly missing case.
+                kept.extend(output[start:end])  # Preserve the entire surviving branch without re-rendering.
+        output = kept  # Feed the filtered flat source to existing scalar feedback mapping.
     return '\n'.join(output) + '\n'
