@@ -72,3 +72,37 @@ Baseline 294a12a69b72cc42af68255a64caafb75a0bfa98; integration 47e84fbd merged a
 TDD: public table blocks failed 0 versus 2; public post-apply rules failed 3 repeated interpretations versus 1. Both passed after repair. Full public suite: 136 passed, including feedback/native XMind and independent-rule regressions. No new dependency: persistent tests use stdlib; installed MarkdownIt independently parsed two tables. Unmodified actual post-QA candidate now renders 34 lines, first table line 31, zero qa-ref/update-path lines (previous independent probe: 178/172/9/36). Business unknown empty-title scope, repeat-title validity, no result reuse and pause/no-cleanup remain visible.
 
 Root still owns fresh behavior continuation and independent re-review; no whole-ticket acceptance or client-import claim. Older exported files containing the superseded audit layout are retained; structural return handling remains fail-closed and requires explicit chat interpretation rather than silently accepting obsolete layout.
+
+
+### CR-20261111-204 legacy feedback compatibility repair - 2026-11-12
+
+Baseline fccf2bc48ce747830665463ee6191a7584a3fb14. Preserve the known pre-repair
+rule-audit projection only inside exact-baseline feedback mapping. Normal display
+keeps effective business rules and clean Markdown blocks. Historical pending
+question suffixes are reconstructed together with that layout. Both render
+probes use the selected layout; protected rule arrays never become writable leaves.
+
+This supersedes the earlier limitation requiring chat reinterpretation of known
+old exported layouts: those exact layouts now accept supported scalar changes.
+Unknown topology, audit edits, unbound/stale identities and conflicting shared
+data still fail closed. Existing returned files and baseline/history stay intact.
+
+Public old-emitter/new-consumer red test reproduced the structural rejection;
+139 public regressions then passed (34.525s). Frozen 294a12a synthetic fixture
+covers shared data, audit arrays and old pending-question rows. Old and current
+native adapter fixtures both accept the exact operation proposal, retaining the
+native bytes; this is format acceptance, not XMind client acceptance. Independent
+review's retained old candidate/Markdown now produce exactly the same one-field
+proposal as the old consumer, with input bytes unchanged. No MarkdownIt import
+or new dependency was added. Root owns natural dialogue and independent re-review.
+
+Changed resources: feedback.py, scoped_review.py, test_legacy_feedback.py,
+assets/fixtures/legacy-review-294a12a.json and its provenance note, plus
+references/feedback-contract.md. All are mirrored byte-for-byte. Synthetic
+fixtures contain no private source documents, live credentials or business data.
+Private evidence: compat-red-product.txt, compat-suite.txt,
+compat-review-result.json and compat-validation.txt under the existing PRE04
+evidence directory. The first test launch had a module-resolution error because
+the governed runner sets the worktree root; its log is preserved separately.
+Validation remains candidate-only; seven inherited scanner findings are retained.
+No global install, real business execution, remote publication or #110 changes.

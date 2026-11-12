@@ -52,6 +52,16 @@ def _initial(batch):
 
 
 def _markdown_changes(batch, markdown, case_bindings=None):
+    try:  # Prefer today's clean projection without weakening its identity checks.
+        return _markdown_layout_changes(batch, markdown, case_bindings)  # Exact current layout.
+    except ValueError as current_error:  # An old exported artifact may have a different trusted layout.
+        try:  # Retry only the known historical renderer against the same immutable baseline.
+            return _markdown_layout_changes(batch, markdown, case_bindings, legacy=True)  # Same scalar/protected-field checks.
+        except ValueError:  # Neither supported layout establishes an unambiguous return.
+            raise current_error from None  # Preserve the original fail-closed public diagnostic.
+
+
+def _markdown_layout_changes(batch, markdown, case_bindings=None, *, legacy=False):  # Layout choice never changes semantic authority.
     """Read scalar edits of the generated hierarchy; reject structural ambiguity.
 
     Probe the actual renderer to bind each visible leaf to its existing business
@@ -65,7 +75,7 @@ def _markdown_changes(batch, markdown, case_bindings=None):
         initial = copy.deepcopy(batch)
         initial['cases'] = [c for c in initial['cases'] if c.get('feedback_disposition') != 'excluded_this_round']
     from aggregation import expand_feedback  # Restore source bindings before scalar interpretation.
-    flat = _render(initial, flat=True)['xmind_markdown']  # Freeze the original per-case source layout.
+    flat = _render(initial, flat=True, _legacy_feedback=legacy)['xmind_markdown']  # Bind offsets to one complete known layout.
     original = flat.splitlines()
     if incoming[:3] != original[:3]:
         raise ValueError('Markdown header/version must match initial display')
@@ -134,7 +144,7 @@ def _markdown_changes(batch, markdown, case_bindings=None):
                 probe = copy.deepcopy(initial)
                 marker = 'TCAFEEDBACKLEAFMARKER'
                 _set(probe[collection][index], path, marker)
-                rendered = blocks(_render(probe, flat=True, reference_batch=initial)['xmind_markdown'].splitlines())  # Probe original fields, not derived reference labels.
+                rendered = blocks(_render(probe, flat=True, reference_batch=initial, _legacy_feedback=legacy)['xmind_markdown'].splitlines())  # Probe the same layout; protected audit rows never become leaves.
                 for cid, lines in rendered.items():
                     for line_index, line in enumerate(lines):
                         if marker in line:

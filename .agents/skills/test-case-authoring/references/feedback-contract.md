@@ -85,7 +85,14 @@ labels, hierarchy, header/version and row counts. Case identity follows the
 [Chinese presentation contract](presentation-identity.md): stable IDs remain
 internal; edited subtrees need agent-maintained business clarification bindings.
 Historic generated ID headings remain explicit identity within the exact baseline
-version and module path. Whole-case removals
+version and module path. Known pre-PRE04-repair exports with rule-audit rows also
+remain supported: the reader reconstructs that exact historical layout from the
+retained semantic baseline and applies the same scalar/identity checks. Rule-audit
+rows are protected and must match unchanged. Unknown layouts, edited audit rows,
+stale bindings and conflicting repeated data remain rejected. Current display
+continues to project effective business rules only; retain the original returned
+file and history rather than regenerating them before interpretation.
+Whole-case removals
 include their full module subtree. Repeated projections of one data leaf must
 agree. Unsupported structural edits fail closed and return to chat clarification.
 Markup entities use the renderer's escaping. For native returns use

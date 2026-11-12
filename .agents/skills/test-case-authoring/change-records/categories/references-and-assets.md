@@ -122,3 +122,37 @@ Fresh actual synthetic dialogue completed 21 events and 21 successful readback c
 ### CR-20261111-204 review repair — 2026-11-12
 
 Separate actual Markdown table blocks and project effective business rules without audit/history duplication. Preserve provisional/product/deferred meaning and all source history. 136 public regressions passed; independent MarkdownIt probe reports two tables and actual candidate 34 lines with no machine paths. Natural continuation and independent re-review remain Root-owned; see CR-20261111-204 detail.
+
+
+### CR-20261111-204 legacy feedback compatibility repair - 2026-11-12
+
+Baseline fccf2bc48ce747830665463ee6191a7584a3fb14. Preserve the known pre-repair
+rule-audit projection only inside exact-baseline feedback mapping. Normal display
+keeps effective business rules and clean Markdown blocks. Historical pending
+question suffixes are reconstructed together with that layout. Both render
+probes use the selected layout; protected rule arrays never become writable leaves.
+
+This supersedes the earlier limitation requiring chat reinterpretation of known
+old exported layouts: those exact layouts now accept supported scalar changes.
+Unknown topology, audit edits, unbound/stale identities and conflicting shared
+data still fail closed. Existing returned files and baseline/history stay intact.
+
+Public old-emitter/new-consumer red test reproduced the structural rejection;
+139 public regressions then passed (34.525s). Frozen 294a12a synthetic fixture
+covers shared data, audit arrays and old pending-question rows. Old and current
+native adapter fixtures both accept the exact operation proposal, retaining the
+native bytes; this is format acceptance, not XMind client acceptance. Independent
+review's retained old candidate/Markdown now produce exactly the same one-field
+proposal as the old consumer, with input bytes unchanged. No MarkdownIt import
+or new dependency was added. Root owns natural dialogue and independent re-review.
+
+Changed resources: feedback.py, scoped_review.py, test_legacy_feedback.py,
+assets/fixtures/legacy-review-294a12a.json and its provenance note, plus
+references/feedback-contract.md. All are mirrored byte-for-byte. Synthetic
+fixtures contain no private source documents, live credentials or business data.
+Private evidence: compat-red-product.txt, compat-suite.txt,
+compat-review-result.json and compat-validation.txt under the existing PRE04
+evidence directory. The first test launch had a module-resolution error because
+the governed runner sets the worktree root; its log is preserved separately.
+Validation remains candidate-only; seven inherited scanner findings are retained.
+No global install, real business execution, remote publication or #110 changes.

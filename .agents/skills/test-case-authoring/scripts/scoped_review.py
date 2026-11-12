@@ -91,7 +91,7 @@ def _rule_lines(case, batch):
     return lines  # Source dictionaries remain untouched.
 
 
-def _render(batch, *, flat=False, reference_batch=None):  # Flat probes keep derived reference labels fixed.
+def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False):  # Private compatibility layout is never a new display default.
     tree = ['# 本轮范围副本（非全量）', '- 版本：' + batch['content_version'],
             '- 未展示不表示删除；关联展示不扩大功能验证范围']
     human = []
@@ -111,12 +111,13 @@ def _render(batch, *, flat=False, reference_batch=None):  # Flat probes keep der
                            ('本轮功能验证', '已单独列入批准范围' if case['id'] in batch['approved_validation_scope'] else '未列入批准范围')]:
             tree.append(indent + '- ' + key + '：' + _cell(value))
             human.append(key + '：' + _cell(value))
+        excluded_rules = () if _legacy_feedback else RULE_FIELDS  # Reconstruct only the known pre-repair audit layout for feedback probes.
         metadata = {key: value for key, value in case.items()
-                    if key not in (*GROUPS, *RULE_FIELDS, 'id', 'title', 'module_path', 'common_preconditions_note')}  # Rule audit arrays have a semantic projection below.
+                    if key not in (*GROUPS, *excluded_rules, 'id', 'title', 'module_path', 'common_preconditions_note')}  # Preserve original insertion order for historical scalar offsets.
         for line in _business_lines(metadata, batch=reference_batch or batch):  # Derived reference names are not editable scalar fields.
             tree.append(indent + '- ' + _cell(line))
             human.append(_cell(line))
-        for line in _rule_lines(case, reference_batch or batch):  # Shared effective business rules in both views.
+        for line in ([] if _legacy_feedback else _rule_lines(case, reference_batch or batch)):  # Historical rule rows already appear in metadata.
             tree.append(indent + '- ' + _cell(line))  # Keep rules within their owning case.
             human.append(_cell(line))  # Never expose raw updates or repeated histories.
         for group, label in zip(GROUPS, ('公共前置操作', '特殊前置操作', '测试步骤', '特殊后置操作')):
@@ -154,7 +155,7 @@ def _render(batch, *, flat=False, reference_batch=None):  # Flat probes keep der
         human.append('')  # End the final table before pending questions or the next case.
         for question in batch['questions']:
             if question['case_id'] == case['id'] and (not question.get('history') or question.get('stale')):  # Preserve history but display only unanswered or invalidated questions.
-                pending = _cell(question['field']) + ('：' + _cell(question['reason']) if question.get('reason') else '')  # Preserve the actual missing business condition.
+                pending = _cell(question['field']) + ('：' + _cell(question['reason']) if question.get('reason') and not _legacy_feedback else '')  # Known old exports omitted the reason suffix.
                 tree.append(indent + '- 待核对：' + pending)  # Same unresolved meaning in both formats.
                 human.append('待核对：' + pending)  # Legacy human callers retain clarification reasons.
     from aggregation import aggregate  # Share the lossless directory projection.
