@@ -7,6 +7,46 @@ import presentation  # Public chat projection entry.
 
 
 class ChatDeliveryTests(unittest.TestCase):
+    def test_applied_rules_project_business_meaning_once(self):
+        from test_rule_identity import question  # Existing public rule fixture.
+        from test_feedback import scope  # Scoped source supports native feedback too.
+        from clarification import start_grill, respond, summarize, apply_summary  # Actual apply path.
+        from authoring import render_batch  # Both public presentation formats.
+        batch = scope()['batch']  # Simulated business source.
+        batch['questions'] = []  # This scenario supplies its own complete independent doubts.
+        qs = [question('A'), question('B')]  # Independent conditions on the same field.
+        replies = [dict(question_id=q['id'], decision='provisional', actual_reply='SIMULATED WHOLE ROUND',
+            interpretation='业务归纳' + q['id'], authorized_expectation='暂定预期' + q['id'],
+            product_check='待产品确认' + q['id'], qa_ref='internal/qa.md', answer_version=1,
+            updates=[]) for q in qs]  # Structured meanings and audit bookkeeping coexist.
+        session = summarize(respond(start_grill(batch, qs), replies))  # Real public summary gate.
+        result = apply_summary(session, dict(confirmed=True, actual_reply='SIMULATED agree', summary_id=session['summary']['id']))  # Real apply.
+        updated = result['batch']  # Current, initial and history arrays now exist.
+        updated['data'][0]['updates'] = {'path': '业务路径值'}  # Same-named business extension must survive.
+        before = copy.deepcopy(updated)  # Projection cannot modify provenance.
+        for text in (presentation.render_chat(updated, ['EDIT'])['human_view'], render_batch(updated)['xmind_markdown']):
+            for q in qs:
+                self.assertEqual(text.count('业务归纳' + q['id']), 1)  # Current interpretation appears once.
+                self.assertIn('暂定预期' + q['id'], text)  # Preserve authorized temporary outcome.
+                self.assertIn('待产品确认' + q['id'], text)  # Preserve both independent product conditions.
+            self.assertNotIn('internal/qa.md', text)  # Audit references stay internal.
+            self.assertNotIn('SIMULATED WHOLE ROUND', text)  # Do not repeat whole-round reply per question.
+            self.assertIn('业务路径值', text)  # Never globally strip update/path business keys.
+        self.assertEqual(updated, before)  # Full history and original replies retained.
+
+    def test_preparation_notes_and_groups_are_markdown_blocks(self):
+        batch = build_batch(*sample())['batch']  # Exercise the public compiler and chat seam.
+        case = batch['cases'][0]  # Simulated case only.
+        case['common_preconditions_note'] = {'text': 'SIMULATED preparation note'}  # Notes are prose.
+        case['common_preconditions'] = [copy.deepcopy(case['steps'][0])]  # A real preparation row.
+        text = presentation.render_chat(batch, [case['id']])['human_view']  # Render actual delivery.
+        blocks = text.split('\n\n')  # CommonMark block boundaries need blank lines.
+        tables = [b.strip() for b in blocks if b.strip().startswith('| 序号 |')]  # Extra blank lines also delimit blocks.
+        self.assertEqual(len(tables), 2)  # Preparation and test steps remain separate tables.
+        for table in tables:
+            self.assertTrue(all(line.startswith('|') for line in table.splitlines()))  # No prose inside a table.
+        self.assertIn('SIMULATED preparation note', text)  # No deletion to repair layout.
+
     def test_explicit_selection_has_complete_cases_and_no_source_mutation(self):
         batch = build_batch(*sample())['batch']  # Start with a real candidate.
         original = copy.deepcopy(batch)  # Projection must not edit this source.

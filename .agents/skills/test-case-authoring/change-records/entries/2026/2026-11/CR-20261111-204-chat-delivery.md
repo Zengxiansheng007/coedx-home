@@ -64,3 +64,11 @@ source requirement publication. Private evidence stays outside this package.
 Root owns actual natural simulation and independent review. Local public APIs cannot
 enforce arbitrary callers' file writes; policy and canonical CLI paths are bounded.
 Do not claim XMind client compatibility or business success from these tests.
+
+## Independent review repair (2026-11-12)
+
+Baseline 294a12a69b72cc42af68255a64caafb75a0bfa98; integration 47e84fbd merged as 4a1f2bc. REQ-010/012/014: repair distinct Markdown table blocks and replace generic rule-audit flattening with effective business projection. Historical failed output and actual dialogue remain unchanged. Public signatures, candidate version and approval gates are unchanged. authoring.render_batch now uses the same complete projection as chat and XMind, including unresolved question reasons.
+
+TDD: public table blocks failed 0 versus 2; public post-apply rules failed 3 repeated interpretations versus 1. Both passed after repair. Full public suite: 136 passed, including feedback/native XMind and independent-rule regressions. No new dependency: persistent tests use stdlib; installed MarkdownIt independently parsed two tables. Unmodified actual post-QA candidate now renders 34 lines, first table line 31, zero qa-ref/update-path lines (previous independent probe: 178/172/9/36). Business unknown empty-title scope, repeat-title validity, no result reuse and pause/no-cleanup remain visible.
+
+Root still owns fresh behavior continuation and independent re-review; no whole-ticket acceptance or client-import claim. Older exported files containing the superseded audit layout are retained; structural return handling remains fail-closed and requires explicit chat interpretation rather than silently accepting obsolete layout.

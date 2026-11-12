@@ -175,15 +175,11 @@ def _view_one(batch):
 
 
 def _views(batch):
-    views = []
-    for case in batch['cases']:
-        single = dict(batch, cases=[case], questions=[q for q in batch['questions'] if q['case_id'] == case['id']])
-        views.append(_view_one(single))
     from scoped_review import _render  # Use the same semantic tree for all batch entry points.
     selected = {s['case_id']: s for s in batch['selection']}  # Clarification may add independent candidates.
     display = dict(batch, selection=[dict(selected.get(c['id'], {'case_id': c['id'], 'reason': '候选评审'}), action=selected.get(c['id'], {}).get('action', 'add')) for c in batch['cases']])
-    tree = _render(display)['xmind_markdown']  # A single root replaces concatenated individual trees.
-    return '\n'.join(v[0] for v in views), tree  # Preserve literal input and expected text.
+    rendered = _render(display)  # One semantic projection also fixes legacy human output.
+    return rendered['human_view'], rendered['xmind_markdown']  # Keep the pure API without separate rule semantics.
 
 
 def render_batch(batch):

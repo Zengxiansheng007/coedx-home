@@ -27,6 +27,16 @@ feedback, dependency and product-rule regeneration, and P1/P2 expansion.
    Preserve complete preparation, special pre/postconditions, action/data/result
    correspondence, dynamic business data rules and linked case names. Projection
    never changes source identity, data, versions, or approval records.
+6. Render preparation notes as prose before their table and separate every group
+   and pending-question section with blank lines. Project current effective rule
+   meanings once: retain per-question interpretation, accumulated answered parts,
+   provisional expected behavior and product checks, and deferred scope/reason.
+   A separate deferred branch remains unknown and excluded, without blocking an
+   otherwise resolved current case. Keep machine update paths, Q&A references,
+   original whole-round replies and superseded rule history in internal records.
+   Legacy decisions without interpretation retain their original answer; do not
+   infer or rewrite missing business meaning. Ordinary business extension fields
+   named updates/path are not rule audit structures and must remain visible.
 
 `render_chat` is a pure public API and performs no writes. The older full pure
 rendering APIs remain available for internal semantic comparison; their returned
