@@ -106,6 +106,10 @@ CR-20261111-203/109 actual-path evidence and independent repair review are compl
 
 Independent re-review closed three P1 findings and the composition issue; six focused tests passed. Reuse 129 full tests before the optional-metadata fix and 24 affected tests afterward, without repeating unchanged suites. Private actual/review evidence stays outside the package; historical versions/failures remain. Seven inherited scanner findings (3 P0 / 3 P1 / 1 P2) remain, not a clean scan. No publishing, Issue closure, installation or business execution.
 
+### 2026-11-12 CR-20261111-108 actual repair dialogue completed
+
+Fresh actual synthetic dialogue completed 21 events and 21 successful readback checks; exact version 882c4c8fdb0748fd7aa7bcab3c161aa3e4ccbe70d851f9ce3617a30a3bd2fab5 approves only MEMO-001, formal/not_run/not_merged. This supersedes the earlier pending_behavior_validation entry for that sample and releases #110 under Root authorization. Old failed/rejected versions remain historical. No complete approved P0 baseline or XMind client import exists for this sample; earlier public P0-scope regressions are separate evidence. See CR-20261111-108 detail for boundaries. Product code unchanged; inherited seven scanner findings remain.
+
 ## CR-20261111-110 - Cross-stage recovery
 
 - Section changed: same task recovery and stage transition.
