@@ -13,12 +13,12 @@ GROUPS = ('common_preconditions', 'special_preconditions', 'steps', 'special_pos
 
 TECHNICAL_FIELDS = frozenset(('id', 'source', 'lines', 'basis', 'provenance',
     'semantic_version', 'data_version', 'assertion_id', 'assertion_ids', 'operator',
-    'build_fingerprint', 'sha256', 'content_hash'))
+    'build_fingerprint', 'sha256', 'content_hash', 'summary_id', 'content_version', 'technical_handoff', 'rule_id', 'question_id'))  # Stable technical identities remain internal, including historical rule references.
 BUSINESS_LABELS = {
     'context': '业务条件', 'role': '角色', 'initial_state': '初始状态',
     'priority': '优先级', 'priority_basis': '分级依据', 'maintenance_action': '维护建议',
     'rule_status': '规则确认', 'review_status': '最终评审', 'merge_status': '合并状态',
-    'execution_status': '执行状态', 'dependencies': '关联用例', 'case_id': '用例编号',
+    'execution_status': '执行状态', 'dependencies': '关联用例', 'case_id': '用例名称', 'case_ids': '用例名称',
     'module_path': '模块路径', 'purpose': '用途', 'required_state': '所需状态',
     'object_binding': '业务对象关联', 'object_ref': '业务对象', 'data_ref': '数据引用',
     'input': '输入', 'inputs': '输入', 'output': '产出', 'outputs': '产出',
@@ -31,7 +31,7 @@ BUSINESS_LABELS = {
 }
 
 
-def _business_lines(value, prefix=''):
+def _business_lines(value, prefix='', batch=None):
     """One labelled business projection used by both review formats.
 
     Unknown extensions are flattened to labelled leaves, never opaque JSON.
@@ -44,18 +44,54 @@ def _business_lines(value, prefix=''):
                 continue
             label = '' if key == 'text' else BUSINESS_LABELS.get(key, key.replace('_', ' '))
             heading = ' / '.join(p for p in (prefix, label) if p)
+            if key in ('case_id', 'case_ids') and batch is not None:  # Only declared identity fields resolve to titles.
+                from presentation import case_name  # Keep business strings untouched.
+                child = [case_name(batch, cid) for cid in child] if isinstance(child, list) else case_name(batch, child)  # Typed reference, never token substitution.
             if key == 'module_path' and isinstance(child, list):
                 lines.append(heading + '：' + ' / '.join(map(str, child)))
             else:
-                lines.extend(_business_lines(child, heading))
+                lines.extend(_business_lines(child, heading, batch))
         return lines
     if isinstance(value, list):
-        return [line for child in value for line in _business_lines(child, prefix)]
+        return [line for child in value for line in _business_lines(child, prefix, batch)]
     text = str(value) if value is not None else '待核对'
     return [prefix + '：' + text if prefix else text]
 
 
-def _render(batch):
+RULE_FIELDS = ('active_rule_decisions', 'rule_decisions', 'rule_decision_history', 'feedback_rule_history')  # Case audit collections only.
+
+
+def _rule_lines(case, batch):
+    """Project effective decisions; original replies and machine updates remain in JSON."""
+    active = case.get('active_rule_decisions')  # Explicit empty active set must not resurrect history.
+    if active is None:  # Older candidates predate the authoritative active collection.
+        indexed = {}  # Preserve independent conditions, including legacy unscoped ones.
+        for item in case.get('rule_decisions', []) + case.get('feedback_rule_history', []):
+            key = ('rule', item['rule_id']) if item.get('rule_id') else ('question', item['question_id']) if item.get('question_id') else ('legacy', _digest(item))  # Same identity can supersede; same field cannot.
+            indexed[key] = item  # Later feedback wins for that exact rule only.
+        active = list(indexed.values())  # Historical arrays are not parallel visible rules.
+    lines = []  # Business context before actions, never audit payloads.
+    for item in active:
+        reply = item.get('reply', {})  # Decisions produced by apply_summary and feedback.
+        state = reply.get('decision', 'unknown')  # Unknown stays visibly unresolved.
+        label = {'formal': '已确认规则', 'provisional': '暂定规则', 'deferred': '延期规则'}.get(state, '待核对规则')  # Chinese meaning.
+        meaning = reply.get('interpretation') or reply.get('actual_reply', '规则内容待核对')  # Legacy single-rule answers lack interpretations.
+        lines.extend(_business_lines(meaning, label, batch))  # Modern per-question explanation avoids whole-round repetition.
+        parts = dict(reply.get('answered_parts', {}), **item.get('answered_parts', {}))  # Current accumulated parts win.
+        for key, value in parts.items():  # Preserve applicable conditions beyond the short interpretation.
+            part_label = {'invalid': '失效处理', 'reuse': '复用策略', 'validity': '有效性', 'condition': '适用条件', 'behavior': '结果行为'}.get(key, key.replace('_', ' '))  # Unknown business parts remain visible.
+            lines.extend(_business_lines(value, label + ' / ' + part_label, batch))  # No natural-language guessing.
+        for key, heading in (('authorized_expectation', '暂定预期'), ('product_check', '待产品核实'), ('validity', '有效性'), ('applicability', '适用条件')):
+            if key in reply:
+                lines.extend(_business_lines(reply[key], heading, batch))  # Retain explicit temporary outcomes and conditions.
+        if item.get('scope_basis'):
+            lines.extend(_business_lines(item['scope_basis'], '适用范围与依据', batch))  # Preserve excluded branch and reason.
+        if state == 'deferred':
+            lines.append('延期影响：' + ('独立分支延期；不阻塞当前用例评审；延期分支不执行' if item.get('disposition_scope') == 'separate_impact' else '当前用例规则未决；评审与执行保持阻塞'))  # Existing disposition semantics, no new authorization.
+    return lines  # Source dictionaries remain untouched.
+
+
+def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False):  # Private compatibility layout is never a new display default.
     tree = ['# 本轮范围副本（非全量）', '- 版本：' + batch['content_version'],
             '- 未展示不表示删除；关联展示不扩大功能验证范围']
     human = []
@@ -68,37 +104,47 @@ def _render(batch):
             indent += '  '
         tree.append(indent + '- ' + _cell(case['id'] + ' ' + case.get('title', '待核对')))
         indent += '  '
-        human.extend(['# ' + _cell(case['id'] + ' ' + case.get('title', '待核对')),
+        human.extend(['# ' + _cell(case.get('title', '待核对')),
                       '版本：' + batch['content_version'], '模块：' + ' / '.join(map(_cell, case['module_path']))])
         note = selection[case['id']]
         for key, value in [('入选用途', note['action'] + '：' + note['reason']),
                            ('本轮功能验证', '已单独列入批准范围' if case['id'] in batch['approved_validation_scope'] else '未列入批准范围')]:
             tree.append(indent + '- ' + key + '：' + _cell(value))
             human.append(key + '：' + _cell(value))
+        excluded_rules = () if _legacy_feedback else RULE_FIELDS  # Reconstruct only the known pre-repair audit layout for feedback probes.
         metadata = {key: value for key, value in case.items()
-                    if key not in (*GROUPS, 'id', 'title', 'module_path')}
-        for line in _business_lines(metadata):
+                    if key not in (*GROUPS, *excluded_rules, 'id', 'title', 'module_path', 'common_preconditions_note')}  # Preserve original insertion order for historical scalar offsets.
+        for line in _business_lines(metadata, batch=reference_batch or batch):  # Derived reference names are not editable scalar fields.
             tree.append(indent + '- ' + _cell(line))
             human.append(_cell(line))
+        for line in ([] if _legacy_feedback else _rule_lines(case, reference_batch or batch)):  # Historical rule rows already appear in metadata.
+            tree.append(indent + '- ' + _cell(line))  # Keep rules within their owning case.
+            human.append(_cell(line))  # Never expose raw updates or repeated histories.
         for group, label in zip(GROUPS, ('公共前置操作', '特殊前置操作', '测试步骤', '特殊后置操作')):
             if group.startswith('special_') and not case.get(group):
                 continue
             tree.append(indent + '- ' + label)
-            human.extend([label, '| 序号 | 操作 | 参数/数据 | 预期结果 |', '| --- | --- | --- | --- |'])
-            if not case.get(group):
+            human.extend(['', label, ''])  # Separate prose and each Markdown table block.
+            notes = _business_lines(case.get('common_preconditions_note', {}), batch=reference_batch or batch) if group == 'common_preconditions' else []  # Selected views resolve against the complete source.
+            for line in notes:  # One source note appears once under its preparation group.
+                tree.append(indent + '  - ' + _cell(line))
+                human.append(_cell(line))
+            if not case.get(group) and not notes:  # Only an actually unspecified empty group is unknown.
                 tree.append(indent + '  - 未提供，待核对')
                 human.append('未提供，待核对')
+            if case.get(group):  # Notes precede the header; empty groups need no phantom table.
+                human.extend(['', '| 序号 | 操作 | 参数/数据 | 预期结果 |', '| --- | --- | --- | --- |'])  # Actual table boundary.
             for i, step in enumerate(case.get(group, []), 1):
                 values = [line for ref in step.get('data_refs', [])
-                          for line in _business_lines(data[ref])] or ['无']
+                          for line in _business_lines(data[ref], batch=reference_batch or batch)] or ['无']  # Preserve linked business data names.
                 extensions = {k: v for k, v in step.items()
                               if k not in ('id', 'operation', 'data_refs', 'expected', 'verification')}
-                business_conditions = _business_lines(extensions)
+                business_conditions = _business_lines(extensions, batch=reference_batch or batch)  # Include out-of-selection references.
                 if business_conditions and values == ['无']:
                     values = []
                 values.extend(business_conditions)
-                expected = _business_lines(step.get('expected', [])) or ['待核对']
-                checks = _business_lines(step.get('verification', [])) or ['待核对']
+                expected = _business_lines(step.get('expected', []), batch=reference_batch or batch) or ['待核对']  # Same source reference context.
+                checks = _business_lines(step.get('verification', []), batch=reference_batch or batch) or ['待核对']  # Same source reference context.
                 operation = step.get('operation', '待核对')
                 tree.extend([indent + f'  - 步骤 {i}：' + _cell(operation), indent + '    - 参数/数据'])
                 tree.extend(indent + '      - ' + _cell(v) for v in values)
@@ -106,12 +152,16 @@ def _render(batch):
                 tree.extend(indent + '      - ' + _cell(v) for v in expected)
                 tree.append(indent + '      - 验证点：' + _cell('；'.join(checks)))
                 human.append(f'| {i} | {_cell(operation)} | {_cell("；".join(values))} | 预期：{_cell("；".join(expected))}；验证点：{_cell("；".join(checks))} |')
+        human.append('')  # End the final table before pending questions or the next case.
         for question in batch['questions']:
-            if question['case_id'] == case['id']:
-                tree.append(indent + '- 待核对：' + _cell(question['field']))
-                human.append('待核对：' + _cell(question['field']))
+            if question['case_id'] == case['id'] and (not question.get('history') or question.get('stale')):  # Preserve history but display only unanswered or invalidated questions.
+                pending = _cell(question['field']) + ('：' + _cell(question['reason']) if question.get('reason') and not _legacy_feedback else '')  # Known old exports omitted the reason suffix.
+                tree.append(indent + '- 待核对：' + pending)  # Same unresolved meaning in both formats.
+                human.append('待核对：' + pending)  # Legacy human callers retain clarification reasons.
+    from aggregation import aggregate  # Share the lossless directory projection.
+    markdown = '\n'.join(tree) + '\n'  # Retain scalar-source offsets for feedback.
     return {'batch': copy.deepcopy(batch), 'human_view': '\n'.join(human) + '\n',
-            'xmind_markdown': '\n'.join(tree) + '\n'}
+            'xmind_markdown': markdown if flat else aggregate(batch, markdown)}
 
 
 def render_review_batch(batch):
@@ -191,8 +241,8 @@ def build_scoped_review(catalog, batch_id, selection, approved_validation_scope=
     if not selected:
         raise ValueError('Select at least one case')
     scope = list(approved_validation_scope or [])
-    if len(set(scope)) != len(scope) or any(cid not in selected_ids for cid in scope):
-        raise ValueError('Validation scope must identify selected cases')
+    if len(set(scope)) != len(scope) or any(cid not in indexed and cid not in proposed for cid in scope):  # Full approved scope can include undisplayed catalog cases.
+        raise ValueError('Validation scope must identify known catalog or candidate cases')  # Reject unknown IDs without shrinking approval to the display.
     original_data = {d['id']: d for d in full['data']}
     if len(original_data) != len(full['data']):
         raise ValueError('Duplicate data identity')
@@ -277,7 +327,7 @@ def main():
                                   ('initial-copy-baseline.json', result['batch']['initial_copy_baseline']),
                                   ('changes.json', result['changes'])]:
             (output / filename).write_text(json.dumps(content, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
-        for filename, key in [('human-view.md', 'human_view'), ('xmind.md', 'xmind_markdown'),
+        for filename, key in [('xmind.md', 'xmind_markdown'),  # Persist the scope tree, never chat tables.
                               ('review-notes.md', 'review_notes')]:
             (output / filename).write_text(result[key], encoding='utf-8')
     except (ValueError, KeyError, TypeError, AttributeError, OSError):

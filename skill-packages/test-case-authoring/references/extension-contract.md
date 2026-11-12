@@ -73,8 +73,9 @@ entry basis in `extension_design` and `extension_entry`.
 
 After `apply_summary`, call `render_extension(session['batch'])` for the scoped
 Markdown and coverage notes at the updated content version. Use
-`render_extension(batch, case_id='...')` only when a particular case needs its
-four-column human-view. Regeneration preserves the original scope baseline;
+`render_extension(batch, case_id='...')` for a requested single case, or keyword
+`case_ids=[...]` for 1–9 requested cases; follow [chat delivery](chat-delivery.md).
+The returned four-column text stays in chat. Regeneration preserves the original scope baseline;
 it does not apply returned-file feedback or merge. Read complete cases and all
 coverage decisions during final review, including missing/deferred scope.
 

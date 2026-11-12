@@ -8,7 +8,7 @@ def _question_map(session):
 
 
 def _answered(q):
-    return bool(q['history']) and not q.get('stale', False)
+    return bool(q['history']) and not q.get('stale', False) and q['history'][-1]['decision'] in ('formal', 'provisional', 'deferred') and (not q.get('remaining_parts') or q['history'][-1]['decision'] == 'deferred')  # A partial answer is not a business disposition.
 
 
 def _blocked(questions):
@@ -25,20 +25,32 @@ def _presentation(session):
     # Hold a round open for partial replies: newly eligible questions join only
     # after all questions already presented in that round have been answered.
     pending = [questions[qid] for qid in session.get('round_ids', [])
-               if not _answered(questions[qid]) and qid not in _blocked(questions)]
+               if not _answered(questions[qid]) and qid not in _blocked(questions) and all(_answered(questions[d]) for d in questions[qid]['depends_on'])]  # A corrected premise can invalidate an already shown question.
     if not pending:
         pending = [q for q in questions.values() if not _answered(q) and
                    all(_answered(questions[d]) and questions[d]['history'][-1]['decision'] != 'deferred'
                        for d in q['depends_on'])]
         session['round_ids'] = [q['id'] for q in pending]
     session['round_questions'] = copy.deepcopy(pending)
+    session['round_ids'] = [q['id'] for q in pending]  # Accept replies only to the current eligible presentation.
     lines = []
     for q in pending:
-        lines.extend([f"{q['id']}: {q['reason']}",
-                      f"Affected: {q['case_id']}; checks: {', '.join(q['affected_checks'])}",
-                      'Options: ' + '; '.join(q['options']),
-                      'Recommendation: ' + q['recommendation'],
-                      'Reason: ' + q['rationale'], 'Example: ' + q['example']])
+        q = copy.deepcopy(q)  # Follow-up presentation never rewrites the original question.
+        if q.get('disposition_scope') == 'separate_impact':  # Show the actual scope before the reply.
+            lines.append('独立影响处置：' + q['scope_basis'] + '；当前用例前提不变，此问题不确认该分支业务规则。')  # No implicit rule confirmation.
+        if q['history'] and q['history'][-1]['decision'] == 'unknown':  # An unknown answer requires an actual disposition question.
+            q.update(reason='尚未明确的规则如何处置？原问题：' + q['reason'], options=['补充或核实规则后回答', '明确搁置相关内容，可指定后续向产品核实', '提供明确暂定预期及产品核对条件并授权继续'], recommendation='能查明时先补充规则；否则明确选择本轮处置', rationale='不知道只说明业务答案未知，处置仍需你的实际决定', boundary='搁置仅暂停相关内容；暂定需要明确预期和核对条件，沉默不作确认', example_kind='hypothetical', example='例如暂时不确定超限处理，可以明确搁置超限用例；独立明确内容继续整理。')  # Full Chinese dialogue, no assumed choice.
+        if q.get('remaining_parts'):  # Show only the unresolved aspects without discarding known facts.
+            lines.append('已答：' + '；'.join(f'{q["answer_parts"][key]}：{value}' for key, value in q.get('answered_parts', {}).items()))  # Preserve partial interpretation.
+            lines.append('仍需回答：' + '；'.join(q['answer_parts'][key] for key in q['remaining_parts']))  # Concrete follow-up scope.
+        lines.extend([f"{q['id']}：{q['reason']}",  # Stable identity in normal Chinese prose.
+                      f"适用对象：{q['case_id']}；核对项：{', '.join(q['affected_checks'])}",  # Retain affected scope.
+                      '证据：' + str(q.get('evidence', '未提供，需核对来源')),  # Separate observations from suggestions.
+                      '选项：' + '；'.join(q['options']) + '。也可自定义回答。',  # Preserve user agency.
+                      '推荐：' + q['recommendation'],  # A recommendation is never an answer.
+                      '理由：' + q['rationale'],  # Explain the current choice.
+                      '代价与边界：' + q.get('boundary', '未确认规则保持待定'),  # State uncertainty explicitly.
+                      ('假设例子：' if q.get('example_kind', 'hypothetical') == 'hypothetical' else '证据例子：') + q['example']])  # Mark provenance.
     session['chat'] = '\n'.join(lines)
     return session
 
@@ -53,6 +65,14 @@ def start_grill(batch, questions):
     case_ids = {c['id'] for c in batch['cases']}
     previous = {q.get('id'): q for q in batch['questions'] if q.get('id')}
     for q in questions:
+        if q.get('disposition_scope', 'case_rule') not in ('case_rule', 'separate_impact'):  # Explicit semantic scope only.
+            raise ValueError('Unknown disposition scope')
+        if q.get('disposition_scope') == 'separate_impact' and (not q.get('scope_basis') or q['target_paths']):  # Scope-only questions cannot patch case rules.
+            raise ValueError('Separate impact requires scope basis and no candidate targets')
+        if q.get('answer_parts') and (not isinstance(q['answer_parts'], dict) or any(not key or not value for key, value in q['answer_parts'].items())):  # Named business aspects must be meaningful.
+            raise ValueError('Answer parts require stable names and descriptions')  # Reject ambiguous tracking.
+        q.setdefault('answered_parts', {})  # Technical projection of actual supplied aspects.
+        q.setdefault('remaining_parts', list(q.get('answer_parts', {})))  # Missing aspects start open.
         for field in ('id', 'reason', 'recommendation', 'rationale', 'example', 'affected_checks'):
             if not q.get(field):
                 raise ValueError('Incomplete chat question')
@@ -82,6 +102,22 @@ def start_grill(batch, questions):
                           'summary_confirmation': None, 'actions': []})
 
 
+def append_questions(session, questions):  # Add discoveries without restarting answered questions.
+    result = copy.deepcopy(session)  # Leave caller and candidate untouched.
+    if not questions or set(_question_map(session)) & {q['id'] for q in questions}:  # Stable IDs are never recycled.
+        raise ValueError('New questions need unused identities')  # Corrections use respond instead.
+    if any(q.get('history') or q.get('answered_parts') for q in questions):  # Discovery cannot invent answers.
+        raise ValueError('New questions cannot contain answers')  # Wait for actual user input.
+    for question in questions:  # Apply the same persisted presentation contract.
+        if not all(question.get(key) for key in ('evidence', 'boundary', 'example_kind')) or question['example_kind'] not in ('hypothetical', 'evidence'):  # Explicit provenance.
+            raise ValueError('Question needs evidence, boundary and example kind')  # Incomplete questions remain unsent.
+    checked = start_grill(session['batch'], session['questions'] + questions)  # Reuse graph and field validation.
+    result['questions'].extend(checked['questions'][len(session['questions']):])  # Retain original histories exactly.
+    result['revision'] += 1  # Invalidate prior summaries and coverage observations.
+    result['summary'] = result['summary_confirmation'] = None  # Discovery requires a new understanding snapshot.
+    return _presentation(result)  # Save this returned presentation before sending.
+
+
 def respond(session, replies):
     """Record actual replies only; never edit candidate content during grill."""
     _credential_guard(replies)
@@ -91,8 +127,17 @@ def respond(session, replies):
         q = questions[reply['question_id']]
         if not _answered(q) and q['id'] not in result['round_ids']:
             raise ValueError('Question not yet presented')
-        if reply['decision'] not in ('formal', 'provisional', 'deferred') or not reply.get('actual_reply', '').strip():
+        if reply['decision'] not in ('formal', 'provisional', 'deferred', 'partial', 'unknown') or not reply.get('actual_reply', '').strip():
             raise ValueError('Explicit actual reply and three-way decision required')
+        parts = reply.get('answered_parts', {})  # Agent maps actual words to declared aspects.
+        if not isinstance(parts, dict) or any(key not in q.get('answer_parts', {}) or not str(value).strip() for key, value in parts.items()):  # Do not create undeclared answers.
+            raise ValueError('Unknown or empty answer aspect')  # Preserve the current question scope.
+        if reply['decision'] in ('partial', 'unknown') and reply.get('updates'):  # Incomplete answers are notes, not candidate changes.
+            raise ValueError('Incomplete answers cannot propose content updates')  # Wait for an explicit complete disposition.
+        q['answered_parts'] = dict(q.get('answered_parts', {}), **parts)  # Retain answers from earlier turns.
+        q['remaining_parts'] = [key for key in q.get('answer_parts', {}) if key not in q['answered_parts']]  # Derive omissions precisely.
+        if reply['decision'] in ('formal', 'provisional') and q['remaining_parts']:  # Explicit choice alone cannot invent missing behavior.
+            raise ValueError('Required answer aspects remain unanswered')  # Continue the same stable question.
         if reply['decision'] == 'provisional' and not reply.get('product_check'):
             raise ValueError('Provisional rule needs product verification condition')
         if reply['decision'] == 'deferred' and reply.get('updates'):
@@ -107,8 +152,12 @@ def respond(session, replies):
             descendants = expanded
         for qid in descendants - {q['id']}:
             questions[qid]['stale'] = True
+            questions[qid]['answered_parts'] = {}  # Old dependency answers remain in history, not active evidence.
+            questions[qid]['remaining_parts'] = list(questions[qid].get('answer_parts', {}))  # Require reconfirmation after premise changes.
         q['history'].append(copy.deepcopy(reply))
         q['stale'] = False
+        if not _answered(q) and q['id'] not in result['round_ids']:  # A correction may reopen the premise itself.
+            result['round_ids'].append(q['id'])  # Show it alongside other independent unanswered questions.
     if replies:
         result['revision'] += 1
         result['summary'] = None
@@ -116,23 +165,74 @@ def respond(session, replies):
     return _presentation(result)
 
 
+def record_coverage(session, observation):  # Record Agent source review without claiming semantic proof.
+    _credential_guard(observation)  # Source notes obey the existing privacy boundary.
+    result = copy.deepcopy(session)  # Never modify the caller or candidate.
+    scope = observation.get('scope', {})  # Authoring scope is separate from approved P0 validation.
+    if set(scope.get('batch_cases', [])) != {c['id'] for c in session['batch']['cases']} or 'direct_dependencies' not in scope or not scope.get('p0_scope_ref'):  # Require explicit scope identities.
+        raise ValueError('Coverage needs current batch, direct dependencies and full P0 scope reference')  # Display subsets cannot silently replace scope.
+    if not observation.get('sources') or not observation.get('history_basis') or not observation.get('conclusion'):  # Require actual read observations.
+        raise ValueError('Coverage needs source findings, history read basis and limitations')  # This is an audit record, not a truth oracle.
+    if any(not source.get('ref') or not source.get('finding') for source in observation['sources']):  # Locate the original text and its disposition.
+        raise ValueError('Each reread source needs a location and finding')  # Filenames alone are insufficient audit context.
+    branches = observation.get('branches', [])  # Include unasked and fact-blocked themes.
+    if len({b['id'] for b in branches}) != len(branches):  # Stable branch identity within the review.
+        raise ValueError('Duplicate coverage branch')  # No hidden overwritten themes.
+    previous = session.get('coverage', {}).get('branches', [])  # Retain previously recognized themes.
+    if not {b['id'] for b in previous} <= {b['id'] for b in branches}:  # Disposal requires a recorded state, not omission.
+        raise ValueError('Recognized coverage branch omitted')  # Preserve unresolved facts.
+    questions = _question_map(session)  # User decisions come from existing actual answers.
+    for branch in branches:  # Check structure and disposition provenance only.
+        if not all(branch.get(key) for key in ('id', 'topic', 'source', 'basis', 'next_step')) or 'dependencies' not in branch:  # Complete operational context.
+            raise ValueError('Incomplete coverage branch')  # Agent must supply meaningful observations.
+        if branch.get('status') not in ('unchecked', 'fact_pending', 'question_pending', 'waiting', 'resolved', 'deferred', 'excluded', 'not_applicable'):  # Separate facts and decisions.
+            raise ValueError('Unknown coverage disposition')  # No ambiguous completion label.
+        if branch['status'] in ('deferred', 'excluded'):  # Explicit user scope decisions are not Agent findings.
+            question = questions.get(branch.get('question_id'))  # Same task's actual Q history.
+            if not question or not _answered(question) or question['history'][-1]['decision'] != ('deferred' if branch['status'] == 'deferred' else 'formal'):  # Do not manufacture authorization.
+                raise ValueError('Coverage disposition requires an actual matching question decision')  # Semantic scope matching remains Agent responsibility.
+    result['coverage'] = dict(copy.deepcopy(observation), revision=session['revision'])  # Any subsequent reply/discovery requires recheck.
+    result['summary'] = result['summary_confirmation'] = None  # New findings need a fresh snapshot.
+    return result  # Persist through the sole Q&A adapter.
+
+
 def summarize(session):
     """Produce the exact decision snapshot to confirm in chat before updating."""
     result = copy.deepcopy(session)
     questions = _question_map(result)
     blocked = _blocked(questions)
+    coverage = result.get('coverage')  # Legacy pure callers retain their existing computation contract.
+    if coverage and (coverage['revision'] != result['revision'] or any(b['status'] in ('unchecked', 'fact_pending', 'question_pending', 'waiting') for b in coverage['branches'])):  # Explicit unresolved observations never disappear with an empty frontier.
+        raise ValueError('Coverage recheck or unresolved source disposition required')  # Live Skill must actually reread sources before recording closure.
     if any(not _answered(q) and q['id'] not in blocked for q in questions.values()):
         raise ValueError('Required questions remain unanswered')
     summary = {'content_version': result['batch']['content_version'], 'revision': result['revision'],
                'decisions': [{'question_id': q['id'], 'case_id': q['case_id'], 'field': q['field'],
+                              'answered_parts': copy.deepcopy(q.get('answered_parts', {})),  # Carry earlier partial answers into the confirmed snapshot.
+                              **({'disposition_scope': q['disposition_scope'], 'scope_basis': q['scope_basis']} if q.get('disposition_scope') == 'separate_impact' else {}),  # Preserve actual impact disposition.
                               **({'rule_id': q['rule_id']} if q.get('rule_id') else {}),
                               'reply': q['history'][-1]} for q in questions.values() if _answered(q) and
                              not (set(q['depends_on']) & blocked)],
                'blocked_questions': [qid for qid in questions if qid in blocked and not _answered(questions[qid])],
-               'blocked_cases': sorted({q['case_id'] for q in questions.values() if q['id'] in blocked})}
+               'blocked_cases': sorted({q['case_id'] for q in questions.values() if q['id'] in blocked and q.get('disposition_scope') != 'separate_impact'})}  # Deferred prerequisites still block dependent case rules.
+    if coverage:  # Preserve deferred/excluded facts and actual review scope in the confirmed snapshot.
+        summary['coverage'] = copy.deepcopy(coverage)  # Disposition does not mean a known business rule.
     summary['id'] = _digest(summary)
+    if session.get('feedback_proposal'):  # Exact textual proposals are part of feedback confirmation.
+        summary['feedback_proposal'] = session['feedback_proposal']  # Prevent reuse for another proposal on the same version.
+        summary['id'] = _digest({k: v for k, v in summary.items() if k != 'id'})  # Bind new proposal identity.
     result['summary'] = summary
     return result
+
+
+def _collect_update(updates, update):  # One confirmed write set shared by both application paths.
+    key = tuple(update['path'])  # Exact business target identity.
+    for previous, value in updates.items():  # Parent-child writes also need explicit reconciliation.
+        if previous == key and value['value'] == update['value']:
+            return  # Equal proposals are idempotent.
+        if previous[:len(key)] == key or key[:len(previous)] == previous:
+            raise ValueError('Conflicting confirmed updates require clarification')  # No implicit last writer.
+    updates[key] = update  # Mutation happens only after the complete set passes.
 
 
 def _patch(batch, update):
@@ -211,7 +311,7 @@ def _apply_rule_decisions(case, decisions, *, blocked=False, supplied=False, pro
     if decisions:
         case.setdefault('rule_decisions', copy.deepcopy(decisions))
         case.setdefault('rule_decision_history', []).extend(copy.deepcopy(decisions))
-    states = [d['reply']['decision'] for d in indexed.values()]
+    states = [d['reply']['decision'] for d in indexed.values() if d.get('disposition_scope') != 'separate_impact']  # Retain separate impact history without changing current case rule status.
     case['rule_status'] = ('deferred' if blocked or 'deferred' in states else
                            'provisional' if 'provisional' in states else
                            'formal' if decisions or supplied else case['rule_status'])
@@ -231,10 +331,7 @@ def apply_summary(session, confirmation):
         if decision['case_id'] in current['blocked_cases']:
             continue
         for update in decision['reply'].get('updates', []):
-            key = tuple(update['path'])
-            if key in updates and updates[key] != update:
-                raise ValueError('Conflicting confirmed updates require clarification')
-            updates[key] = update
+            _collect_update(updates, update)  # Share atomic conflict validation with feedback.
     for update in updates.values():
         _patch(batch, update)
     _validate_content(batch)

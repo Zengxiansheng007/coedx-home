@@ -26,7 +26,7 @@ class ClarificationTests(unittest.TestCase):
         batch, questions = fixture()
         session = start_grill(batch, questions)
         self.assertEqual([q['id'] for q in session['round_questions']], ['Q1', 'Q2'])
-        self.assertIn('Recommendation', session['chat'])
+        self.assertIn('推荐：', session['chat'])  # Public chat now uses Chinese labels.
         self.assertIn('recipient delivery', session['chat'])
         reply = {'question_id': 'Q1', 'decision': 'formal', 'actual_reply': '[SIMULATED] use proposed rule', 'updates': []}
         updated = respond(session, [reply])
@@ -71,7 +71,7 @@ class ClarificationTests(unittest.TestCase):
                          '[SIMULATED] summary matches my understanding')
         for view in ('human_view', 'xmind_markdown'):
             self.assertIn('Save tentative draft', result[view])
-            self.assertIn('INDEPENDENT-P0', result[view])
+            self.assertIn(result['batch']['cases'][1]['title'], result[view])  # Public title; stable identity stays in the batch.
             self.assertIn(result['batch']['content_version'], result[view])
             self.assertIn('Confirm title with product before next release', result[view])
         self.assertNotEqual(result['batch']['content_version'], batch['content_version'])

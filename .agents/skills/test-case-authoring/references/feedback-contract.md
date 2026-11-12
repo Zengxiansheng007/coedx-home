@@ -1,12 +1,50 @@
 # Chat and returned hierarchy Markdown feedback v1
 
 Read when existing scoped-review content receives chat or edited Markdown.
-Use `scripts/feedback.py` public Python API. The input is the current
+For live conversations use `qa_record.advance_record` on the existing task MD;
+`scripts/feedback.py` remains the pure computation and regression interface. The input is the current
 `scoped_review_copy` batch from [scoped review](scoped-review-contract.md), with
 its unchanged `initial_copy_baseline`. Full source and formal assets stay read-only.
 `baseline.cases/data` are the FIRST DISPLAYED candidates, possibly already revised
 from the catalog. `catalog_cases/catalog_data` remain the old selected catalog
 records; they must never replace the displayed diff baseline.
+
+## Same-task review chapter
+
+Read the existing MD and current candidate before interpreting feedback. Save
+`advance_record(path, 'start_feedback', payload)` before presenting anything.
+The payload includes `channel`, actual user `actual_reply`, `source_ref`, and
+the supported `prepare_feedback` arguments below. Clear textual changes use
+`clear_changes=True`; they are proposals for the existing summary confirmation,
+not newly approved cases and not a separate rule-approval questionnaire.
+
+Ambiguous or partial changes use `questions` with stable IDs, full Chinese
+question/options/recommendation/reason/boundary/example/evidence, `answer_parts`
+for object/condition/behavior gaps, and explicit `depends_on`. Include existing
+questions unchanged; add only the relevant new questions. Candidate answer
+`target_paths` must belong to that question's case; shared-data edits use explicit
+`changes`, which account for all selected consumers. New scope stays a suggestion.
+
+For a changed old condition, pass `reopen_question_ids` naming those premises.
+The adapter reopens only them and their declared dependencies; old actual words,
+answer versions, approvals and provisional product checks remain in the record.
+Use ordinary persisted `respond` for actual later answers and partial corrections.
+An unchanged decision is reused, and an unanswered aspect remains a question.
+If the user changes the proposed textual edit itself during clarification, finish
+recording that feedback as a note and reconcile the pending proposal explicitly;
+never mutate the returned projection or silently overwrite the proposal on disk.
+
+After all relevant replies, call persisted `summarize`; display its decisions,
+the pending before/current/proposed values, conditions and affected scope. Only
+the actual summary agreement goes to `apply_feedback`. Then render and present
+the complete revised affected cases and use `review_feedback` for their distinct
+current-version approval. Pending feedback rejects ordinary `apply_summary` or
+`review` as a shortcut. No step starts execution or merges the catalog.
+
+Both newly shown questions and actual replies are saved/read back in the same
+MD. The technical `feedback_pending`/`feedback_result` values are replayed
+projections, not independently editable business answer files. Existing pure API
+examples below illustrate computations; live answers must take this persisted path.
 
 ```python
 from feedback import prepare_feedback, apply_feedback, review_feedback
@@ -43,7 +81,18 @@ or explicit interpretation at the existing authoring boundary, retaining history
 Returned Markdown is the generated `xmind_markdown` hierarchy from the initial
 scope copy or a current same-version review display, not arbitrary Markdown or native XMind. Edit business scalar leaves
 (title, operations, expected and verification text, context or data) while retaining
-labels, hierarchy, order, header/version, IDs and row counts. Whole-case removals
+labels, hierarchy, header/version and row counts. Case identity follows the
+[Chinese presentation contract](presentation-identity.md): stable IDs remain
+internal; edited subtrees need agent-maintained business clarification bindings.
+Historic generated ID headings remain explicit identity within the exact baseline
+version and module path. Known pre-PRE04-repair exports with rule-audit rows also
+remain supported: the reader reconstructs that exact historical layout from the
+retained semantic baseline and applies the same scalar/identity checks. Rule-audit
+rows are protected and must match unchanged. Unknown layouts, edited audit rows,
+stale bindings and conflicting repeated data remain rejected. Current display
+continues to project effective business rules only; retain the original returned
+file and history rather than regenerating them before interpretation.
+Whole-case removals
 include their full module subtree. Repeated projections of one data leaf must
 agree. Unsupported structural edits fail closed and return to chat clarification.
 Markup entities use the renderer's escaping. For native returns use
@@ -116,3 +165,7 @@ authorized candidate directory. Candidate content is the common semantic source;
 formal derived files are not an update target. Review/merge/execution remain
 distinct. Formal ui-test readers, synchronization and business execution await
 their separate integration and approval.
+
+## Review repair boundary
+
+Before applying feedback, combine explicit proposals and current answer-derived writes. Unequal writes to the same path or overlapping parent/child paths require focused clarification; equal values deduplicate. A refused application preserves recorded answers and candidate content. New discoveries use append_questions on the same MD. Retain coverage from the prior phase as stale, reread sources and record_coverage before the new summary.

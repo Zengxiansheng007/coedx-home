@@ -91,7 +91,7 @@ python -B scripts/dependencies.py --catalog full-catalog.json --request dependen
 ```
 
 The request has the public function arguments except `catalog`. The new output
-contains `candidate.json`, `dependency-review.json`, `human-view.md`, `xmind.md`
+contains `candidate.json`, `dependency-review.json`, `xmind.md`
 and companion review notes. P0 is presented as the four-column business view and
 same-version XMind Markdown. Expansion uses the existing scoped-copy default.
 Render again via `authoring.render_batch`; clarification preserves these groups.

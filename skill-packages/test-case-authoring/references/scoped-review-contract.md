@@ -87,7 +87,7 @@ does not execute that scope or mark results passed.
 ## Output and handoff to feedback/merge work
 
 The CLI writes a **new** directory with `candidate.json`, `xmind.md`,
-`human-view.md`, `review-notes.md`, `changes.json` and
+`review-notes.md`, `changes.json` and
 `initial-copy-baseline.json`. The Python API returns `batch`, `human_view`,
 `xmind_markdown`, `review_notes`, `changes` without writes.
 

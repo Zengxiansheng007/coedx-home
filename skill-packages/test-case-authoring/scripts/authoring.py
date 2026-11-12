@@ -108,7 +108,7 @@ def _view_one(batch):
     case = batch['cases'][0]
     data = {item['id']: item for item in batch['data']}
     version = batch['content_version']
-    human = [f"# {case['id']} {case['title']}", f"版本：{version}",
+    human = [f"# {case['title']}", f"版本：{version}",  # Identity belongs to the candidate, not its heading.
              '模块：' + ' / '.join(case['module_path']),
              '优先级：' + case['priority'] + '；依据：' + case['priority_basis'],
              f"规则：{case['rule_status']}；评审：{case['review_status']}；合并：{case['merge_status']}；执行：{case['execution_status']}"]
@@ -175,11 +175,11 @@ def _view_one(batch):
 
 
 def _views(batch):
-    views = []
-    for case in batch['cases']:
-        single = dict(batch, cases=[case], questions=[q for q in batch['questions'] if q['case_id'] == case['id']])
-        views.append(_view_one(single))
-    return '\n'.join(v[0] for v in views), '\n'.join(v[1] for v in views)
+    from scoped_review import _render  # Use the same semantic tree for all batch entry points.
+    selected = {s['case_id']: s for s in batch['selection']}  # Clarification may add independent candidates.
+    display = dict(batch, selection=[dict(selected.get(c['id'], {'case_id': c['id'], 'reason': '候选评审'}), action=selected.get(c['id'], {}).get('action', 'add')) for c in batch['cases']])
+    rendered = _render(display)  # One semantic projection also fixes legacy human output.
+    return rendered['human_view'], rendered['xmind_markdown']  # Keep the pure API without separate rule semantics.
 
 
 def render_batch(batch):
@@ -220,6 +220,8 @@ def _build_batch(text, interpretation, prd, input_kind):
             'common_preconditions': draft.get('common_preconditions', [])}
     if 'common_preconditions_note' in draft:
         case['common_preconditions_note'] = draft['common_preconditions_note']
+    if 'technical_handoff' in draft:  # Retain execution constraints outside business steps and data.
+        case['technical_handoff'] = draft['technical_handoff']  # The earlier privacy/source walk also covers these claims.
     questions = []
     for field in ('role', 'initial_state'):
         if not case['context'].get(field):
@@ -277,7 +279,6 @@ def main():
         output = Path(args.output_dir)
         output.mkdir(parents=True, exist_ok=False)
         (output / 'candidate.json').write_text(json.dumps(result['batch'], ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
-        (output / 'human-view.md').write_text(result['human_view'], encoding='utf-8')
         (output / 'xmind.md').write_text(result['xmind_markdown'], encoding='utf-8')
     except (ValueError, KeyError, TypeError, AttributeError, OSError):
         print('Candidate conversion rejected: check input contract, credential references and new output directory.', file=sys.stderr)

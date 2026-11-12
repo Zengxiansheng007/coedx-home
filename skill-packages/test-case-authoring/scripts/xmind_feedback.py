@@ -11,6 +11,16 @@ from feedback import prepare_feedback
 MAX_FILE_BYTES = 16 * 1024 * 1024
 
 
+def inspect_xmind_feedback(returned_file):
+    """Read supported native content for agent-side business clarification."""
+    from aggregation import feedback_topics
+    path = Path(returned_file)
+    if path.stat().st_size > MAX_FILE_BYTES:
+        raise ValueError('Native file exceeds supported size')
+    markdown = _markdown(path.read_bytes())  # Reuse the exact supported parser; no guessed topic identities.
+    return {'markdown': markdown, 'topics': feedback_topics(markdown)}
+
+
 def _markdown(raw):
     with zipfile.ZipFile(io.BytesIO(raw)) as archive:
         entries = archive.infolist()
@@ -50,7 +60,7 @@ def _markdown(raw):
     return '\n'.join(lines) + '\n'
 
 
-def prepare_xmind_feedback(batch, returned_file, *, actual_reply):
+def prepare_xmind_feedback(batch, returned_file, *, actual_reply, case_bindings=None):
     """Keep unsupported returns pending; never infer edits from a filename."""
     path = Path(returned_file)
     source = {'filename': path.name}
@@ -60,7 +70,7 @@ def prepare_xmind_feedback(batch, returned_file, *, actual_reply):
         raw = path.read_bytes()
         source.update(sha256=hashlib.sha256(raw).hexdigest(), size_bytes=len(raw))
         markdown = _markdown(raw)
-        pending = prepare_feedback(batch, 'markdown', markdown=markdown, actual_reply=actual_reply)
+        pending = prepare_feedback(batch, 'markdown', markdown=markdown, actual_reply=actual_reply, case_bindings=case_bindings)  # Same clarified identity contract as Markdown.
     except (OSError, ValueError, KeyError, TypeError, AttributeError, RecursionError,
             zipfile.BadZipFile, RuntimeError, NotImplementedError):
         return {'status': 'pending_verification', 'source': source,
@@ -75,9 +85,11 @@ def main():
     parser.add_argument('--returned-file', required=True)
     parser.add_argument('--reply', required=True)
     parser.add_argument('--output-dir', required=True)
+    parser.add_argument('--case-bindings', help='Agent-maintained JSON from actual business identity clarification')
     args = parser.parse_args()
     batch = json.loads(Path(args.batch).read_text(encoding='utf-8-sig'))
-    result = prepare_xmind_feedback(batch, args.returned_file, actual_reply=args.reply)
+    bindings = json.loads(Path(args.case_bindings).read_text(encoding='utf-8-sig')) if args.case_bindings else None
+    result = prepare_xmind_feedback(batch, args.returned_file, actual_reply=args.reply, case_bindings=bindings)
     output = Path(args.output_dir)
     output.mkdir(parents=True, exist_ok=False)
     (output / 'feedback.json').write_text(json.dumps(result, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')

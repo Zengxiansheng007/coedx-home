@@ -1,0 +1,86 @@
+# CR-20261111-108 - Source coverage and scope decisions
+
+| Field | Value |
+|---|---|
+| Status | applied |
+| Target Skill | test-case-authoring |
+| Change Type | fixed |
+| Scope | core-skill-md / references-and-assets / scripts-and-validation |
+| Source | Issue 108 |
+| Baseline | ef5d4b457e6fd24e480b7f348da97a16d1fe25a0 |
+| Author | Codex |
+| Related Records | CR-20261111-105 / CR-20261111-106 / CR-20261111-107 |
+
+## Summary
+
+Reread original materials, reply history and direct dependencies before summary; append discoveries to the sole task MD and preserve full approved P0 scope across display and isolated merge.
+
+## Context And Problem
+
+Answered registered questions did not account for source omissions. Display selection also incorrectly rejected approved validation IDs outside selected cases.
+
+## Sections Changed
+
+SKILL.md sequence, coverage-review/clarification/qa-record references, clarification and journal public actions, scoped_review validation scope, public coverage regressions and matching distribution.
+
+## Decision And Alternatives
+
+Reuse grill-with-docs coverage 1.0.0 and TPD source-item review obligations as Agent steps. Keep existing Q&A replay and full P0 checker. No new independent answers or business approval ceremony. Deterministic checks cannot establish semantic completeness or authenticate source reading.
+
+## Detailed Change
+
+append_questions preserves history and invalidates summaries. record_coverage retains branches, source findings, unknowns and actual disposition references. Later answers invalidate its revision. Scoped review accepts approved IDs from the whole catalog, not only displayed IDs; unknown IDs remain invalid.
+
+## Impact Analysis
+
+Legacy pure computation remains compatible. Live Skill must perform source review, not merely populate fields. Deferral retains unknown behavior and blocked cases. Range and priority proposals require actual user decisions. Existing reporting, full-case review, merge and execution boundaries remain separate.
+
+## Validation Evidence
+
+| Check | Command or Method | Result | Evidence |
+|---|---|---|---|
+| TDD discovery | public MD append action | observed Unknown Q&A action then passing | private qa108 TDD observations |
+| TDD source disposition | public coverage action | observed Unknown Q&A action then passing | private qa108 TDD observations |
+| TDD approved scope | public scoped review | observed selected-case restriction then passing | private qa108 TDD observations |
+| Public targeted regressions | unittest test_coverage_review | 4 passed before freeze | private targeted output |
+| Full regression | unittest discover scripts/test_*.py | 118 passed; old display-limited test updated to reject genuinely unknown IDs, original failure retained | private regression-r2.txt |
+| Structure / mirror | candidate checks | 7 inherited validator findings; zero mirror mismatches; no host acceptance claimed | private candidate-checks.json |
+| Actual dialogue | independent natural multi-turn simulation | pending Root execution | no prewritten success or future replies |
+
+## Safety And Privacy
+
+Only synthetic regressions and public contracts are committed. No private source materials, global installation, external model, network publish or business execution. Local checks are not host security enforcement.
+
+## Risks And Follow-up
+
+Actual source rediscovery, complete scope/priority questions and independent review remain pending. Baseline structural-validator findings are reported separately. Applied status is not semantic, business or host acceptance.
+
+Refs: https://github.com/Zengxiansheng007/coedx-home/issues/108
+
+## 2026-11-12 independent repair round
+
+Baseline: isolated combined candidate de414b0 (frozen PRE03 c9e3838, QA108 035b3e8, QA109 becd8f8; integration ef5d4b4).
+
+Separate impact disposition now requires explicit disposition_scope and scope_basis with no write targets; ordinary unknown rules and dependent cases remain blocked. Deferred history remains visible. Prior actual dialogue failure is preserved and requires a fresh synthetic task, not rewritten summary hashes.
+
+Validation: public-entry regressions in test_three_repairs.py; red reproduces all three findings plus new-question KeyError. Full suite and create-skill results are retained by Root outside the package. No private materials or actual reply transcripts are bundled. Status remains applied pending independent affected dialogue and review. No installation, formal merge or business execution.
+
+Repair validation outcome: 129 standard-library tests pass; 71 source/mirror files match. create-skill --require-change-records retains 7 inherited findings (3 safety-negative fixture matches, 3 structure/resource findings, 1 description finding); not a clean validator pass or host acceptance. git diff --check passes. Prior PRE03 original client projection is byte-equivalent; prior sole Markdown replays without writing. Prior QA109 record remains unchanged but combined-version replay rejects its old exact summary; fresh affected simulation is required. Preserve all earlier failures and successful evidence at their original versions.
+
+## 2026-11-12 local integration evidence
+
+Frozen candidate 6679a11172b35a2810d6fe419390f5a0d76021f3 fast-forwarded from ef5d4b4 under Root authorization. This follow-up changes evidence records only.
+
+QA108: code repair and independent review passed; whole-ticket state remains pending_behavior_validation. Fresh actual host-driven synthetic dialogue is in progress, and original failure stays failed. Applied candidate inspection is still required. Issue 110 waits for Root to confirm that actual behavior; local candidate integration does not close 108.
+
+Independent re-review closed three P1 findings and the composition issue; six focused tests passed. Reuse 129 full tests before the optional-metadata fix and 24 affected tests afterward, without repeating unchanged suites. Private actual/review evidence stays outside the package; historical versions/failures remain. Seven inherited scanner findings (3 P0 / 3 P1 / 1 P2) remain, not a clean scan. No publishing, Issue closure, installation or business execution.
+
+## 2026-11-12 completed actual QA108 repair dialogue
+
+Root's fresh synthetic dialogue completed 21 persisted events through the public Q&A adapter; verification.json reports 21 checks true. Exact final version 882c4c8fdb0748fd7aa7bcab3c161aa3e4ccbe70d851f9ce3617a30a3bd2fab5 approves only MEMO-001: formal rules, approved review, not_run and not_merged. The confirmed P1, title/body rules, valid-account preparation and two separate fill/save steps are retained. Deferred invalid-session and export impacts remain unknown with no current-case updates. Each confirmed summary was applied once; both views and sole-record replay match the final version.
+
+The prior failed simulation and first revised version c7da2f64fdf58c3bd501261b10591ede9ceee862c9a94ee8b0902c4726aed06f remain unapproved historical evidence. Actual feedback rejected the first display, then the documented authoring interpretation path handled structural changes before a new summary and explicit exact-version review. This does not claim scalar/native feedback supports arbitrary structural edits.
+
+This supersedes pending_behavior_validation above for the observed synthetic repair path. Independent repair re-review and existing scope regressions remain applicable; #110 dependency is released by Root. No product code changed and no full tests were repeated for this evidence-only update.
+
+Limits: the sample has no complete approved P0 baseline and no XMind desktop import; its 21 checks do not prove full P0 success or client acceptance. Full approved-P0 scope behavior is covered separately by earlier public QA108 regressions, not this sample. Technical history fields remain in the generated tree. Private evidence is repair-dialogue-execution.md and qa108-repair-dialogue/verification.json outside the package. Seven inherited scanner findings remain. No business execution, formal asset merge, Issue closure, publication or installation.

@@ -1,0 +1,1047 @@
+{
+  "emitter_commit": "294a12a69b72cc42af68255a64caafb75a0bfa98",
+  "batch": {
+    "schema_version": 1,
+    "id": "SIMULATED-frozen-legacy",
+    "stage": "P1/P2",
+    "kind": "scoped_review_copy",
+    "sources": [
+      {
+        "kind": "existing_catalog",
+        "ref": "synthetic://catalog",
+        "sha256": "6ec53afaa3ec9110f03cdd567d038e8962be9c27ed9efbf5a529b166b0715b80"
+      }
+    ],
+    "initial_copy_baseline": {
+      "catalog_version": "synthetic-full-v1",
+      "catalog_digest": "6ec53afaa3ec9110f03cdd567d038e8962be9c27ed9efbf5a529b166b0715b80",
+      "source_ref": "synthetic://catalog",
+      "cases": [
+        {
+          "id": "EDIT",
+          "title": "Save a notice",
+          "priority": "P0",
+          "module_path": [
+            "Example",
+            "Workspace",
+            "Web",
+            "Notes",
+            "Save"
+          ],
+          "priority_basis": "\u6838\u5fc3\u4e1a\u52a1\u8def\u5f84\u5019\u9009\uff0c\u5f85\u7528\u6237\u8bc4\u5ba1",
+          "maintenance_action": "add",
+          "review_status": "pending",
+          "rule_status": "unconfirmed",
+          "merge_status": "not_merged",
+          "execution_status": "not_run",
+          "context": {
+            "role": [
+              {
+                "text": "editor",
+                "source": "recording",
+                "lines": [
+                  1,
+                  1
+                ],
+                "basis": "recording_observation"
+              }
+            ],
+            "initial_state": [
+              {
+                "text": "signed in",
+                "source": "recording",
+                "lines": [
+                  1,
+                  1
+                ],
+                "basis": "recording_observation"
+              }
+            ]
+          },
+          "steps": [
+            {
+              "operation": "Enter notice title",
+              "data_refs": [
+                "title"
+              ],
+              "source": "recording",
+              "lines": [
+                2,
+                2
+              ],
+              "expected": [],
+              "verification": [],
+              "basis": "recording_observation",
+              "id": "DEMO-P0-001/steps/1"
+            },
+            {
+              "operation": "Save the notice",
+              "data_refs": [],
+              "source": "recording",
+              "lines": [
+                3,
+                3
+              ],
+              "expected": [
+                {
+                  "text": "Saved message is visible",
+                  "source": "recording",
+                  "lines": [
+                    4,
+                    4
+                  ],
+                  "basis": "recording_observation"
+                }
+              ],
+              "verification": [
+                {
+                  "text": "Read the visible saved message",
+                  "source": "recording",
+                  "lines": [
+                    4,
+                    4
+                  ],
+                  "basis": "recording_observation"
+                }
+              ],
+              "basis": "recording_observation",
+              "id": "DEMO-P0-001/steps/2"
+            }
+          ],
+          "common_preconditions": [],
+          "semantic_version": "01aaf7b97a23f253614ea82a9e8ca72621e328abffda1a41cd3d4f2fe152881f",
+          "data_version": "2bfcdd81847a8eeb950ac177b5f3ea056c217bd5e235122bf345c3fb7f50b063",
+          "rule_decisions": [
+            {
+              "question_id": "SIMULATED-rule",
+              "reply": {
+                "decision": "formal",
+                "actual_reply": "SIMULATED keep original rule",
+                "interpretation": "SIMULATED effective rule",
+                "updates": [
+                  {
+                    "path": [
+                      "data",
+                      0,
+                      "validity"
+                    ],
+                    "value": "SIMULATED validity"
+                  }
+                ]
+              }
+            }
+          ],
+          "active_rule_decisions": [
+            {
+              "question_id": "SIMULATED-rule",
+              "reply": {
+                "decision": "formal",
+                "actual_reply": "SIMULATED keep original rule",
+                "interpretation": "SIMULATED effective rule",
+                "updates": [
+                  {
+                    "path": [
+                      "data",
+                      0,
+                      "validity"
+                    ],
+                    "value": "SIMULATED validity"
+                  }
+                ]
+              }
+            }
+          ],
+          "rule_decision_history": [
+            {
+              "question_id": "SIMULATED-rule",
+              "reply": {
+                "decision": "formal",
+                "actual_reply": "SIMULATED keep original rule",
+                "interpretation": "SIMULATED effective rule",
+                "updates": [
+                  {
+                    "path": [
+                      "data",
+                      0,
+                      "validity"
+                    ],
+                    "value": "SIMULATED validity"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "LINK",
+          "title": "Save a notice",
+          "priority": "P0",
+          "module_path": [
+            "Example",
+            "Workspace",
+            "Web",
+            "Accounts",
+            "Save"
+          ],
+          "priority_basis": "\u6838\u5fc3\u4e1a\u52a1\u8def\u5f84\u5019\u9009\uff0c\u5f85\u7528\u6237\u8bc4\u5ba1",
+          "maintenance_action": "add",
+          "review_status": "pending",
+          "rule_status": "unconfirmed",
+          "merge_status": "not_merged",
+          "execution_status": "not_run",
+          "context": {
+            "role": [
+              {
+                "text": "editor",
+                "source": "recording",
+                "lines": [
+                  1,
+                  1
+                ],
+                "basis": "recording_observation"
+              }
+            ],
+            "initial_state": [
+              {
+                "text": "signed in",
+                "source": "recording",
+                "lines": [
+                  1,
+                  1
+                ],
+                "basis": "recording_observation"
+              }
+            ]
+          },
+          "steps": [
+            {
+              "operation": "Enter notice title",
+              "data_refs": [
+                "title"
+              ],
+              "source": "recording",
+              "lines": [
+                2,
+                2
+              ],
+              "expected": [],
+              "verification": [],
+              "basis": "recording_observation",
+              "id": "DEMO-P0-001/steps/1"
+            },
+            {
+              "operation": "Save the notice",
+              "data_refs": [],
+              "source": "recording",
+              "lines": [
+                3,
+                3
+              ],
+              "expected": [
+                {
+                  "text": "Saved message is visible",
+                  "source": "recording",
+                  "lines": [
+                    4,
+                    4
+                  ],
+                  "basis": "recording_observation"
+                }
+              ],
+              "verification": [
+                {
+                  "text": "Read the visible saved message",
+                  "source": "recording",
+                  "lines": [
+                    4,
+                    4
+                  ],
+                  "basis": "recording_observation"
+                }
+              ],
+              "basis": "recording_observation",
+              "id": "DEMO-P0-001/steps/2"
+            }
+          ],
+          "common_preconditions": [],
+          "semantic_version": "01aaf7b97a23f253614ea82a9e8ca72621e328abffda1a41cd3d4f2fe152881f",
+          "data_version": "2bfcdd81847a8eeb950ac177b5f3ea056c217bd5e235122bf345c3fb7f50b063",
+          "rule_decisions": [
+            {
+              "question_id": "SIMULATED-rule",
+              "reply": {
+                "decision": "formal",
+                "actual_reply": "SIMULATED keep original rule",
+                "interpretation": "SIMULATED effective rule",
+                "updates": [
+                  {
+                    "path": [
+                      "data",
+                      0,
+                      "validity"
+                    ],
+                    "value": "SIMULATED validity"
+                  }
+                ]
+              }
+            }
+          ],
+          "active_rule_decisions": [
+            {
+              "question_id": "SIMULATED-rule",
+              "reply": {
+                "decision": "formal",
+                "actual_reply": "SIMULATED keep original rule",
+                "interpretation": "SIMULATED effective rule",
+                "updates": [
+                  {
+                    "path": [
+                      "data",
+                      0,
+                      "validity"
+                    ],
+                    "value": "SIMULATED validity"
+                  }
+                ]
+              }
+            }
+          ],
+          "rule_decision_history": [
+            {
+              "question_id": "SIMULATED-rule",
+              "reply": {
+                "decision": "formal",
+                "actual_reply": "SIMULATED keep original rule",
+                "interpretation": "SIMULATED effective rule",
+                "updates": [
+                  {
+                    "path": [
+                      "data",
+                      0,
+                      "validity"
+                    ],
+                    "value": "SIMULATED validity"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "data": [
+        {
+          "id": "title",
+          "value": "Sample notice",
+          "source": "recording",
+          "lines": [
+            2,
+            2
+          ],
+          "basis": "recording_observation"
+        }
+      ],
+      "selection": [
+        {
+          "case_id": "EDIT",
+          "action": "reuse",
+          "reason": "SIMULATED compatibility"
+        },
+        {
+          "case_id": "LINK",
+          "action": "reuse",
+          "reason": "SIMULATED compatibility"
+        }
+      ],
+      "catalog_cases": [
+        {
+          "id": "EDIT",
+          "title": "Save a notice",
+          "priority": "P0",
+          "module_path": [
+            "Example",
+            "Workspace",
+            "Web",
+            "Notes",
+            "Save"
+          ],
+          "priority_basis": "\u6838\u5fc3\u4e1a\u52a1\u8def\u5f84\u5019\u9009\uff0c\u5f85\u7528\u6237\u8bc4\u5ba1",
+          "maintenance_action": "add",
+          "review_status": "pending",
+          "rule_status": "unconfirmed",
+          "merge_status": "not_merged",
+          "execution_status": "not_run",
+          "context": {
+            "role": [
+              {
+                "text": "editor",
+                "source": "recording",
+                "lines": [
+                  1,
+                  1
+                ],
+                "basis": "recording_observation"
+              }
+            ],
+            "initial_state": [
+              {
+                "text": "signed in",
+                "source": "recording",
+                "lines": [
+                  1,
+                  1
+                ],
+                "basis": "recording_observation"
+              }
+            ]
+          },
+          "steps": [
+            {
+              "operation": "Enter notice title",
+              "data_refs": [
+                "title"
+              ],
+              "source": "recording",
+              "lines": [
+                2,
+                2
+              ],
+              "expected": [],
+              "verification": [],
+              "basis": "recording_observation",
+              "id": "DEMO-P0-001/steps/1"
+            },
+            {
+              "operation": "Save the notice",
+              "data_refs": [],
+              "source": "recording",
+              "lines": [
+                3,
+                3
+              ],
+              "expected": [
+                {
+                  "text": "Saved message is visible",
+                  "source": "recording",
+                  "lines": [
+                    4,
+                    4
+                  ],
+                  "basis": "recording_observation"
+                }
+              ],
+              "verification": [
+                {
+                  "text": "Read the visible saved message",
+                  "source": "recording",
+                  "lines": [
+                    4,
+                    4
+                  ],
+                  "basis": "recording_observation"
+                }
+              ],
+              "basis": "recording_observation",
+              "id": "DEMO-P0-001/steps/2"
+            }
+          ],
+          "common_preconditions": [],
+          "semantic_version": "01aaf7b97a23f253614ea82a9e8ca72621e328abffda1a41cd3d4f2fe152881f",
+          "data_version": "2bfcdd81847a8eeb950ac177b5f3ea056c217bd5e235122bf345c3fb7f50b063",
+          "rule_decisions": [
+            {
+              "question_id": "SIMULATED-rule",
+              "reply": {
+                "decision": "formal",
+                "actual_reply": "SIMULATED keep original rule",
+                "interpretation": "SIMULATED effective rule",
+                "updates": [
+                  {
+                    "path": [
+                      "data",
+                      0,
+                      "validity"
+                    ],
+                    "value": "SIMULATED validity"
+                  }
+                ]
+              }
+            }
+          ],
+          "active_rule_decisions": [
+            {
+              "question_id": "SIMULATED-rule",
+              "reply": {
+                "decision": "formal",
+                "actual_reply": "SIMULATED keep original rule",
+                "interpretation": "SIMULATED effective rule",
+                "updates": [
+                  {
+                    "path": [
+                      "data",
+                      0,
+                      "validity"
+                    ],
+                    "value": "SIMULATED validity"
+                  }
+                ]
+              }
+            }
+          ],
+          "rule_decision_history": [
+            {
+              "question_id": "SIMULATED-rule",
+              "reply": {
+                "decision": "formal",
+                "actual_reply": "SIMULATED keep original rule",
+                "interpretation": "SIMULATED effective rule",
+                "updates": [
+                  {
+                    "path": [
+                      "data",
+                      0,
+                      "validity"
+                    ],
+                    "value": "SIMULATED validity"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "LINK",
+          "title": "Save a notice",
+          "priority": "P0",
+          "module_path": [
+            "Example",
+            "Workspace",
+            "Web",
+            "Accounts",
+            "Save"
+          ],
+          "priority_basis": "\u6838\u5fc3\u4e1a\u52a1\u8def\u5f84\u5019\u9009\uff0c\u5f85\u7528\u6237\u8bc4\u5ba1",
+          "maintenance_action": "add",
+          "review_status": "pending",
+          "rule_status": "unconfirmed",
+          "merge_status": "not_merged",
+          "execution_status": "not_run",
+          "context": {
+            "role": [
+              {
+                "text": "editor",
+                "source": "recording",
+                "lines": [
+                  1,
+                  1
+                ],
+                "basis": "recording_observation"
+              }
+            ],
+            "initial_state": [
+              {
+                "text": "signed in",
+                "source": "recording",
+                "lines": [
+                  1,
+                  1
+                ],
+                "basis": "recording_observation"
+              }
+            ]
+          },
+          "steps": [
+            {
+              "operation": "Enter notice title",
+              "data_refs": [
+                "title"
+              ],
+              "source": "recording",
+              "lines": [
+                2,
+                2
+              ],
+              "expected": [],
+              "verification": [],
+              "basis": "recording_observation",
+              "id": "DEMO-P0-001/steps/1"
+            },
+            {
+              "operation": "Save the notice",
+              "data_refs": [],
+              "source": "recording",
+              "lines": [
+                3,
+                3
+              ],
+              "expected": [
+                {
+                  "text": "Saved message is visible",
+                  "source": "recording",
+                  "lines": [
+                    4,
+                    4
+                  ],
+                  "basis": "recording_observation"
+                }
+              ],
+              "verification": [
+                {
+                  "text": "Read the visible saved message",
+                  "source": "recording",
+                  "lines": [
+                    4,
+                    4
+                  ],
+                  "basis": "recording_observation"
+                }
+              ],
+              "basis": "recording_observation",
+              "id": "DEMO-P0-001/steps/2"
+            }
+          ],
+          "common_preconditions": [],
+          "semantic_version": "01aaf7b97a23f253614ea82a9e8ca72621e328abffda1a41cd3d4f2fe152881f",
+          "data_version": "2bfcdd81847a8eeb950ac177b5f3ea056c217bd5e235122bf345c3fb7f50b063",
+          "rule_decisions": [
+            {
+              "question_id": "SIMULATED-rule",
+              "reply": {
+                "decision": "formal",
+                "actual_reply": "SIMULATED keep original rule",
+                "interpretation": "SIMULATED effective rule",
+                "updates": [
+                  {
+                    "path": [
+                      "data",
+                      0,
+                      "validity"
+                    ],
+                    "value": "SIMULATED validity"
+                  }
+                ]
+              }
+            }
+          ],
+          "active_rule_decisions": [
+            {
+              "question_id": "SIMULATED-rule",
+              "reply": {
+                "decision": "formal",
+                "actual_reply": "SIMULATED keep original rule",
+                "interpretation": "SIMULATED effective rule",
+                "updates": [
+                  {
+                    "path": [
+                      "data",
+                      0,
+                      "validity"
+                    ],
+                    "value": "SIMULATED validity"
+                  }
+                ]
+              }
+            }
+          ],
+          "rule_decision_history": [
+            {
+              "question_id": "SIMULATED-rule",
+              "reply": {
+                "decision": "formal",
+                "actual_reply": "SIMULATED keep original rule",
+                "interpretation": "SIMULATED effective rule",
+                "updates": [
+                  {
+                    "path": [
+                      "data",
+                      0,
+                      "validity"
+                    ],
+                    "value": "SIMULATED validity"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "catalog_data": [
+        {
+          "id": "title",
+          "value": "Sample notice",
+          "source": "recording",
+          "lines": [
+            2,
+            2
+          ],
+          "basis": "recording_observation"
+        }
+      ],
+      "not_displayed_case_ids": [
+        "OTHER"
+      ],
+      "copy_version": "07dadefc7e1776e52665b3d4257bf861ca078577ee9dee0d201e7826955712a3"
+    },
+    "selection": [
+      {
+        "case_id": "EDIT",
+        "action": "reuse",
+        "reason": "SIMULATED compatibility"
+      },
+      {
+        "case_id": "LINK",
+        "action": "reuse",
+        "reason": "SIMULATED compatibility"
+      }
+    ],
+    "approved_validation_scope": [],
+    "cases": [
+      {
+        "id": "EDIT",
+        "title": "Save a notice",
+        "priority": "P0",
+        "module_path": [
+          "Example",
+          "Workspace",
+          "Web",
+          "Notes",
+          "Save"
+        ],
+        "priority_basis": "\u6838\u5fc3\u4e1a\u52a1\u8def\u5f84\u5019\u9009\uff0c\u5f85\u7528\u6237\u8bc4\u5ba1",
+        "maintenance_action": "add",
+        "review_status": "pending",
+        "rule_status": "unconfirmed",
+        "merge_status": "not_merged",
+        "execution_status": "not_run",
+        "context": {
+          "role": [
+            {
+              "text": "editor",
+              "source": "recording",
+              "lines": [
+                1,
+                1
+              ],
+              "basis": "recording_observation"
+            }
+          ],
+          "initial_state": [
+            {
+              "text": "signed in",
+              "source": "recording",
+              "lines": [
+                1,
+                1
+              ],
+              "basis": "recording_observation"
+            }
+          ]
+        },
+        "steps": [
+          {
+            "operation": "Enter notice title",
+            "data_refs": [
+              "title"
+            ],
+            "source": "recording",
+            "lines": [
+              2,
+              2
+            ],
+            "expected": [],
+            "verification": [],
+            "basis": "recording_observation",
+            "id": "DEMO-P0-001/steps/1"
+          },
+          {
+            "operation": "Save the notice",
+            "data_refs": [],
+            "source": "recording",
+            "lines": [
+              3,
+              3
+            ],
+            "expected": [
+              {
+                "text": "Saved message is visible",
+                "source": "recording",
+                "lines": [
+                  4,
+                  4
+                ],
+                "basis": "recording_observation"
+              }
+            ],
+            "verification": [
+              {
+                "text": "Read the visible saved message",
+                "source": "recording",
+                "lines": [
+                  4,
+                  4
+                ],
+                "basis": "recording_observation"
+              }
+            ],
+            "basis": "recording_observation",
+            "id": "DEMO-P0-001/steps/2"
+          }
+        ],
+        "common_preconditions": [],
+        "semantic_version": "01aaf7b97a23f253614ea82a9e8ca72621e328abffda1a41cd3d4f2fe152881f",
+        "data_version": "2bfcdd81847a8eeb950ac177b5f3ea056c217bd5e235122bf345c3fb7f50b063",
+        "rule_decisions": [
+          {
+            "question_id": "SIMULATED-rule",
+            "reply": {
+              "decision": "formal",
+              "actual_reply": "SIMULATED keep original rule",
+              "interpretation": "SIMULATED effective rule",
+              "updates": [
+                {
+                  "path": [
+                    "data",
+                    0,
+                    "validity"
+                  ],
+                  "value": "SIMULATED validity"
+                }
+              ]
+            }
+          }
+        ],
+        "active_rule_decisions": [
+          {
+            "question_id": "SIMULATED-rule",
+            "reply": {
+              "decision": "formal",
+              "actual_reply": "SIMULATED keep original rule",
+              "interpretation": "SIMULATED effective rule",
+              "updates": [
+                {
+                  "path": [
+                    "data",
+                    0,
+                    "validity"
+                  ],
+                  "value": "SIMULATED validity"
+                }
+              ]
+            }
+          }
+        ],
+        "rule_decision_history": [
+          {
+            "question_id": "SIMULATED-rule",
+            "reply": {
+              "decision": "formal",
+              "actual_reply": "SIMULATED keep original rule",
+              "interpretation": "SIMULATED effective rule",
+              "updates": [
+                {
+                  "path": [
+                    "data",
+                    0,
+                    "validity"
+                  ],
+                  "value": "SIMULATED validity"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "LINK",
+        "title": "Save a notice",
+        "priority": "P0",
+        "module_path": [
+          "Example",
+          "Workspace",
+          "Web",
+          "Accounts",
+          "Save"
+        ],
+        "priority_basis": "\u6838\u5fc3\u4e1a\u52a1\u8def\u5f84\u5019\u9009\uff0c\u5f85\u7528\u6237\u8bc4\u5ba1",
+        "maintenance_action": "add",
+        "review_status": "pending",
+        "rule_status": "unconfirmed",
+        "merge_status": "not_merged",
+        "execution_status": "not_run",
+        "context": {
+          "role": [
+            {
+              "text": "editor",
+              "source": "recording",
+              "lines": [
+                1,
+                1
+              ],
+              "basis": "recording_observation"
+            }
+          ],
+          "initial_state": [
+            {
+              "text": "signed in",
+              "source": "recording",
+              "lines": [
+                1,
+                1
+              ],
+              "basis": "recording_observation"
+            }
+          ]
+        },
+        "steps": [
+          {
+            "operation": "Enter notice title",
+            "data_refs": [
+              "title"
+            ],
+            "source": "recording",
+            "lines": [
+              2,
+              2
+            ],
+            "expected": [],
+            "verification": [],
+            "basis": "recording_observation",
+            "id": "DEMO-P0-001/steps/1"
+          },
+          {
+            "operation": "Save the notice",
+            "data_refs": [],
+            "source": "recording",
+            "lines": [
+              3,
+              3
+            ],
+            "expected": [
+              {
+                "text": "Saved message is visible",
+                "source": "recording",
+                "lines": [
+                  4,
+                  4
+                ],
+                "basis": "recording_observation"
+              }
+            ],
+            "verification": [
+              {
+                "text": "Read the visible saved message",
+                "source": "recording",
+                "lines": [
+                  4,
+                  4
+                ],
+                "basis": "recording_observation"
+              }
+            ],
+            "basis": "recording_observation",
+            "id": "DEMO-P0-001/steps/2"
+          }
+        ],
+        "common_preconditions": [],
+        "semantic_version": "01aaf7b97a23f253614ea82a9e8ca72621e328abffda1a41cd3d4f2fe152881f",
+        "data_version": "2bfcdd81847a8eeb950ac177b5f3ea056c217bd5e235122bf345c3fb7f50b063",
+        "rule_decisions": [
+          {
+            "question_id": "SIMULATED-rule",
+            "reply": {
+              "decision": "formal",
+              "actual_reply": "SIMULATED keep original rule",
+              "interpretation": "SIMULATED effective rule",
+              "updates": [
+                {
+                  "path": [
+                    "data",
+                    0,
+                    "validity"
+                  ],
+                  "value": "SIMULATED validity"
+                }
+              ]
+            }
+          }
+        ],
+        "active_rule_decisions": [
+          {
+            "question_id": "SIMULATED-rule",
+            "reply": {
+              "decision": "formal",
+              "actual_reply": "SIMULATED keep original rule",
+              "interpretation": "SIMULATED effective rule",
+              "updates": [
+                {
+                  "path": [
+                    "data",
+                    0,
+                    "validity"
+                  ],
+                  "value": "SIMULATED validity"
+                }
+              ]
+            }
+          }
+        ],
+        "rule_decision_history": [
+          {
+            "question_id": "SIMULATED-rule",
+            "reply": {
+              "decision": "formal",
+              "actual_reply": "SIMULATED keep original rule",
+              "interpretation": "SIMULATED effective rule",
+              "updates": [
+                {
+                  "path": [
+                    "data",
+                    0,
+                    "validity"
+                  ],
+                  "value": "SIMULATED validity"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "data": [
+      {
+        "id": "title",
+        "value": "Sample notice",
+        "source": "recording",
+        "lines": [
+          2,
+          2
+        ],
+        "basis": "recording_observation"
+      }
+    ],
+    "questions": [
+      {
+        "case_id": "EDIT",
+        "field": "steps/0/expected",
+        "reason": "\u6e90\u8bb0\u5f55\u7f3a\u5931\uff0c\u5f85\u6838\u5bf9"
+      },
+      {
+        "case_id": "EDIT",
+        "field": "steps/0/verification",
+        "reason": "\u6e90\u8bb0\u5f55\u7f3a\u5931\uff0c\u5f85\u6838\u5bf9"
+      },
+      {
+        "case_id": "LINK",
+        "field": "steps/0/expected",
+        "reason": "\u6e90\u8bb0\u5f55\u7f3a\u5931\uff0c\u5f85\u6838\u5bf9"
+      },
+      {
+        "case_id": "LINK",
+        "field": "steps/0/verification",
+        "reason": "\u6e90\u8bb0\u5f55\u7f3a\u5931\uff0c\u5f85\u6838\u5bf9"
+      }
+    ],
+    "data_version": "2bfcdd81847a8eeb950ac177b5f3ea056c217bd5e235122bf345c3fb7f50b063",
+    "content_version": "3e90f29f292c5eed63c44735e010ce8807575d0070ba8c433fe06d3314512f2c"
+  },
+  "markdown": "# \u672c\u8f6e\u8303\u56f4\u526f\u672c\uff08\u975e\u5168\u91cf\uff09\n- \u7248\u672c\uff1a3e90f29f292c5eed63c44735e010ce8807575d0070ba8c433fe06d3314512f2c\n- \u672a\u5c55\u793a\u4e0d\u8868\u793a\u5220\u9664\uff1b\u5173\u8054\u5c55\u793a\u4e0d\u6269\u5927\u529f\u80fd\u9a8c\u8bc1\u8303\u56f4\n- Example\n  - Workspace\n    - Web\n      - Notes\n        - Save\n          - Save a notice\n            - \u5165\u9009\u7528\u9014\uff1areuse\uff1aSIMULATED compatibility\n            - \u672c\u8f6e\u529f\u80fd\u9a8c\u8bc1\uff1a\u672a\u5217\u5165\u6279\u51c6\u8303\u56f4\n            - \u4f18\u5148\u7ea7\uff1aP0\n            - \u5206\u7ea7\u4f9d\u636e\uff1a\u6838\u5fc3\u4e1a\u52a1\u8def\u5f84\u5019\u9009\uff0c\u5f85\u7528\u6237\u8bc4\u5ba1\n            - \u7ef4\u62a4\u5efa\u8bae\uff1aadd\n            - \u6700\u7ec8\u8bc4\u5ba1\uff1apending\n            - \u89c4\u5219\u786e\u8ba4\uff1aunconfirmed\n            - \u5408\u5e76\u72b6\u6001\uff1anot_merged\n            - \u6267\u884c\u72b6\u6001\uff1anot_run\n            - \u4e1a\u52a1\u6761\u4ef6 / \u89d2\u8272\uff1aeditor\n            - \u4e1a\u52a1\u6761\u4ef6 / \u521d\u59cb\u72b6\u6001\uff1asigned in\n            - \u521d\u59cb\u89c4\u5219\u51b3\u5b9a\uff08\u5386\u53f2\uff09 / \u7b54\u590d / \u51b3\u5b9a\uff1aformal\n            - \u521d\u59cb\u89c4\u5219\u51b3\u5b9a\uff08\u5386\u53f2\uff09 / \u7b54\u590d / \u5b9e\u9645\u7b54\u590d\uff1aSIMULATED keep original rule\n            - \u521d\u59cb\u89c4\u5219\u51b3\u5b9a\uff08\u5386\u53f2\uff09 / \u7b54\u590d / interpretation\uff1aSIMULATED effective rule\n            - \u521d\u59cb\u89c4\u5219\u51b3\u5b9a\uff08\u5386\u53f2\uff09 / \u7b54\u590d / updates / path\uff1adata\n            - \u521d\u59cb\u89c4\u5219\u51b3\u5b9a\uff08\u5386\u53f2\uff09 / \u7b54\u590d / updates / path\uff1a0\n            - \u521d\u59cb\u89c4\u5219\u51b3\u5b9a\uff08\u5386\u53f2\uff09 / \u7b54\u590d / updates / path\uff1avalidity\n            - \u521d\u59cb\u89c4\u5219\u51b3\u5b9a\uff08\u5386\u53f2\uff09 / \u7b54\u590d / updates / \u503c\uff1aSIMULATED validity\n            - \u5f53\u524d\u6709\u6548\u89c4\u5219\u51b3\u5b9a / \u7b54\u590d / \u51b3\u5b9a\uff1aformal\n            - \u5f53\u524d\u6709\u6548\u89c4\u5219\u51b3\u5b9a / \u7b54\u590d / \u5b9e\u9645\u7b54\u590d\uff1aSIMULATED keep original rule\n            - \u5f53\u524d\u6709\u6548\u89c4\u5219\u51b3\u5b9a / \u7b54\u590d / interpretation\uff1aSIMULATED effective rule\n            - \u5f53\u524d\u6709\u6548\u89c4\u5219\u51b3\u5b9a / \u7b54\u590d / updates / path\uff1adata\n            - \u5f53\u524d\u6709\u6548\u89c4\u5219\u51b3\u5b9a / \u7b54\u590d / updates / path\uff1a0\n            - \u5f53\u524d\u6709\u6548\u89c4\u5219\u51b3\u5b9a / \u7b54\u590d / updates / path\uff1avalidity\n            - \u5f53\u524d\u6709\u6548\u89c4\u5219\u51b3\u5b9a / \u7b54\u590d / updates / \u503c\uff1aSIMULATED validity\n            - \u89c4\u5219\u51b3\u5b9a\u5386\u53f2 / \u7b54\u590d / \u51b3\u5b9a\uff1aformal\n            - \u89c4\u5219\u51b3\u5b9a\u5386\u53f2 / \u7b54\u590d / \u5b9e\u9645\u7b54\u590d\uff1aSIMULATED keep original rule\n            - \u89c4\u5219\u51b3\u5b9a\u5386\u53f2 / \u7b54\u590d / interpretation\uff1aSIMULATED effective rule\n            - \u89c4\u5219\u51b3\u5b9a\u5386\u53f2 / \u7b54\u590d / updates / path\uff1adata\n            - \u89c4\u5219\u51b3\u5b9a\u5386\u53f2 / \u7b54\u590d / updates / path\uff1a0\n            - \u89c4\u5219\u51b3\u5b9a\u5386\u53f2 / \u7b54\u590d / updates / path\uff1avalidity\n            - \u89c4\u5219\u51b3\u5b9a\u5386\u53f2 / \u7b54\u590d / updates / \u503c\uff1aSIMULATED validity\n            - \u516c\u5171\u524d\u7f6e\u64cd\u4f5c\n              - \u672a\u63d0\u4f9b\uff0c\u5f85\u6838\u5bf9\n            - \u6d4b\u8bd5\u6b65\u9aa4\n              - \u6b65\u9aa4 1\uff1aEnter notice title\n                - \u53c2\u6570/\u6570\u636e\n                  - \u503c\uff1aSample notice\n                - \u9884\u671f\n                  - \u5f85\u6838\u5bf9\n                  - \u9a8c\u8bc1\u70b9\uff1a\u5f85\u6838\u5bf9\n              - \u6b65\u9aa4 2\uff1aSave the notice\n                - \u53c2\u6570/\u6570\u636e\n                  - \u65e0\n                - \u9884\u671f\n                  - Saved message is visible\n                  - \u9a8c\u8bc1\u70b9\uff1aRead the visible saved message\n            - \u5f85\u6838\u5bf9\uff1asteps/0/expected\n            - \u5f85\u6838\u5bf9\uff1asteps/0/verification\n      - Accounts\n        - Save\n          - Save a notice\n            - \u5165\u9009\u7528\u9014\uff1areuse\uff1aSIMULATED compatibility\n            - \u672c\u8f6e\u529f\u80fd\u9a8c\u8bc1\uff1a\u672a\u5217\u5165\u6279\u51c6\u8303\u56f4\n            - \u4f18\u5148\u7ea7\uff1aP0\n            - \u5206\u7ea7\u4f9d\u636e\uff1a\u6838\u5fc3\u4e1a\u52a1\u8def\u5f84\u5019\u9009\uff0c\u5f85\u7528\u6237\u8bc4\u5ba1\n            - \u7ef4\u62a4\u5efa\u8bae\uff1aadd\n            - \u6700\u7ec8\u8bc4\u5ba1\uff1apending\n            - \u89c4\u5219\u786e\u8ba4\uff1aunconfirmed\n            - \u5408\u5e76\u72b6\u6001\uff1anot_merged\n            - \u6267\u884c\u72b6\u6001\uff1anot_run\n            - \u4e1a\u52a1\u6761\u4ef6 / \u89d2\u8272\uff1aeditor\n            - \u4e1a\u52a1\u6761\u4ef6 / \u521d\u59cb\u72b6\u6001\uff1asigned in\n            - \u521d\u59cb\u89c4\u5219\u51b3\u5b9a\uff08\u5386\u53f2\uff09 / \u7b54\u590d / \u51b3\u5b9a\uff1aformal\n            - \u521d\u59cb\u89c4\u5219\u51b3\u5b9a\uff08\u5386\u53f2\uff09 / \u7b54\u590d / \u5b9e\u9645\u7b54\u590d\uff1aSIMULATED keep original rule\n            - \u521d\u59cb\u89c4\u5219\u51b3\u5b9a\uff08\u5386\u53f2\uff09 / \u7b54\u590d / interpretation\uff1aSIMULATED effective rule\n            - \u521d\u59cb\u89c4\u5219\u51b3\u5b9a\uff08\u5386\u53f2\uff09 / \u7b54\u590d / updates / path\uff1adata\n            - \u521d\u59cb\u89c4\u5219\u51b3\u5b9a\uff08\u5386\u53f2\uff09 / \u7b54\u590d / updates / path\uff1a0\n            - \u521d\u59cb\u89c4\u5219\u51b3\u5b9a\uff08\u5386\u53f2\uff09 / \u7b54\u590d / updates / path\uff1avalidity\n            - \u521d\u59cb\u89c4\u5219\u51b3\u5b9a\uff08\u5386\u53f2\uff09 / \u7b54\u590d / updates / \u503c\uff1aSIMULATED validity\n            - \u5f53\u524d\u6709\u6548\u89c4\u5219\u51b3\u5b9a / \u7b54\u590d / \u51b3\u5b9a\uff1aformal\n            - \u5f53\u524d\u6709\u6548\u89c4\u5219\u51b3\u5b9a / \u7b54\u590d / \u5b9e\u9645\u7b54\u590d\uff1aSIMULATED keep original rule\n            - \u5f53\u524d\u6709\u6548\u89c4\u5219\u51b3\u5b9a / \u7b54\u590d / interpretation\uff1aSIMULATED effective rule\n            - \u5f53\u524d\u6709\u6548\u89c4\u5219\u51b3\u5b9a / \u7b54\u590d / updates / path\uff1adata\n            - \u5f53\u524d\u6709\u6548\u89c4\u5219\u51b3\u5b9a / \u7b54\u590d / updates / path\uff1a0\n            - \u5f53\u524d\u6709\u6548\u89c4\u5219\u51b3\u5b9a / \u7b54\u590d / updates / path\uff1avalidity\n            - \u5f53\u524d\u6709\u6548\u89c4\u5219\u51b3\u5b9a / \u7b54\u590d / updates / \u503c\uff1aSIMULATED validity\n            - \u89c4\u5219\u51b3\u5b9a\u5386\u53f2 / \u7b54\u590d / \u51b3\u5b9a\uff1aformal\n            - \u89c4\u5219\u51b3\u5b9a\u5386\u53f2 / \u7b54\u590d / \u5b9e\u9645\u7b54\u590d\uff1aSIMULATED keep original rule\n            - \u89c4\u5219\u51b3\u5b9a\u5386\u53f2 / \u7b54\u590d / interpretation\uff1aSIMULATED effective rule\n            - \u89c4\u5219\u51b3\u5b9a\u5386\u53f2 / \u7b54\u590d / updates / path\uff1adata\n            - \u89c4\u5219\u51b3\u5b9a\u5386\u53f2 / \u7b54\u590d / updates / path\uff1a0\n            - \u89c4\u5219\u51b3\u5b9a\u5386\u53f2 / \u7b54\u590d / updates / path\uff1avalidity\n            - \u89c4\u5219\u51b3\u5b9a\u5386\u53f2 / \u7b54\u590d / updates / \u503c\uff1aSIMULATED validity\n            - \u516c\u5171\u524d\u7f6e\u64cd\u4f5c\n              - \u672a\u63d0\u4f9b\uff0c\u5f85\u6838\u5bf9\n            - \u6d4b\u8bd5\u6b65\u9aa4\n              - \u6b65\u9aa4 1\uff1aEnter notice title\n                - \u53c2\u6570/\u6570\u636e\n                  - \u503c\uff1aSample notice\n                - \u9884\u671f\n                  - \u5f85\u6838\u5bf9\n                  - \u9a8c\u8bc1\u70b9\uff1a\u5f85\u6838\u5bf9\n              - \u6b65\u9aa4 2\uff1aSave the notice\n                - \u53c2\u6570/\u6570\u636e\n                  - \u65e0\n                - \u9884\u671f\n                  - Saved message is visible\n                  - \u9a8c\u8bc1\u70b9\uff1aRead the visible saved message\n            - \u5f85\u6838\u5bf9\uff1asteps/0/expected\n            - \u5f85\u6838\u5bf9\uff1asteps/0/verification\n"
+}

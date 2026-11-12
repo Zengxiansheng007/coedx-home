@@ -32,6 +32,11 @@ review and downstream validation/merge path plus a new explicit scope baseline.
 
 ## Read reports and necessary evidence
 
+Before asking for a report/version choice, follow [report reconciliation](report-reconciliation.md).
+Read authorized accessible attachments first, reuse unchanged target decisions,
+and record remaining questions and actual choices in the task's unique Q&A MD.
+User selection, latest dates and nearby timestamps never replace full proof.
+
 Read the actual supplied reports and the contents of every necessary attachment.
 Inspect whether each attachment supports its stated check, object and tested
 version. Reject a filename, same title, screenshot existence, oral pass summary

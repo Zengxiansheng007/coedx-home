@@ -72,7 +72,7 @@ def _coverage(batch):
             'uncovered_combinations': copy.deepcopy(design['uncovered_combinations'])}
 
 
-def render_extension(batch, case_id=None):
+def render_extension(batch, case_id=None, *, case_ids=None):  # Preserve existing one-case callers.
     """Regenerate scoped review and coverage from the current clarified batch version."""
     _credential_guard(batch)
     result = _render(batch)
@@ -92,13 +92,13 @@ def render_extension(batch, case_id=None):
                   '## UI gaps and user write/explore decisions',
                   *['- ' + json.dumps(g, ensure_ascii=False) for g in batch['extension_design']['ui_gaps']]])
     result.update(coverage=coverage, coverage_notes='\n'.join(lines) + '\n')
-    if case_id is None:
-        result.pop('human_view', None)
-    else:
-        selected = [c for c in batch['cases'] if c['id'] == case_id]
-        if not selected:
-            raise ValueError('Unknown case requested for human-view')
-        result['human_view'] = _render(dict(batch, cases=selected))['human_view']
+    if case_id is not None and case_ids is not None:  # Avoid two competing selection inputs.
+        raise ValueError('Choose one chat selection input')  # Never guess which request wins.
+    from presentation import render_chat  # One selection contract for every authoring stage.
+    chat = render_chat(batch, [case_id] if case_id is not None else case_ids)  # Validate exact 1–9 scope.
+    result.pop('human_view', None)  # Default delivery is the complete scoped XMind copy.
+    if 'human_view' in chat:  # Only a real selection exposes chat text.
+        result['human_view'] = chat['human_view']  # Same candidate and complete reference context.
     return result
 
 

@@ -82,9 +82,12 @@ class ReviewFixTests(unittest.TestCase):
         first = confirm(prepare_feedback(original['batch'], 'chat', actual_reply='SIMULATED A to B',
             changes=[dict(collection='cases', id='EDIT', path=['title'], value='B')]))
         for channel in ('markdown', 'chat'):
-            kwargs = (dict(markdown=first['xmind_markdown'].replace('- EDIT B', '- EDIT C'))
+            kwargs = (dict(markdown=first['xmind_markdown'].replace('- B\n', '- C\n'))
                       if channel == 'markdown' else dict(changes=[dict(collection='cases', id='EDIT',
                           path=['title'], value='C', before='B')], source_version=first['batch']['content_version']))
+            if channel == 'markdown':
+                from identity_test_support import bound_cases
+                kwargs['case_bindings'] = bound_cases(first['batch'], kwargs['markdown'], {'EDIT': 'C'})
             pending = prepare_feedback(first['batch'], channel, actual_reply='SIMULATED current B to C', **kwargs)
             second = confirm(pending)['batch']
             self.assertEqual(second['cases'][0]['title'], 'C')

@@ -80,9 +80,10 @@ class BatchTests(unittest.TestCase):
             self.assertFalse(sentinel.exists())
             batch = json.loads((root / 'output/candidate.json').read_text(encoding='utf-8'))
             self.assertEqual(batch['cases'][0]['execution_status'], 'not_run')
-            original = (root / 'output/human-view.md').read_bytes()
+            self.assertFalse((root / 'output/human-view.md').exists())  # Chat tables are never persisted.
+            original = (root / 'output/candidate.json').read_bytes()  # Retain the authoritative candidate.
             self.assertNotEqual(subprocess.run(command, capture_output=True).returncode, 0)
-            self.assertEqual((root / 'output/human-view.md').read_bytes(), original)
+            self.assertEqual((root / 'output/candidate.json').read_bytes(), original)  # Failed overwrite preserves content.
             self.assertEqual((root / 'recording.js').read_text(encoding='utf-8'), recording)
 
     def test_prd_conflict_and_missing_context_remain_locatable_and_unconfirmed(self):

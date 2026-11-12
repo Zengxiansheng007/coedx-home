@@ -1,5 +1,10 @@
 # Public batch clarification contract
 
+For actual conversations, use [the single Markdown adapter](qa-record-contract.md)
+to save questions before sending and actual replies before dependent judgments.
+The pure functions below are computation seams; their returned session is a
+derived projection, never a second independently editable business answer source.
+
 `scripts/clarification.py` provides pure Python entry points. They accept and
 return JSON-compatible batch/session objects without files, network, browser,
 execution or merge side effects. Use `scripts/authoring.py` for initial recording
@@ -11,6 +16,8 @@ from clarification import start_grill, respond, summarize, apply_summary, review
 session = start_grill(batch, enriched_questions)
 # Show session['chat'] in conversation; it contains the whole eligible round.
 session = respond(session, replies)  # only actual answers; repeat for later rounds
+# Live conversations must actually reread sources/history/dependencies and persist
+# record_coverage through qa_record before summarize; see coverage-review.md.
 session = summarize(session)       # show session['summary'] to the user
 session = apply_summary(session, confirmation)
 session = review(session, final_review)
@@ -29,8 +36,23 @@ answer revises that same rule. A field path locates content, not rule identity.
 Cyclic/unknown dependencies are rejected. The agent must check semantic
 dependencies; the helper only enforces the declared graph.
 
+For unregistered source findings use `append_questions(session, questions)`;
+old answers remain intact and new IDs must be unused. For each actual source
+review use `record_coverage(session, observation)` as described in
+[coverage review](coverage-review.md). These pure seams are also available as
+same-name actions in the sole MD adapter. A later reply or discovery invalidates
+the recorded review revision; unresolved source branches block its summary.
+
 A reply has `question_id`, `decision` (`formal`, `provisional`, `deferred`),
 `actual_reply`, and `updates`. Provisional replies also require `product_check`.
+For compound questions declare `answer_parts` as stable aspect names mapped to
+concrete descriptions (object, condition, behavior, subdivided when necessary).
+Replies supply only actual `answered_parts`; `partial` and `unknown` preserve
+incomplete replies without business authorization or candidate updates. The
+returned `remaining_parts` and Chinese chat ask the remaining question; unknown
+returns a full disposition question. Formal/provisional require all declared
+aspects; explicit deferred may leave them unknown. Summary carries accumulated
+aspects while all original replies and their source references remain in history.
 An update is `{"path":["cases",0,"title"],"value":"Reviewed business title"}`.
 Paths must have been declared in the question's `target_paths`. Business fields
 can be nested case content or separate data (context, operations, expectations,
@@ -96,3 +118,7 @@ understood a user sentence. Evaluate that through the actual SKILL.md workflow
 with clearly simulated source material and natural-language user replies.
 Neither structural checks nor these simulations prove XMind desktop acceptance
 or cross-skill production integration.
+
+## Review repair boundary
+
+Scope-only independent impacts use disposition_scope=separate_impact plus scope_basis and empty target_paths. Show the scope distinction before asking; preserve actual deferred/unknown decisions. The default case_rule (including an empty target_paths list) and its dependency closure still block. See coverage-review.md for source classification; never relabel a necessary unknown rule to bypass a blocker.

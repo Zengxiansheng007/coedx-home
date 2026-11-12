@@ -46,7 +46,7 @@ class DependencyTests(unittest.TestCase):
         self.assertEqual(result['batch']['cases'][1], full['cases'][1])
         self.assertEqual(result['batch']['approved_validation_scope'], [])
         for view in ('human_view', 'xmind_markdown'):
-            for word in ('LINK', 'prepare linked object', 'enabled', 'object_id', 'long_term'):
+            for word in ('Save a notice', 'prepare linked object', 'enabled', 'object_id', 'long_term'):
                 self.assertIn(word, result[view])
         self.assertNotIn('特殊后置操作', result['human_view'])
 
@@ -88,8 +88,12 @@ class DependencyTests(unittest.TestCase):
         self.assertIn('特殊后置操作', r['human_view'])
         case = r['batch']['cases'][0]
         self.assertEqual(case['special_postconditions'][0]['dependency']['object_binding'], p['object_binding'])
-        tree = r['xmind_markdown'].split('特殊后置操作')[1]
-        self.assertEqual(tree.split('\n- Example')[0].count('- 参数/数据'), 1)
+        lines = r['xmind_markdown'].splitlines()  # Bound the postcondition by its actual subtree.
+        start = next(i for i, line in enumerate(lines) if line.strip() == '- 特殊后置操作')
+        depth = len(lines[start]) - len(lines[start].lstrip())
+        end = next((i for i in range(start + 1, len(lines)) if len(lines[i]) - len(lines[i].lstrip()) <= depth), len(lines))
+        tree = '\n'.join(lines[start:end])
+        self.assertEqual(tree.count('- 参数/数据'), 1)
         self.assertIn('- 预期', tree)
         p['object_binding'] = {'object_id': 'DIFFERENT-NOT-IN-DATA'}
         with self.assertRaises(ValueError):
@@ -165,6 +169,7 @@ class DependencyTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertEqual((root / 'catalog.json').read_bytes(), before)
             self.assertTrue((root / 'output/xmind.md').is_file())
+            self.assertFalse((root / 'output/human-view.md').exists())  # Dependency regeneration follows chat-only delivery.
             self.assertNotEqual(subprocess.run(command, capture_output=True).returncode, 0)
 
 
