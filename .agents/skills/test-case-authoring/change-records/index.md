@@ -2,6 +2,8 @@
 
 ## Latest Changes
 
+- 2026-11-12 CR-20261111-110 repair: prior-stage question IDs are reserved at feedback admission while current-stage answer history remains valid. Public red/green, 7 recovery and 137 full tests pass; actual QA108/109 replay remains compatible. Inherited seven scanner findings remain; independent repair review and combined actual behavior are pending. See [repair detail](entries/2026/2026-11/CR-20261111-110-cross-stage-recovery.md).
+
 - CR-20261111-203: [Chinese identity](entries/2026/2026-11/CR-20261111-203-presentation-identity.md), applied; client and actual dialogue validation pending.
 
 - CR-20261111-107: [Report reconciliation](entries/2026/2026-11/CR-20261111-107-report-reconciliation.md), applied; actual two-round report reconciliation and independent ticket review completed; 114 integrated regressions passed.
@@ -97,3 +99,17 @@ evidence directory. The first test launch had a module-resolution error because
 the governed runner sets the worktree root; its log is preserved separately.
 Validation remains candidate-only; seven inherited scanner findings are retained.
 No global install, real business execution, remote publication or #110 changes.
+## CR-20261111-110 - Cross-stage recovery
+
+- Section changed: same task recovery and stage transition.
+- Before: no actual candidate/source recovery comparison.
+- After: same-MD checkpoint/readback, scoped difference diagnostics and existing P0-gated extension transition.
+- Why: fresh contexts need actual materials and traceable decisions.
+- Impact: candidate authoring only; prior stages and approvals preserved.
+- Validation: 5 new / 135 full public regressions pass; actual conversation and independent review pending.
+- Detail record: [CR-20261111-110](entries/2026/2026-11/CR-20261111-110-cross-stage-recovery.md).
+
+
+### CR-20261111-204 / CR-20261111-110 final pair integration
+
+PRE04 actual synthetic dialogue/capacity and all independent repair findings are accepted within the detail-record limits. Issue 110 F-110-01 is independently resolved; whole-ticket combined behavior remains pending. Sources: aff05e6d4bff711948887c40c63152a251b70449 and bbea7c9351c85a3057cba4de0568411c090ac5bf. Old evidence and inherited seven scanner findings remain. See both detail records for precise scope.

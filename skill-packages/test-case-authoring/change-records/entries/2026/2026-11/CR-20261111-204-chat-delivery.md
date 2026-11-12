@@ -106,3 +106,30 @@ evidence directory. The first test launch had a module-resolution error because
 the governed runner sets the worktree root; its log is preserved separately.
 Validation remains candidate-only; seven inherited scanner findings are retained.
 No global install, real business execution, remote publication or #110 changes.
+
+
+## Local integration actual evidence - 2026-11-12
+
+Frozen source aff05e6d4bff711948887c40c63152a251b70449 passed independent
+compatibility re-review: all three PRE04 findings resolved; exact old-artifact
+scalar operation accepted, input hashes/history unchanged, unbound/audit/topology
+variants rejected. Three targeted legacy/native-format regressions passed.
+
+Root's observed synthetic dialogue recovered the sole MD, displayed the actual
+render_chat result and approved only exact version
+e16e9c0f04fa31adeabfca3dfe8db0f102a5fddabc1dd6b131efd34bcf96e110.
+Readback equals the saved candidate: approved/formal/not_merged/not_run;
+the old version remains pending. Structural rename/two-step editing used the
+public authoring clarification route; direct P0 prepare_feedback was not tested.
+
+Separate actual capacity interaction retained all 12 cases, requested explicit
+selection after the over-nine request, then displayed nine complete selected
+cases once. Unselected case 12's reference remains; capacity cases stay
+unapproved. Original catalog cases/data match the frozen baseline. No human-view
+file was created. Evidence remains outside the public package in PRE04 actual
+recovery-observations.md and quantitative-evidence.json, plus review-pre04.md.
+
+This supersedes earlier natural-dialogue pending statements for these samples.
+PRE04 is locally accepted in this bounded simulated scope under Root release.
+No new XMind client import, business execution, global install or publication
+is claimed. Inherited seven validator findings and all old failures remain.

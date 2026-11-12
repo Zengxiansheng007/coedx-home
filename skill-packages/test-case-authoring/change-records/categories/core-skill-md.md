@@ -118,3 +118,13 @@ Independent re-review closed three P1 findings and the composition issue; six fo
 ### 2026-11-12 CR-20261111-108 actual repair dialogue completed
 
 Fresh actual synthetic dialogue completed 21 events and 21 successful readback checks; exact version 882c4c8fdb0748fd7aa7bcab3c161aa3e4ccbe70d851f9ce3617a30a3bd2fab5 approves only MEMO-001, formal/not_run/not_merged. This supersedes the earlier pending_behavior_validation entry for that sample and releases #110 under Root authorization. Old failed/rejected versions remain historical. No complete approved P0 baseline or XMind client import exists for this sample; earlier public P0-scope regressions are separate evidence. See CR-20261111-108 detail for boundaries. Product code unchanged; inherited seven scanner findings remain.
+
+## CR-20261111-110 - Cross-stage recovery
+
+- Section changed: same task recovery and stage transition.
+- Before: no actual candidate/source recovery comparison.
+- After: same-MD checkpoint/readback, scoped difference diagnostics and existing P0-gated extension transition.
+- Why: fresh contexts need actual materials and traceable decisions.
+- Impact: candidate authoring only; prior stages and approvals preserved.
+- Validation: 5 new / 135 full public regressions pass; actual conversation and independent review pending.
+- Detail record: [CR-20261111-110](../entries/2026/2026-11/CR-20261111-110-cross-stage-recovery.md).

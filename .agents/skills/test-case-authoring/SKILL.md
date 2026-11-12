@@ -81,6 +81,11 @@ separately invoked testing skill. Formal integration remains unverified.
 
 ## Clarify a candidate batch
 
+When resuming a task or moving between P0, report reconciliation, P1/P2 and
+review, follow [cross-stage recovery](references/qa-record-contract.md) first:
+read the sole Q&A MD, actual candidate and sources; retain valid decisions and
+continue only the work independent of unresolved source conflicts.
+
 Read [the clarification contract](references/clarification-contract.md) before
 starting or resuming questions, applying a summary, or recording final review.
 Read [the single Q&A record contract](references/qa-record-contract.md) for every

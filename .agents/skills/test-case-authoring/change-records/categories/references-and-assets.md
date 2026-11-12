@@ -156,3 +156,17 @@ evidence directory. The first test launch had a module-resolution error because
 the governed runner sets the worktree root; its log is preserved separately.
 Validation remains candidate-only; seven inherited scanner findings are retained.
 No global install, real business execution, remote publication or #110 changes.
+## CR-20261111-110 - Cross-stage recovery
+
+- Section changed: same task recovery and stage transition.
+- Before: no actual candidate/source recovery comparison.
+- After: same-MD checkpoint/readback, scoped difference diagnostics and existing P0-gated extension transition.
+- Why: fresh contexts need actual materials and traceable decisions.
+- Impact: candidate authoring only; prior stages and approvals preserved.
+- Validation: 5 new / 135 full public regressions pass; actual conversation and independent review pending.
+- Detail record: [CR-20261111-110](../entries/2026/2026-11/CR-20261111-110-cross-stage-recovery.md).
+
+
+### CR-20261111-204 / CR-20261111-110 final pair integration
+
+PRE04 actual synthetic dialogue/capacity and all independent repair findings are accepted within the detail-record limits. Issue 110 F-110-01 is independently resolved; whole-ticket combined behavior remains pending. Sources: aff05e6d4bff711948887c40c63152a251b70449 and bbea7c9351c85a3057cba4de0568411c090ac5bf. Old evidence and inherited seven scanner findings remain. See both detail records for precise scope.
