@@ -45,8 +45,8 @@ Bindings remain internal proposal evidence and feedback history. They do not
 authorize application, final review, merging or execution. Scope copies exclude
 unseen cases without deleting them. Regenerate both views after agreed changes
 and review the exact new version. Keep full catalog and dependency identities;
-merge only through the existing approved scope boundary. PRE-04 owns changes to
-human-view file emission policy.
+merge only through the existing approved scope boundary. Follow
+[chat delivery](chat-delivery.md) for requested 1–9 cases and file output policy.
 
 Verify Chinese titles and hierarchy in the actual agreed XMind client. Static
 and synthetic native checks do not establish client or business acceptance.

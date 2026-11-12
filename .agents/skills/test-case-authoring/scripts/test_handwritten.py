@@ -145,7 +145,8 @@ class HandwrittenTests(unittest.TestCase):
             batch = json.loads((root / 'output/candidate.json').read_text(encoding='utf-8'))
             self.assertEqual(batch['sources'][0]['kind'], 'handwritten')
             self.assertEqual(batch['cases'][0]['review_status'], 'pending')
-            for name in ('human-view.md', 'xmind.md'):
+            self.assertFalse((root / 'output/human-view.md').exists())  # Human tables stay in chat.
+            for name in ('xmind.md',):  # XMind remains the persisted business view.
                 self.assertIn('Saved message is visible', (root / 'output' / name).read_text(encoding='utf-8'))
 
 

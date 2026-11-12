@@ -283,7 +283,6 @@ def main():
         output = Path(args.output_dir)
         output.mkdir(parents=True, exist_ok=False)
         (output / 'candidate.json').write_text(json.dumps(result['batch'], ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
-        (output / 'human-view.md').write_text(result['human_view'], encoding='utf-8')
         (output / 'xmind.md').write_text(result['xmind_markdown'], encoding='utf-8')
     except (ValueError, KeyError, TypeError, AttributeError, OSError):
         print('Candidate conversion rejected: check input contract, credential references and new output directory.', file=sys.stderr)

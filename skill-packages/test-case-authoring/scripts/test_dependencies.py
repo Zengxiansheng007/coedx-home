@@ -169,6 +169,7 @@ class DependencyTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertEqual((root / 'catalog.json').read_bytes(), before)
             self.assertTrue((root / 'output/xmind.md').is_file())
+            self.assertFalse((root / 'output/human-view.md').exists())  # Dependency regeneration follows chat-only delivery.
             self.assertNotEqual(subprocess.run(command, capture_output=True).returncode, 0)
 
 

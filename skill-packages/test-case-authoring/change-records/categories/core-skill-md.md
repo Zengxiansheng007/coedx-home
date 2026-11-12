@@ -105,3 +105,13 @@ Frozen candidate 6679a11172b35a2810d6fe419390f5a0d76021f3 fast-forwarded from ef
 CR-20261111-203/109 actual-path evidence and independent repair review are complete; CR-20261111-108 remains pending_behavior_validation. See detail records.
 
 Independent re-review closed three P1 findings and the composition issue; six focused tests passed. Reuse 129 full tests before the optional-metadata fix and 24 affected tests afterward, without repeating unchanged suites. Private actual/review evidence stays outside the package; historical versions/failures remain. Seven inherited scanner findings (3 P0 / 3 P1 / 1 P2) remain, not a clean scan. No publishing, Issue closure, installation or business execution.
+
+## CR-20261111-204 - Requested chat delivery
+
+- Section changed: canonical output and same-version chat projection.
+- Before: persistent human-view files and automatic P0 chat display.
+- After: XMind scope by default; explicit 1–9 complete cases in chat.
+- Why: approved PRE-04 delivery and semantic-preservation requirements.
+- Impact: authoring, scope, dependency and extension regeneration; source retained.
+- Validation: public red/green and affected regressions; natural actor pending.
+- Detail record: [CR-20261111-204-chat-delivery.md](../entries/2026/2026-11/CR-20261111-204-chat-delivery.md).

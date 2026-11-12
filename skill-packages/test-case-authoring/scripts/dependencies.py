@@ -172,7 +172,7 @@ def main():
         for filename, content in [('candidate.json', result['batch']), ('dependency-review.json',
                 {k:v for k,v in result.items() if k not in ('batch', 'human_view', 'xmind_markdown', 'review_notes')})]:
             (output / filename).write_text(json.dumps(content, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
-        for filename, key in [('human-view.md', 'human_view'), ('xmind.md', 'xmind_markdown'), ('review-notes.md', 'review_notes')]:
+        for filename, key in [('xmind.md', 'xmind_markdown'), ('review-notes.md', 'review_notes')]:  # Chat views have no persistent artifact.
             (output / filename).write_text(result[key], encoding='utf-8')
     except (ValueError, KeyError, TypeError, AttributeError, OSError):
         print('Dependency review rejected: inspect complete reference and data contract.', file=sys.stderr)

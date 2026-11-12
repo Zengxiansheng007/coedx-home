@@ -5,6 +5,11 @@ description: Turn a supplied Playwright recording or complete handwritten P0 and
 
 # P0 authoring and batch clarification
 
+Before any delivery or regenerated review, read [chat delivery](references/chat-delivery.md).
+Deliver the same-version XMind scope copy. For an explicitly needed selection of
+1–9 complete cases, call `presentation.render_chat` and show its returned text
+directly in chat. Keep candidate/Q&A records; human-view tables have no file artifact.
+
 Before display, rename, same-name feedback or Markdown/native return, read
 [the presentation identity contract](references/presentation-identity.md).
 Use Chinese business titles and retain P0/P1/P2. Keep stable IDs internal; ask
@@ -53,15 +58,15 @@ import separately from static structure and business execution.
    ```
 
    Add `--prd requirements.md` when available. The CLI reads source text and JSON,
-   never executes recording code, and writes `candidate.json`, `human-view.md`
+   never executes recording code, and writes `candidate.json`
    and `xmind.md`. In-process callers may use the same public
    `build_batch(recording, interpretation, prd=None)` interface. It returns
    `batch`, `human_view`, `xmind_markdown` without filesystem writes.
 5. Inspect the outputs against the complete input and PRD: actions, checks,
    values, conditions, sources, unresolved fields and hierarchy must be complete.
    On an omission, correct the interpretation and generate into a new directory.
-   Show the P0 human-view in the conversation and link the same-version XMind
-   Markdown. List missing or conflicting fields with their source positions for
+   Link the same-version XMind Markdown; use the chat delivery contract for
+   requested case expansion. List missing or conflicting fields with source positions for
    user clarification. First show the input inspection result, preserving supplied
    details and listing only missing or doubtful content. The user may add optional
    materials or continue with clarification; absence of PRD is not a blocker.
@@ -161,8 +166,8 @@ never replace file inspection with self-authored JSON and call that a file test.
    summary. After exact-summary agreement apply once to common cases/data;
    regenerate both views and coverage notes from that new candidate version.
 4. Submit the complete changed content for final review of its exact version
-   using `review_feedback`. Show P0 in the four-column chat view with the matching
-   Markdown link; for P1/P2 show scope Markdown and coverage notes by default.
+   using `review_feedback`. Link the complete scope Markdown and coverage notes;
+   expand only requested 1–9 cases through the chat delivery contract.
    This records candidate-side review, not formal source synchronization, merge,
    execution or XMind client acceptance. Native `.xmind` parsing is separate.
 
@@ -205,8 +210,8 @@ never replace file inspection with self-authored JSON and call that a file test.
    rules, recording supplied-content confirmation without re-asking known fields.
    Silence is not agreement.
 5. After explicit current-summary agreement, apply the changes once and generate
-   both views from the updated content version. For P0 show complete human-view in
-   chat and link its same-version XMind Markdown. For P1/P2 use `render_extension`
+   the scope from the updated content version. For P0 link its same-version
+   XMind Markdown and use chat delivery on request. For P1/P2 use `render_extension`
    to regenerate the scope copy and coverage notes, expanding human-view only for
    a requested case. Submit the complete case for
    **final review**; a rule answer or agreement with the summary does not approve

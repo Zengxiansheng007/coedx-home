@@ -88,7 +88,7 @@ def _render(batch, *, flat=False, reference_batch=None):  # Flat probes keep der
                 continue
             tree.append(indent + '- ' + label)
             human.extend([label, '| 序号 | 操作 | 参数/数据 | 预期结果 |', '| --- | --- | --- | --- |'])
-            notes = _business_lines(case.get('common_preconditions_note', {}), batch=batch) if group == 'common_preconditions' else []  # Retain explicit preparation meaning, including alongside steps.
+            notes = _business_lines(case.get('common_preconditions_note', {}), batch=reference_batch or batch) if group == 'common_preconditions' else []  # Selected views resolve against the complete source.
             for line in notes:  # One source note appears once under its preparation group.
                 tree.append(indent + '  - ' + _cell(line))
                 human.append(_cell(line))
@@ -97,15 +97,15 @@ def _render(batch, *, flat=False, reference_batch=None):  # Flat probes keep der
                 human.append('未提供，待核对')
             for i, step in enumerate(case.get(group, []), 1):
                 values = [line for ref in step.get('data_refs', [])
-                          for line in _business_lines(data[ref], batch=batch)] or ['无']
+                          for line in _business_lines(data[ref], batch=reference_batch or batch)] or ['无']  # Preserve linked business data names.
                 extensions = {k: v for k, v in step.items()
                               if k not in ('id', 'operation', 'data_refs', 'expected', 'verification')}
-                business_conditions = _business_lines(extensions, batch=batch)
+                business_conditions = _business_lines(extensions, batch=reference_batch or batch)  # Include out-of-selection references.
                 if business_conditions and values == ['无']:
                     values = []
                 values.extend(business_conditions)
-                expected = _business_lines(step.get('expected', []), batch=batch) or ['待核对']
-                checks = _business_lines(step.get('verification', []), batch=batch) or ['待核对']
+                expected = _business_lines(step.get('expected', []), batch=reference_batch or batch) or ['待核对']  # Same source reference context.
+                checks = _business_lines(step.get('verification', []), batch=reference_batch or batch) or ['待核对']  # Same source reference context.
                 operation = step.get('operation', '待核对')
                 tree.extend([indent + f'  - 步骤 {i}：' + _cell(operation), indent + '    - 参数/数据'])
                 tree.extend(indent + '      - ' + _cell(v) for v in values)
@@ -286,7 +286,7 @@ def main():
                                   ('initial-copy-baseline.json', result['batch']['initial_copy_baseline']),
                                   ('changes.json', result['changes'])]:
             (output / filename).write_text(json.dumps(content, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
-        for filename, key in [('human-view.md', 'human_view'), ('xmind.md', 'xmind_markdown'),
+        for filename, key in [('xmind.md', 'xmind_markdown'),  # Persist the scope tree, never chat tables.
                               ('review-notes.md', 'review_notes')]:
             (output / filename).write_text(result[key], encoding='utf-8')
     except (ValueError, KeyError, TypeError, AttributeError, OSError):
