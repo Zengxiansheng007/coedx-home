@@ -49,4 +49,16 @@ Candidate only. A byte difference identifies a review need, not its business mea
 
 Refs: https://github.com/Zengxiansheng007/coedx-home/issues/110
 
+## 2026-11-12 F-110-01 repair follow-up
+
+Repair baseline: 46a2a2b6bf35155429eaeb9b92a985b94be76176, isolated codex/tca-qa110-repair. The earlier candidate and review evidence remain frozen. Independent review demonstrated that start_feedback could introduce a new question using a prior stage ID, producing a second permanent Q1-A1 anchor. Existing append_questions and start_extension correctly rejected that collision.
+
+The existing qa_record admission check now covers explicit start_feedback questions as well as append_questions. Only new feedback IDs are checked against retained stages; current-stage questions continue through the existing history-preserving feedback adapter. Omitted questions still retain the current graph. No new recovery system, replay rewriting, external effects or stage approval is introduced. The existing qa-record-contract already requires unique new-stage IDs and remains applicable without changing instructions.
+
+Public persistence regression first failed with ValueError not raised, then passed after the admission correction. Seven recovery checks pass, including all three admission paths, byte-identical MD after rejection, valid new IDs, current-question reopening, A1/A2/A3 history and fresh replay. The full 137-test suite passes (27.929 seconds). A separate follow-up test initially used a P0 fixture without the required scoped feedback baseline; its failure is retained, and the fixture was corrected to use the existing public scoped input without changing production logic.
+
+Actual historical QA108 and QA109 MD records replay to their original candidates and retain their byte hashes; all 73 source/mirror files match. create-skill --require-change-records remains rejected with the same seven inherited findings (3 P0 negative credential fixtures, 3 P1 structure/resource findings, 1 P2 description); no new finding and no clean scanner claim. New code and test changes contain only simulated data. Private repair-red, repair-green-initial, repair-green, repair-green-final, repair-full, repair-validator and repair-compatibility evidence stays outside the package.
+
+Status remains applied/review-required. Independent repair review, latest PRE04 composition and actual six-entry/fresh-context/fault dialogue remain Root-owned pending work; these regression fixtures are not actual conversation acceptance. Existing invalid historical records are preserved for review, not automatically rewritten or migrated.
+
 Pre-review cross-stage check: a later checkpoint must allow source bindings to an earlier stage's permanent Q ID. Added a failing public-stage checkpoint assertion, then extended lookup to retained prior stages. The five targeted recovery tests pass after this one-line correction. No independent review or behavior acceptance had started; earlier 135-test full result and failures remain historical. Actual QA108/109 records replay unchanged with exact candidate equality; 73 mirrored files match. Structure validation retains the same seven inherited findings (3 P0 negative credential fixtures, 3 P1, 1 P2), not a clean pass.

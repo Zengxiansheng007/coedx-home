@@ -142,9 +142,11 @@ def advance_record(path, action, payload=None):  # Persist real user actions thr
     events = _load(path)  # Always start from the sole answer record.
     state = _replay(events)  # Reconstruct existing technical state.
     payload = copy.deepcopy(payload)  # Add provenance without mutating caller objects.
-    if action == 'append_questions':  # Old phase IDs remain permanently reserved.
+    if action in ('append_questions', 'start_feedback'):  # Every current-stage question admission reserves earlier identities.
         used = {q['id'] for stage in state.get('prior_stages', []) for q in stage['questions']}  # Same task history.
-        if any(q['id'] in used for q in payload):  # Existing flow checks current-stage collisions too.
+        incoming = payload if action == 'append_questions' else payload.get('questions', [])  # Omitted feedback questions reuse the current graph.
+        current = {q['id'] for q in state['questions']} if action == 'start_feedback' else set()  # Normal current-stage feedback retains its answer history.
+        if any(q['id'] in used and q['id'] not in current for q in incoming):  # Only newly admitted feedback questions can steal a historical identity.
             raise ValueError('Question ID already used in an earlier stage')  # Prevent duplicate answer anchors.
     if action == 'respond':  # Validate the minimum actual-answer contract.
         for reply in payload:  # No defaults from recommendations.

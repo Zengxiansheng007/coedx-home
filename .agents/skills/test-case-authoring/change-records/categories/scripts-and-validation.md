@@ -2,6 +2,8 @@
 
 ## Purpose
 
+2026-11-12 CR-20261111-110 repair follow-up: qa_record feedback admission now rejects newly introduced prior-stage IDs before writing; current-stage same-ID questions retain answer versions. Public red/green, 7 recovery and 137 full tests pass; actual QA108/109 records remain unchanged and replay exactly. Seven inherited scanner findings remain. Independent repair review and combined actual behavior are pending; [detail](../entries/2026/2026-11/CR-20261111-110-cross-stage-recovery.md).
+
 Trace rule Q&A changes in scripts-and-validation.
 
 ## Outline
