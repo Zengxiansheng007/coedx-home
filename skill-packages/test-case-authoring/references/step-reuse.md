@@ -86,3 +86,5 @@ independent upstream/downstream case requirements remain unchanged. No extra
 human-maintained expanded draft or human-view file is created; actual downstream
 and XMind-client support still requires separate qualification.
 Reviewed shared data changes create versioned bindings for P0 and continuing consumers. Independent consumers and historical snapshots retain old data. Unchanged generated slots retain current-case values. Subsequent shared and local feedback use the updated bindings.
+
+Shared source history appends a complete prior source snapshot without recursively copying its history field. Existing history entries remain unchanged and traceable.

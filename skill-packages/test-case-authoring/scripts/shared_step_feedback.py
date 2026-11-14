@@ -71,7 +71,8 @@ def apply(batch, plan, blocked):
     batch.setdefault('step_definitions', []).append(new)  # Never overwrite historical definitions.
     if plan['source_present']:
         source = next(c for c in batch['cases'] if c['id'] == new['case_id'])
-        source.setdefault('shared_definition_history', []).append(copy.deepcopy(source))
+        snapshot = copy.deepcopy({key: value for key, value in source.items() if key != 'shared_definition_history'})  # Keep prior content once; existing history remains intact.
+        source.setdefault('shared_definition_history', []).append(snapshot)  # Append a flat, lossless source revision.
         index = next(i for i, s in enumerate(source[new['group']]) if s['id'] == new['step_id'])
         source[new['group']][index] = copy.deepcopy(new['step'])
         source[new['group']][index]['data_refs'] = source_refs  # Source executes the reviewed new values.

@@ -9,3 +9,5 @@
 Agent按语义把通用治理说明放入用例或步骤的 `technical_handoff` 对象，例如 `{"reuse_policy": "每次重新核对授权", "invalidation_action": "失效后重新澄清"}`。原有业务字段保守保留：当日有效、业务复用限制、角色、初始状态、输入与预期留正文，不能凭字段名自动迁移。暂定/未决规则及产品核实要求仍可见。分类不清继续已有澄清流程。
 
 human-view和XMind读取同一候选并分区输出；说明不写入动作和参数。说明节点无可写业务绑定，原样返回无变化，修改说明需明确聊天解释。历史回传只重建已知旧版布局并核对版本与身份。native测试仅验证受支持content.json格式，不等于真实客户端验收。
+
+Referenced steps resolve through the checked shared-step resolver before extracting source locations and technical instructions. The current referencing case, group and ordinal own the projected note.

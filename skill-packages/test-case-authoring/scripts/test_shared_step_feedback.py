@@ -10,6 +10,49 @@ from authoring import _digest
 
 
 class SharedFeedbackTests(unittest.TestCase):
+    def test_three_review_cycles_keep_flat_lossless_history(self):
+        args = shared_design()  # Exercise public extension and confirmed feedback.
+        batch = build_extension(*args, mode='simulation')['batch']
+        source = copy.deepcopy(args[0]['cases'][0])
+        batch['cases'].append(source)
+        batch['selection'].append(dict(case_id=source['id'], action='related', reason='SIMULATED source'))
+        base = batch['initial_copy_baseline']
+        base['cases'].append(copy.deepcopy(source))
+        base['copy_version'] = _digest({k: base[k] for k in ('cases', 'data', 'selection', 'step_definitions')})
+        expected = []  # Preserve each prior complete source exactly once.
+        for index in range(3):
+            current = batch['cases'][-1]
+            expected.append(copy.deepcopy({k: v for k, v in current.items() if k != 'shared_definition_history'}))
+            old = batch['step_definitions'][-1]
+            new = dict(copy.deepcopy(old), title='SIMULATED title ' + str(index))
+            request = dict(explicit_request='SIMULATED formatting', definition_digest=_digest(old), replacement=new)
+            batch = confirm(prepare_feedback(batch, 'chat', actual_reply=request['explicit_request'], shared_change=request))['batch']
+        self.assertEqual(batch['cases'][-1]['shared_definition_history'], expected)  # Linear and lossless.
+
+    def test_referenced_handoff_preserves_current_owner_and_step_scope(self):
+        from p0_evidence import approve_p0_scope
+        from module_handoff import module_notes
+        from scoped_review import _render
+        args = list(shared_design())  # Author identical full source and target instructions before compaction.
+        instruction = '必须重新核对输入约束'
+        args[0]['cases'][0]['steps'][0]['technical_handoff'] = dict(reuse_policy=instruction)
+        for case in args[4]['candidates']:
+            case['steps'][0]['technical_handoff'] = dict(reuse_policy=instruction)
+        args[1] = approve_p0_scope(args[0], 'synthetic-round', ['EDIT', 'LINK'], 'SIMULATED: handoff baseline')
+        args[3]['manual_start']['baseline_id'] = args[1]['id']
+        batch = build_extension(*args, mode='simulation')['batch']
+        self.assertIn('step_reference', batch['cases'][0]['steps'][0])
+        frozen = copy.deepcopy(batch)
+        notes = module_notes(batch)
+        for case in batch['cases']:
+            owner = next(lines for title, lines in notes[tuple(case['module_path'])] if title == case['title'])
+            self.assertTrue(any('测试步骤 1（' in line and instruction in line for line in owner))
+            self.assertTrue(any('测试步骤 1：' in line and '修改须重新核对' in line for line in owner))
+        rendered = _render(batch)
+        self.assertIn(instruction, str(rendered['human_view']))
+        self.assertIn(instruction, rendered['xmind_markdown'])
+        self.assertEqual(batch, frozen)  # Projection never rewrites compact candidates.
+
     def test_changed_data_is_version_bound(self):
         for shown in (False, True):  # Both review projections must preserve data semantics.
             for choice in ('reference', 'independent', 'mixed'):

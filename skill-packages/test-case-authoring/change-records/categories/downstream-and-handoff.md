@@ -50,3 +50,12 @@ Track source semantics and technical handoff changes in this category.
 - Impact: human/tree generated views and unchanged feedback.
 - Validation: 151 tests passed; test-output/rr01-fix/tests.txt.
 - Detail record: ../entries/2026/2026-11/CR-20261115-008-handoff-applicability.md
+
+## CR-20261115-011
+
+- Before: recursive history and lost referenced instructions.
+- After: flat complete snapshots and checked handoff resolution.
+- Why: final standards P2 findings.
+- Impact: candidate-only; existing historical content retained.
+- Validation: public TDD and full regression, external test-output/final-repairs.
+- Detail record: entries/2026/2026-11/CR-20261115-011-final-repairs.md

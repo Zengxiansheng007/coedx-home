@@ -221,3 +221,12 @@ final-inspection.json under the local task evidence root, outside this repositor
 Data feedback materializes current whole-step consumers before binding changes. Baseline 66df0b4; candidate only; regression red then 22 targeted tests passed. Detail: entries/2026/2026-11/CR-20261115-009-data-feedback.md.
 
 CR-20261115-010: Shared data binding repair; entries/2026/2026-11/CR-20261115-010-data-version-binding.md
+
+## CR-20261115-011
+
+- Before: recursive history and lost referenced instructions.
+- After: flat complete snapshots and checked handoff resolution.
+- Why: final standards P2 findings.
+- Impact: candidate-only; existing historical content retained.
+- Validation: public TDD and full regression, external test-output/final-repairs.
+- Detail record: entries/2026/2026-11/CR-20261115-011-final-repairs.md
