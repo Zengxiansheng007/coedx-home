@@ -148,7 +148,10 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
                     label = 'P0 ' + definition['title'] + '，' + group_label + '步骤 ' + str(definition['step_number'])
                     tree.append(indent + f'  - 步骤 {i}：' + _cell(step['operation']))
                     tree.append(indent + '    - 整步引用：' + _cell(label))
-                    human.append(f'| {i} | {_cell(step["operation"])} | 整步引用：{_cell(label)} | 见引用步骤 |')
+                    current_data = [line for ref in step.get('data_refs', []) if data[ref].get('generation_rule') for line in _business_lines(data[ref], batch=reference_batch or batch)]  # Dynamic values belong to this case.
+                    for line in current_data:
+                        tree.append(indent + '    - 本例数据：' + _cell(line))
+                    human.append(f'| {i} | {_cell(step["operation"])} | 整步引用：{_cell(label)}；{_cell("；".join(current_data))} | 见引用步骤 |')
                     continue  # Shared data, expectation and assertion remain maintained in P0.
                 values = [line for ref in step.get('data_refs', [])
                           for line in _business_lines(data[ref], batch=reference_batch or batch)] or ['无']  # Preserve linked business data names.

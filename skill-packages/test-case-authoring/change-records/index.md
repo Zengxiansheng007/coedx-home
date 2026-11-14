@@ -195,3 +195,13 @@ final-inspection.json under the local task evidence root, outside this repositor
 - Impact: human/tree generated views and unchanged feedback.
 - Validation: 151 tests passed; test-output/rr01-fix/tests.txt.
 - Detail record: entries/2026/2026-11/CR-20261115-008-handoff-applicability.md
+# CR-20261115-004 dynamic data
+
+- Section changed: dynamic whole-step contract and current data projection.
+- Before: only fixed bindings could be selected.
+- After: explicit rules allow independent runtime values with full binding checks.
+- Why: issue #116, AC-027.
+- Impact: whole-step resolver and scoped review; no execution authority.
+- Validation: 160 tests passed; corrected fixture fails on baseline.
+- Detail record: entries/2026/2026-11/CR-20261115-004-dynamic-data.md
+

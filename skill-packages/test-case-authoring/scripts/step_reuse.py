@@ -14,9 +14,13 @@ def _business(value):
     return value
 
 
-def signature(step, data):
+def signature(step, data, rules_only=False):
     result = _business({key: value for key, value in step.items() if key != 'data_refs'})  # Preserve unknown business conditions.
     result['data'] = [_business(data[ref]) for ref in step.get('data_refs', [])]  # Object identity alone is insufficient.
+    if rules_only:
+        for item in result['data']:
+            if isinstance(item.get('generation_rule'), str) and item['generation_rule'].strip():
+                item.pop('value', None)  # Only explicit generation rules separate values from semantics.
     return result
 
 
@@ -44,7 +48,8 @@ def select_reuse(catalog, candidates, candidate_data):
             if len(matches) != 1 or len(targets) != 1 or 'step_reference' in matches[0]:
                 raise ValueError('step reference source or target missing/ambiguous')
             source_step, target = matches[0], targets[0]
-            if source_step.get('data_refs', []) != target.get('data_refs', []) or signature(source_step, source_data) != signature(target, target_data):
+            source_refs, target_refs = source_step.get('data_refs', []), target.get('data_refs', [])  # Ordered whole-step bindings.
+            if signature(source_step, source_data, True) != signature(target, target_data, True) or any(a != b and not source_data[a].get('generation_rule') for a, b in zip(source_refs, target_refs)):
                 continue  # Any business difference remains a complete independent step.
             definition = {'case_id': source['id'], 'title': source['title'], 'group': group,
                           'step_id': source_step['id'], 'semantic_version': source['semantic_version'],
@@ -57,7 +62,8 @@ def select_reuse(catalog, candidates, candidate_data):
             target.update(id=assessment['step_id'], step_reference={
                 'definition_digest': digest, 'case_id': source['id'], 'group': group,
                 'step_id': source_step['id'], 'semantic_version': source['semantic_version'],
-                'data_refs': copy.deepcopy(source_step.get('data_refs', [])),
+                'data_refs': copy.deepcopy(target_refs),
+                'data_binding_digest': _digest([target_data[ref] for ref in target_refs]),  # Freeze current case values independently of P0.
                 'context_digest': _digest(case.get('context', {})),
                 'assessment': copy.deepcopy(assessment)})
             selected = True
@@ -77,15 +83,25 @@ def resolve_step(batch, case, group, step):
     if len(matches) != 1:
         raise ValueError('step reference missing or stale: ' + path)
     definition = matches[0]
-    if ref.get('context_digest') != _digest(case.get('context', {})) or ref.get('data_refs') != definition['step'].get('data_refs', []):
+    if ref.get('context_digest') != _digest(case.get('context', {})):
         raise ValueError('step reference applicability or binding changed: ' + path)
     if definition.get('priority') != 'P0' or 'step_reference' in definition['step'] or group != definition['group'] or any(ref.get(key) != definition.get(key) for key in ('case_id', 'group', 'step_id', 'semantic_version')):
         raise ValueError('step reference inapplicable: ' + path)
     data = {item['id']: item for item in batch['data']}
-    if any(data.get(item['id']) != item for item in definition['data']):
+    current_refs = ref.get('data_refs', [])
+    if any(key not in data for key in current_refs):
+        raise ValueError('step reference data missing: ' + path)
+    if ref.get('data_binding_digest'):
+        if ref['data_binding_digest'] != _digest([data[key] for key in current_refs]):
+            raise ValueError('step reference data binding changed: ' + path)
+        bound = dict(definition['step'], data_refs=current_refs)
+        if signature(bound, data, True) != signature(definition['step'], {item['id']: item for item in definition['data']}, True):
+            raise ValueError('step reference data rules changed: ' + path)
+    elif current_refs != definition['step'].get('data_refs', []) or any(data.get(item['id']) != item for item in definition['data']):
         raise ValueError('step reference data changed: ' + path)
     resolved = copy.deepcopy(definition['step'])
     resolved['id'] = step['id']  # Current case order and identity remain authoritative.
+    resolved['data_refs'] = copy.deepcopy(current_refs)  # Bind the complete definition to current case data.
     return resolved, definition
 
 
