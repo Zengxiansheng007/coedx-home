@@ -4,6 +4,7 @@ PROCESS_FIELDS = ('review_status', 'merge_status', 'execution_status')  # Rule i
 
 
 def module_notes(batch):
+    from step_reuse import resolve_step  # Share checked full-step resolution with business projections.
     from scoped_review import _business_lines  # Preserve the shared business-safe leaf projection.
     result = {}  # Complete semantic paths prevent same-name module collisions.
     for case in batch['cases']:
@@ -15,6 +16,7 @@ def module_notes(batch):
             return _business_lines(value, batch=batch) if isinstance(value, dict) else ['执行约束：须读取当前候选的技术交接原文后执行'] if value else []  # Legacy opaque text may embed stable machine identities.
         for group in ('common_preconditions', 'special_preconditions', 'steps', 'special_postconditions'):
             for index, step in enumerate(case.get(group, []), 1):
+                step = resolve_step(batch, case, group, step)[0]  # Preserve current owner, group and ordinal while restoring source instructions.
                 if step.get('source') or step.get('lines'):
                     label = {'recording': '录制资料', 'handwritten': '手写资料', 'prd': '需求资料'}.get(step.get('source'), '候选绑定资料')  # Unknown source identifiers stay internal.
                     location = '—'.join(str(n) for n in step.get('lines', []) if isinstance(n, int))  # Numeric source locations carry no credentials.
