@@ -230,3 +230,5 @@ CR-20261115-010: Shared data binding repair; entries/2026/2026-11/CR-20261115-01
 - Impact: candidate-only; existing historical content retained.
 - Validation: public TDD and full regression, external test-output/final-repairs.
 - Detail record: entries/2026/2026-11/CR-20261115-011-final-repairs.md
+
+CR-20261115-009 record correction: completed required metadata and sections from rr05-fix/results.md (transcribed), merge-tests.txt (168 passed), and merge-repro.txt. Documentation only; no product tests rerun.
