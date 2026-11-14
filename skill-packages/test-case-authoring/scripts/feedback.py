@@ -206,12 +206,19 @@ def _question(qid, cid, field, reason, checks):
 
 def prepare_feedback(batch, channel, *, actual_reply, changes=None, markdown=None,
                      removed_case_ids=None, deletion_decisions=None, source_version=None, case_bindings=None,
-                     clear_changes=False, questions=None):  # Preserve both identity and focused feedback APIs.
+                     clear_changes=False, questions=None, shared_change=None):  # Shared impact uses the same review boundary.
     """Locate proposed changes against first display and later accepted content."""
     _credential_guard([batch, actual_reply, changes, markdown, deletion_decisions, case_bindings])  # Binding replies follow the same credential boundary.
     if not actual_reply or channel not in ('chat', 'markdown'):
         raise ValueError('Actual feedback and supported channel required')
     initial = _initial(batch)
+    shared_plan, shared_ids = None, []
+    if shared_change is not None:
+        from shared_step_feedback import prepare
+        _credential_guard(shared_change)
+        if channel != 'chat' or changes or markdown or removed_case_ids:
+            raise ValueError('Shared source request must be explicit and separate from local edits')
+        shared_plan, shared_ids = prepare(batch, shared_change)
     if source_version is not None and source_version != batch['content_version']:
         raise ValueError('Feedback source version is not current')
     current_source = source_version == batch['content_version']
@@ -266,6 +273,15 @@ def prepare_feedback(batch, channel, *, actual_reply, changes=None, markdown=Non
             q['example'] = 'SIMULATED: exclude this round; keep the existing record active'
             questions.append(q)
     proposal_digest = _digest({'changes': normalized, 'deletions': deletions})
+    if shared_plan:
+        proposal_digest = _digest({'changes': normalized, 'deletions': deletions, 'shared_change': shared_plan})
+        affected.update(shared_ids)
+        for assessment in ([] if shared_plan['formatting_only'] else shared_plan['assessments']):
+            questions.append(_question('shared-' + proposal_digest + '-' + assessment['case_id'], assessment['case_id'],
+                'shared_definition', 'P0 change: ' + repr(shared_plan['replacement']['step']) + '; ' + assessment['disposition'] + ': ' + assessment['reason'], []))
+        if shared_plan['source_present'] and not shared_plan['formatting_only']:
+            questions.append(_question('shared-source-' + proposal_digest, shared_plan['replacement']['case_id'],
+                'shared_definition', 'Review displayed P0 source update: ' + repr(shared_plan['replacement']['step']), []))
     binding_digest = _digest(case_bindings or {})  # Bind identity evidence separately from shared product proposals.
     scope_identity = {'batch_id': batch['id'], 'copy_version': batch['initial_copy_baseline']['copy_version']}
     question_proposal = _digest(dict(scope_identity, proposal=proposal_digest))
@@ -299,7 +315,7 @@ def prepare_feedback(batch, channel, *, actual_reply, changes=None, markdown=Non
         questions.extend(supplied_questions)  # start_grill validates omissions and dependencies.
         affected.update(q['case_id'] for q in supplied_questions if q.get('stale') or not q.get('history'))  # Reopened dependencies also need review.
     return {'batch': copy.deepcopy(batch), 'channel': channel, 'actual_reply': actual_reply,
-            'base_version': batch['content_version'], 'changes': normalized, 'deletions': deletions,
+            'base_version': batch['content_version'], 'changes': normalized, 'deletions': deletions, 'shared_change': shared_plan,
             'affected_case_ids': sorted(affected), 'proposal_digest': proposal_digest,
             'grill': start_grill(batch, questions), 'case_bindings': copy.deepcopy(case_bindings or {}), 'binding_digest': binding_digest}  # Preserve actual identity clarification with the proposal.
 
@@ -317,6 +333,8 @@ def apply_feedback(pending, confirmation, deletion_decisions=None):
     if pending.get('binding_digest') != _digest(pending.get('case_bindings', {})):
         raise ValueError('Identity clarification changed after presentation')
     proposal = {'changes': pending['changes'], 'deletions': pending['deletions']}
+    if pending.get('shared_change'):
+        proposal['shared_change'] = pending['shared_change']
     if pending.get('product_resolution'):
         proposal['product_resolution'] = pending['product_resolution']
         if pending['product_resolution'] != pending['batch'].get('product_reconciliation', {}).get('formal_conclusion'):
@@ -391,6 +409,12 @@ def apply_feedback(pending, confirmation, deletion_decisions=None):
             case['feedback_disposition'] = 'excluded_this_round'
         else:
             case.pop('feedback_disposition', None)
+    if pending.get('shared_change'):
+        from shared_step_feedback import apply as apply_shared
+        applied = apply_shared(batch, pending['shared_change'], blocked)
+        if not applied:
+            affected.difference_update(pending['affected_case_ids'])
+            blocked.update(pending['affected_case_ids'])  # A deferred shared proposal cannot masquerade as applied.
     _validate_content(batch)
     batch['data_version'] = _digest(batch['data'])
     for case in batch['cases']:
@@ -405,6 +429,8 @@ def apply_feedback(pending, confirmation, deletion_decisions=None):
         _apply_rule_decisions(case, decisions, blocked=case['id'] in blocked, product=product)
         case.setdefault('feedback_rule_history', []).extend(copy.deepcopy(decisions))
         case['semantic_version'] = _digest({k: v for k, v in case.items() if k != 'semantic_version'})
+        if pending.get('shared_change') and case['id'] == pending['shared_change']['replacement']['case_id'] and case['id'] not in blocked:
+            case['semantic_version'] = pending['shared_change']['replacement']['semantic_version']  # Source and reviewed definition share the same declared version.
     for check in batch.get('coverage', []):
         from step_reuse import expanded  # Feedback summaries share the exact review resolver.
         linked = [c for c in expanded(batch)['cases'] if c['id'] in check.get('case_ids', [])]
@@ -419,6 +445,8 @@ def apply_feedback(pending, confirmation, deletion_decisions=None):
         'summary': current, 'confirmation': confirmation, 'changes': pending['changes'], 'deletions': pending['deletions']})
     if pending.get('returned_source'):
         batch['feedback_history'][-1]['returned_source'] = copy.deepcopy(pending['returned_source'])
+    if pending.get('shared_change'):
+        batch['feedback_history'][-1]['shared_change'] = copy.deepcopy(pending['shared_change'])
     if pending.get('case_bindings'):  # Empty optional metadata must not change historical semantic versions.
         batch['feedback_history'][-1]['case_bindings'] = copy.deepcopy(pending['case_bindings'])  # Retain actual identity evidence only.
     # Keep enriched original doubts and their actual answer history so the
