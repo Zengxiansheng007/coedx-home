@@ -94,7 +94,7 @@ def _markdown_layout_changes(batch, markdown, case_bindings=None, *, legacy=Fals
                    if key in case for line in _business_lines({key: case[key]}, batch=batch)}  # Resolve only typed reference metadata.
         pending_line = prefix + '最终评审：pending'
         approved_line = prefix + '最终评审：approved'
-        return [approved_line if line == pending_line else line for line in lines if line not in trusted]
+        return [line.replace('最终评审：pending', '最终评审：approved') if line.strip() == '- 最终评审：pending' else line for line in lines if line not in trusted]  # Same trusted status may now appear in generated module instructions.
 
     from aggregation import feedback_topics  # Validate raw identity evidence before trusted metadata normalization.
     raw_topics = feedback_topics('\n'.join(incoming))  # Retain raw returned digests as the identity-evidence baseline.
@@ -115,7 +115,7 @@ def _markdown_layout_changes(batch, markdown, case_bindings=None, *, legacy=Fals
                 raise ValueError('Trusted metadata normalization is ambiguous; clarify')  # Stop when normalization cannot uniquely preserve identity.
             binding['returned_digest'] = topics[0]['returned_digest']  # Same raw topic, only trusted review metadata differs.
         case_bindings = normalized_bindings  # Use normalized digests only for the following structural match.
-    incoming = expand_feedback(initial, '\n'.join(original), '\n'.join(incoming), case_bindings).splitlines()  # Clarified mapping binds edits to the displayed version.
+    incoming = expand_feedback(initial, '\n'.join(original), '\n'.join(incoming), case_bindings, handoff=not legacy).splitlines()  # Historical baseline stays exact; current instructions remain protected.
 
     def blocks(lines):
         headers = []

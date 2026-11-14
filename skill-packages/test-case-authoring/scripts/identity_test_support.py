@@ -7,7 +7,7 @@ def bound_cases(batch, markdown, titles=None):
     result = {}
     for case in batch['cases']:
         title = case['priority'] + ' ' + (titles or {}).get(case['id'], case['title'])  # Fixture reflects the public graded heading.
-        nodes = [n for n in topics if n['path'] == case['module_path'] and n['title'] == title]
+        nodes = [n for n in topics if n['path'] == case['module_path'] and n['title'] in (title, (titles or {}).get(case['id'], case['title']))]  # Frozen old-emitter fixtures remain ungraded.
         if len(nodes) == 1:
             result[case['id']] = dict(nodes[0], source_version=markdown.splitlines()[1][len('- 版本：'):], actual_reply='SIMULATED: explicitly bind this fixture case and its full business path')
     return result

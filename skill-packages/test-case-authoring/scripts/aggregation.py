@@ -37,7 +37,10 @@ def _shape(node):  # Source offsets can combine only when their rendered descend
     return [node['text'], [_shape(child) for child in node['children']]]
 
 
-def projection(batch, markdown):
+def projection(batch, markdown, *, handoff=True):
+    from module_handoff import TITLE, module_notes  # Generated nodes never acquire business edit origins.
+    instructions = module_notes(batch)
+    attached = set()  # Attach exactly once per complete module path.
     lines = markdown.splitlines()
     root = _parse(lines[3:])  # Scoped renderer supplies a stable three-line header.
     merged = {'text': '', 'children': [], 'origins': []}
@@ -54,7 +57,12 @@ def projection(batch, markdown):
             target = node
             source = source['children'][0]  # Flat source has exactly one path branch per case.
         source['case_id'] = case['id']
-        source['text'] = title(case)  # Flat identity remains internal.
+        path = tuple(case['module_path'])  # Parents without direct cases never reach this branch.
+        if handoff and path not in attached:
+            children = [{'text': '说明适用：' + heading, 'children': [{'text': line, 'children': [], 'origins': []} for line in note], 'origins': []} for heading, note in instructions[path]]  # Never impersonate a case title in feedback topic matching.
+            target['children'].append({'text': TITLE, 'children': children, 'origins': []})  # Read-only instructions require clarification when edited.
+            attached.add(path)
+        source['text'] = title(case) if handoff else source['text'][len(case['id']) + 1:]  # Historical layout retains historical ungraded headings.
         common = next(n for n in source['children'] if n['text'] == '公共前置操作')
         if case.get('common_preconditions'):  # Only explicit preparation steps can form a shared group.
             refs = [ref for step in case['common_preconditions'] for ref in step.get('data_refs', [])]  # Referenced data contributes its meaning, not just its ID.
@@ -109,9 +117,9 @@ def feedback_topics(markdown):
     return result
 
 
-def expand_feedback(batch, flat_markdown, incoming, case_bindings=None):
+def expand_feedback(batch, flat_markdown, incoming, case_bindings=None, *, handoff=True):
     """Expand edits through exact baseline bindings before existing feedback review."""
-    header, expected = projection(batch, flat_markdown)
+    header, expected = projection(batch, flat_markdown, handoff=handoff)  # Historical layout must not invent new instructions.
     lines = incoming.splitlines()
     if lines[:3] != header:
         raise ValueError('Markdown header/version must match initial display')
@@ -120,7 +128,7 @@ def expand_feedback(batch, flat_markdown, incoming, case_bindings=None):
         for case in batch['cases']:
             if path == case['module_path'] and node['text'].startswith(case['id'] + ' '):
                 node['legacy_case_id'] = case['id']
-                node['text'] = case['priority'] + ' ' + node['text'][len(case['id']) + 1:]  # Historical explicit identity gains display-only grade.
+                node['text'] = (case['priority'] + ' ' if handoff else '') + node['text'][len(case['id']) + 1:]  # Historical explicit identity gains only the active layout grade.
                 break
         original_title = node['text']
         for child in node['children']:
@@ -174,7 +182,7 @@ def expand_feedback(batch, flat_markdown, incoming, case_bindings=None):
                     old = output[origin + 3]
                     prefix = child['case_id'] + ' ' if child.get('case_id') else ''  # Restore internal identity for the existing scalar mapper.
                     text = found['text']  # Strip only the trusted grade on title feedback.
-                    if child.get('case_id'):
+                    if child.get('case_id') and handoff:
                         grade = next(c['priority'] for c in batch['cases'] if c['id'] == child['case_id']) + ' '
                         if not text.startswith(grade):
                             raise ValueError('Priority changes require explicit chat interpretation')

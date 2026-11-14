@@ -93,6 +93,7 @@ def _rule_lines(case, batch):
 
 
 def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, _expression_baseline=None):  # Probe visibility is bound to its original source.
+    from module_handoff import PROCESS_FIELDS, TITLE, module_notes  # Shared generated instructions for both views.
     tree = ['# 本轮范围副本（非全量）', '- 版本：' + batch['content_version'],
             '- 未展示不表示删除；关联展示不扩大功能验证范围']
     human = []
@@ -114,7 +115,7 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
             human.append(key + '：' + _cell(value))
         excluded_rules = () if _legacy_feedback else RULE_FIELDS  # Reconstruct only the known pre-repair audit layout for feedback probes.
         metadata = {key: value for key, value in case.items()
-                    if key not in (*GROUPS, *excluded_rules, 'id', 'title', 'module_path', 'common_preconditions_note')}  # Preserve original insertion order for historical scalar offsets.
+                    if key not in (*GROUPS, *excluded_rules, *(() if _legacy_feedback else PROCESS_FIELDS), 'id', 'title', 'module_path', 'common_preconditions_note')}  # Keep process detail outside business actions.
         for line in _business_lines(metadata, batch=reference_batch or batch):  # Derived reference names are not editable scalar fields.
             tree.append(indent + '- ' + _cell(line))
             human.append(_cell(line))
@@ -171,6 +172,11 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
                 tree.append(indent + '- 待核对：' + pending)  # Same unresolved meaning in both formats.
                 human.append('待核对：' + pending)  # Legacy human callers retain clarification reasons.
     from aggregation import aggregate  # Share the lossless directory projection.
+    if not _legacy_feedback:  # Legacy return reconstruction retains historical layout.
+        for path, notes in module_notes(batch).items():
+            human.extend(['', '## ' + TITLE, '模块：' + ' / '.join(path)])  # Instructions are separate from complete case tables.
+            for heading, lines in notes:
+                human.extend(['说明适用：' + heading, *lines])  # Case headings remain reserved for actual business cases.
     markdown = '\n'.join(tree) + '\n'  # Retain scalar-source offsets for feedback.
     return {'batch': copy.deepcopy(batch), 'human_view': '\n'.join(human) + '\n',
             'xmind_markdown': markdown if flat else aggregate(batch, markdown)}
