@@ -82,7 +82,7 @@ class ReviewFixTests(unittest.TestCase):
         first = confirm(prepare_feedback(original['batch'], 'chat', actual_reply='SIMULATED A to B',
             changes=[dict(collection='cases', id='EDIT', path=['title'], value='B')]))
         for channel in ('markdown', 'chat'):
-            kwargs = (dict(markdown=first['xmind_markdown'].replace('- B\n', '- C\n'))
+            kwargs = (dict(markdown=first['xmind_markdown'].replace('- P0 B\n', '- P0 C\n'))
                       if channel == 'markdown' else dict(changes=[dict(collection='cases', id='EDIT',
                           path=['title'], value='C', before='B')], source_version=first['batch']['content_version']))
             if channel == 'markdown':

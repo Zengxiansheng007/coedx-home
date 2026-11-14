@@ -12,7 +12,8 @@ directly in chat. Keep candidate/Q&A records; human-view tables have no file art
 
 Before display, rename, same-name feedback or Markdown/native return, read
 [the presentation identity contract](references/presentation-identity.md).
-Use Chinese business titles and retain P0/P1/P2. Keep stable IDs internal; ask
+Use titles `P0 中文用例名`, `P1 中文用例名`, `P2 中文用例名` with one space. Read
+[expectation expression](references/review-expression.md) before presenting repeated checks. Keep stable IDs internal; ask
 about business role, state, path and intended change when identity is unclear.
 Users never maintain IDs or subtree hashes. Both views use one candidate version.
 
