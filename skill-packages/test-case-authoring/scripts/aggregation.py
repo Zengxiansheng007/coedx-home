@@ -3,6 +3,7 @@ import copy
 import json
 import hashlib
 from presentation import case_name  # Resolve generated applicability identities only.
+from review_expression import title  # Grade is presentation, not stored Chinese name.
 
 
 def _semantic(value):
@@ -61,7 +62,7 @@ def projection(batch, markdown, *, handoff=True):
             children = [{'text': '说明适用：' + heading, 'children': [{'text': line, 'children': [], 'origins': []} for line in note], 'origins': []} for heading, note in instructions[path]]  # Never impersonate a case title in feedback topic matching.
             target['children'].append({'text': TITLE, 'children': children, 'origins': []})  # Read-only instructions require clarification when edited.
             attached.add(path)
-        source['text'] = source['text'][len(case['id']) + 1:]  # The flat source alone retains the English identity prefix.
+        source['text'] = title(case) if handoff else source['text'][len(case['id']) + 1:]  # Historical layout retains historical ungraded headings.
         common = next(n for n in source['children'] if n['text'] == '公共前置操作')
         if case.get('common_preconditions'):  # Only explicit preparation steps can form a shared group.
             refs = [ref for step in case['common_preconditions'] for ref in step.get('data_refs', [])]  # Referenced data contributes its meaning, not just its ID.
@@ -127,7 +128,7 @@ def expand_feedback(batch, flat_markdown, incoming, case_bindings=None, *, hando
         for case in batch['cases']:
             if path == case['module_path'] and node['text'].startswith(case['id'] + ' '):
                 node['legacy_case_id'] = case['id']
-                node['text'] = node['text'][len(case['id']) + 1:]
+                node['text'] = (case['priority'] + ' ' if handoff else '') + node['text'][len(case['id']) + 1:]  # Historical explicit identity gains only the active layout grade.
                 break
         original_title = node['text']
         for child in node['children']:
@@ -180,7 +181,13 @@ def expand_feedback(batch, flat_markdown, incoming, case_bindings=None, *, hando
                 for origin in child['origins']:
                     old = output[origin + 3]
                     prefix = child['case_id'] + ' ' if child.get('case_id') else ''  # Restore internal identity for the existing scalar mapper.
-                    output[origin + 3] = old[:len(old) - len(old.lstrip())] + '- ' + prefix + found['text']
+                    text = found['text']  # Strip only the trusted grade on title feedback.
+                    if child.get('case_id') and handoff:
+                        grade = next(c['priority'] for c in batch['cases'] if c['id'] == child['case_id']) + ' '
+                        if not text.startswith(grade):
+                            raise ValueError('Priority changes require explicit chat interpretation')
+                        text = text[len(grade):]  # Never persist presentation prefix into the name.
+                    output[origin + 3] = old[:len(old) - len(old.lstrip())] + '- ' + prefix + text
             match(child, found)
         if remaining:
             raise ValueError('Unknown Markdown identity or structure')

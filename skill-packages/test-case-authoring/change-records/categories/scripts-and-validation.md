@@ -224,3 +224,14 @@ final-inspection.json under the local task evidence root, outside this repositor
 - Impact: scoped, ordinary and chat views; supported markdown/native feedback.
 - Validation: public red/green; 149 synthetic regressions passed; real client unverified.
 - Detail record: [CR-20261114-001](../entries/2026/2026-11/CR-20261114-001-module-handoff.md).
+
+
+### CR-20261114-002 - Review expression
+
+- Section changed: graded review titles and repeated expectations.
+- Before: ungraded titles and repeated expected/check text.
+- After: one-space graded titles, exact deduplication, stable source feedback.
+- Why: issue 114.
+- Impact: same-version total/scoped/chat views.
+- Validation: public-entry TDD and regression; external test-output/rr02.
+- Detail record: [CR-20261114-002](../entries/2026/2026-11/CR-20261114-002-review-expression.md)

@@ -146,7 +146,7 @@ def _markdown_layout_changes(batch, markdown, case_bindings=None, *, legacy=Fals
                 probe = copy.deepcopy(initial)
                 marker = 'TCAFEEDBACKLEAFMARKER'
                 _set(probe[collection][index], path, marker)
-                rendered = blocks(_render(probe, flat=True, reference_batch=initial, _legacy_feedback=legacy)['xmind_markdown'].splitlines())  # Probe the same layout; protected audit rows never become leaves.
+                rendered = blocks(_render(probe, flat=True, reference_batch=initial, _legacy_feedback=legacy, _expression_baseline=initial)['xmind_markdown'].splitlines())  # Bind duplicate visibility to the original source, not the probe marker.
                 for cid, lines in rendered.items():
                     for line_index, line in enumerate(lines):
                         if marker in line:

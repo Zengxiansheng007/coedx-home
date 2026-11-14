@@ -6,6 +6,7 @@ from pathlib import Path
 import sys
 
 from authoring import _credential_guard, _digest, _cell
+from review_expression import title, unique_checks  # Shared conservative display policy.
 
 
 GROUPS = ('common_preconditions', 'special_preconditions', 'steps', 'special_postconditions')
@@ -91,7 +92,7 @@ def _rule_lines(case, batch):
     return lines  # Source dictionaries remain untouched.
 
 
-def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False):  # Private compatibility layout is never a new display default.
+def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, _expression_baseline=None):  # Probe visibility is bound to its original source.
     from module_handoff import PROCESS_FIELDS, TITLE, module_notes  # Shared generated instructions for both views.
     tree = ['# 本轮范围副本（非全量）', '- 版本：' + batch['content_version'],
             '- 未展示不表示删除；关联展示不扩大功能验证范围']
@@ -105,7 +106,7 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False):
             indent += '  '
         tree.append(indent + '- ' + _cell(case['id'] + ' ' + case.get('title', '待核对')))
         indent += '  '
-        human.extend(['# ' + _cell(case.get('title', '待核对')),
+        human.extend(['# ' + _cell(title(case)),
                       '版本：' + batch['content_version'], '模块：' + ' / '.join(map(_cell, case['module_path']))])
         note = selection[case['id']]
         for key, value in [('入选用途', note['action'] + '：' + note['reason']),
@@ -148,6 +149,15 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False):
                 values.extend(business_conditions)
                 expected = _business_lines(step.get('expected', []), batch=reference_batch or batch) or ['待核对']  # Same source reference context.
                 checks = _business_lines(step.get('verification', []), batch=reference_batch or batch) or ['待核对']  # Same source reference context.
+                if not _legacy_feedback:  # Probe mutations must not change which source leaves are visible.
+                    if _expression_baseline is None:
+                        checks = unique_checks(expected, checks)  # Exact duplicates only.
+                    else:
+                        original_case = next(c for c in _expression_baseline['cases'] if c['id'] == case['id'])
+                        original_step = original_case[group][i - 1]  # Stable source sequence, not incoming node order.
+                        original_expected = _business_lines(original_step.get('expected', []), batch=_expression_baseline) or ['待核对']
+                        original_checks = _business_lines(original_step.get('verification', []), batch=_expression_baseline) or ['待核对']
+                        checks = [check for index, check in enumerate(checks) if original_checks[index] not in original_expected and original_checks[index] not in original_checks[:index]]  # Preserve baseline visibility during scalar probes.
                 operation = step.get('operation', '待核对')
                 if definition:
                     operation += '（引用：' + definition['title'] + '，步骤 ' + str(definition['step_number']) + '）'
@@ -155,8 +165,10 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False):
                 tree.extend(indent + '      - ' + _cell(v) for v in values)
                 tree.append(indent + '    - 预期')
                 tree.extend(indent + '      - ' + _cell(v) for v in expected)
-                tree.append(indent + '      - 验证点：' + _cell('；'.join(checks)))
-                human.append(f'| {i} | {_cell(operation)} | {_cell("；".join(values))} | 预期：{_cell("；".join(expected))}；验证点：{_cell("；".join(checks))} |')
+                if checks:  # No empty duplicate assertion node.
+                    tree.append(indent + '      - 验证点：' + _cell('；'.join(checks)))
+                check_text = '；验证点：' + _cell('；'.join(checks)) if checks else ''  # Same visible meaning in chat.
+                human.append(f'| {i} | {_cell(operation)} | {_cell("；".join(values))} | 预期：{_cell("；".join(expected))}{check_text} |')
         human.append('')  # End the final table before pending questions or the next case.
         for question in batch['questions']:
             if question['case_id'] == case['id'] and (not question.get('history') or question.get('stale')):  # Preserve history but display only unanswered or invalidated questions.
