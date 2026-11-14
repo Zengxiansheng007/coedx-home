@@ -1,5 +1,7 @@
 # scripts-and-validation Change Ledger
 
+- [CR-20261115-007](../entries/2026/2026-11/CR-20261115-007-handoff-revalidation.md): checkpoint/resume current qualification, exact active closure and stale-decision regressions.
+
 - [CR-20261115-006](../entries/2026/2026-11/CR-20261115-006-shared-feedback.md): exact shared-source impact in existing feedback review.
 
 ## Purpose
@@ -246,7 +248,7 @@ final-inspection.json under the local task evidence root, outside this repositor
 - Impact: existing complete candidates remain valid; execution dependencies and permissions unchanged.
 - Validation: public authoring, difference, corruption, review, feedback, selection and merge tests; client acceptance remains unverified.
 - Detail record: ../entries/2026/2026-11/CR-20261115-003-step-reuse.md
- 
+
 ### CR-20261115-008 - Handoff applicability
 
 - Section changed: step technical instructions and contract.

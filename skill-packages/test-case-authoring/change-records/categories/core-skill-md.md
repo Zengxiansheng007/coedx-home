@@ -185,4 +185,3 @@ final-inspection.json under the local task evidence root, outside this repositor
 - Impact: source snapshots and unrelated cases remain unchanged; existing review gates apply.
 - Validation: 162 tests passed; external test-output/rr05/tests.txt; actual client not tested.
 - Detail record: entries/2026/2026-11/CR-20261115-005-local-feedback.md
-
