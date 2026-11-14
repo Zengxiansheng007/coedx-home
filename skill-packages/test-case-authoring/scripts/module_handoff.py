@@ -19,7 +19,9 @@ def module_notes(batch):
                     label = {'recording': '录制资料', 'handwritten': '手写资料', 'prd': '需求资料'}.get(step.get('source'), '候选绑定资料')  # Unknown source identifiers stay internal.
                     location = '—'.join(str(n) for n in step.get('lines', []) if isinstance(n, int))  # Numeric source locations carry no credentials.
                     lines.append({'common_preconditions': '公共前置操作', 'special_preconditions': '特殊前置操作', 'steps': '测试步骤', 'special_postconditions': '特殊后置操作'}[group] + ' ' + str(index) + '：' + label + ('，行 ' + location if location else '；定位见当前候选') + '；修改须重新核对')  # Same-version candidate retains complete original provenance.
-                lines.extend(handoff(step.get('technical_handoff', {})))  # Explicit semantic classification, never infer from validity.
+                operation = _business_lines(step.get('operation', '待核对操作'), batch=batch)  # Render only the business operation, without internal step identity.
+                scope = {'common_preconditions': '公共前置操作', 'special_preconditions': '特殊前置操作', 'steps': '测试步骤', 'special_postconditions': '特殊后置操作'}[group] + ' ' + str(index) + '（' + '；'.join(line.removeprefix('操作：') for line in operation) + '）'  # Group and ordinal bind even sourceless steps.
+                lines.extend(scope + '：' + note for note in dict.fromkeys(handoff(step.get('technical_handoff', {}))))  # Deduplicate only inside the same step scope.
         lines.extend(handoff(case.get('technical_handoff', {})))  # General reuse and invalidation instructions live here.
         notes.append((heading, list(dict.fromkeys(lines))))  # Deduplicate instructions only within their applicability.
     return result

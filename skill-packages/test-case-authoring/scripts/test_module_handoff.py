@@ -12,6 +12,26 @@ from test_aggregation import synthetic_scope
 
 
 class ModuleHandoffTests(unittest.TestCase):
+    def test_sourceless_handoffs_remain_bound_to_each_operation(self):
+        for policies in [('重新核对授权', '重新核对授权'), ('重新核对授权', '失效后停止')]:  # Equal and different policies both retain applicability.
+            batch = synthetic_scope()['batch']
+            case = batch['cases'][0]
+            for step, operation, policy in zip(case['steps'][:2], ('打开模拟资料', '保存模拟资料'), policies):
+                step.pop('source', None)
+                step.pop('lines', None)
+                step['operation'] = operation
+                step['technical_handoff'] = {'reuse_policy': policy}
+                step['validity'] = '当日有效'
+            before = copy.deepcopy(batch)
+            shown = render_batch(batch)
+            for view in ('human_view', 'xmind_markdown'):
+                for index, operation, policy in zip((1, 2), ('打开模拟资料', '保存模拟资料'), policies):
+                    self.assertTrue(any('测试步骤 ' + str(index) + '（' + operation + '）' in line and policy in line for line in shown[view].splitlines()))
+                self.assertIn('当日有效', shown[view])
+            pending = prepare_feedback(batch, 'markdown', markdown=shown['xmind_markdown'], actual_reply='SIMULATED unchanged')
+            self.assertEqual(pending['changes'], [])
+            self.assertEqual(batch, before)
+
     def test_module_notes_keep_business_conditions_and_roundtrip(self):
         batch = synthetic_scope()['batch']  # Existing scoped public input.
         first, second = batch['cases']  # Parent and child both own cases.

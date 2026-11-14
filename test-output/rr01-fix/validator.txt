@@ -1,0 +1,68 @@
+{
+  "skillRoot": "D:\\reference\\tca-review-reuse-20261114\\worktrees\\rr01-fix\\skill-packages\\test-case-authoring",
+  "frontmatter": {
+    "name": "test-case-authoring",
+    "description": "Turn a supplied Playwright recording or complete handwritten P0 and optional PRD into source-traced cases; clarify a candidate batch through independent questions, rule decisions, summary confirmation and final review. Select complete related cases for scoped review; receive chat, edited Markdown or native XMind feedback against its initial baseline. Reconcile P0 reports and missing core cases before user-started P1/P2; design independent boundary cases, human-check coverage and user-selected extra combinations. Reconcile final product rules with provisional results and user-decided reuse or affected-case review and retest suggestions. Generate business review views and XMind Markdown before execution. Apply user-started approved P1/P2 deltas to isolated full catalogs."
+  },
+  "summary": {
+    "P0": 3,
+    "P1": 3,
+    "P2": 1
+  },
+  "status": "rejected",
+  "acceptance": {
+    "authority": "trusted-host-only",
+    "verified": false
+  },
+  "findings": [
+    {
+      "severity": "P2",
+      "rule": "description-trigger-wording",
+      "file": "D:\\reference\\tca-review-reuse-20261114\\worktrees\\rr01-fix\\skill-packages\\test-case-authoring\\SKILL.md",
+      "message": "description lacks explicit trigger wording.",
+      "fix": "Add 'Use when...' style trigger phrases."
+    },
+    {
+      "severity": "P1",
+      "rule": "validation-section-missing",
+      "file": "D:\\reference\\tca-review-reuse-20261114\\worktrees\\rr01-fix\\skill-packages\\test-case-authoring\\SKILL.md",
+      "message": "Validation section is missing.",
+      "fix": "Add commands or checks proving the skill works."
+    },
+    {
+      "severity": "P1",
+      "rule": "safety-section-missing",
+      "file": "D:\\reference\\tca-review-reuse-20261114\\worktrees\\rr01-fix\\skill-packages\\test-case-authoring\\SKILL.md",
+      "message": "Safety or escalation section is missing.",
+      "fix": "Document approval and refusal conditions."
+    },
+    {
+      "severity": "P0",
+      "rule": "secret-pattern",
+      "file": "scripts/test_authoring.py",
+      "message": "Potential secret or credential pattern detected.",
+      "fix": "Remove secret and rotate if real."
+    },
+    {
+      "severity": "P0",
+      "rule": "secret-pattern",
+      "file": "scripts/test_clarification.py",
+      "message": "Potential secret or credential pattern detected.",
+      "fix": "Remove secret and rotate if real."
+    },
+    {
+      "severity": "P0",
+      "rule": "secret-pattern",
+      "file": "scripts/test_handwritten.py",
+      "message": "Potential secret or credential pattern detected.",
+      "fix": "Remove secret and rotate if real."
+    },
+    {
+      "severity": "P1",
+      "rule": "resource-missing",
+      "file": "D:\\reference\\tca-review-reuse-20261114\\worktrees\\rr01-fix\\skill-packages\\test-case-authoring\\SKILL.md",
+      "message": "Referenced resource is missing: scripts/authoring.py --recording sanitized-recording.ts --interpretation interpretation.json",
+      "fix": "Create it or update the path."
+    }
+  ]
+}
