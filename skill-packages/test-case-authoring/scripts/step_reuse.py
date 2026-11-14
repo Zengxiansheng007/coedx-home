@@ -28,6 +28,8 @@ def select_reuse(catalog, candidates, candidate_data):
     target_data = dict(source_data, **{item['id']: item for item in candidate_data})
     definitions = {}  # One technical definition per exact P0 step version.
     for case in cases:
+        target_digest = _digest({group: [signature(step, target_data) for step in case.get(group, [])] for group in GROUPS})  # Capture the authored order and endpoint.
+        selected = False
         for assessment in case.pop('reuse_assessments', []):
             group = assessment['group']
             if group not in GROUPS or case.get('priority') not in ('P1', 'P2'):
@@ -55,7 +57,12 @@ def select_reuse(catalog, candidates, candidate_data):
             target.update(id=assessment['step_id'], step_reference={
                 'definition_digest': digest, 'case_id': source['id'], 'group': group,
                 'step_id': source_step['id'], 'semantic_version': source['semantic_version'],
+                'data_refs': copy.deepcopy(source_step.get('data_refs', [])),
+                'context_digest': _digest(case.get('context', {})),
                 'assessment': copy.deepcopy(assessment)})
+            selected = True
+        if selected:
+            case['reuse_target_digest'] = target_digest  # Technical proof, not another maintained draft.
     return cases, list(definitions.values())
 
 
@@ -70,6 +77,8 @@ def resolve_step(batch, case, group, step):
     if len(matches) != 1:
         raise ValueError('step reference missing or stale: ' + path)
     definition = matches[0]
+    if ref.get('context_digest') != _digest(case.get('context', {})) or ref.get('data_refs') != definition['step'].get('data_refs', []):
+        raise ValueError('step reference applicability or binding changed: ' + path)
     if definition.get('priority') != 'P0' or 'step_reference' in definition['step'] or group != definition['group'] or any(ref.get(key) != definition.get(key) for key in ('case_id', 'group', 'step_id', 'semantic_version')):
         raise ValueError('step reference inapplicable: ' + path)
     data = {item['id']: item for item in batch['data']}
@@ -83,9 +92,16 @@ def resolve_step(batch, case, group, step):
 def expanded(batch):
     result = copy.deepcopy(batch)
     for case in result['cases']:
+        if any('step_reference' in step for group in GROUPS for step in case.get(group, [])) and not case.get('reuse_target_digest'):
+            raise ValueError('step reference target verification missing: ' + case['id'])
         for group in GROUPS:
             if group in case:
                 case[group] = [resolve_step(batch, case, group, step)[0] for step in case[group]]
+        if case.get('reuse_target_digest'):
+            data = {item['id']: item for item in result['data']}
+            current = _digest({group: [signature(step, data) for step in case.get(group, [])] for group in GROUPS})
+            if current != case['reuse_target_digest']:
+                raise ValueError('step reference target sequence or endpoint changed: ' + case['id'])
     return result
 
 

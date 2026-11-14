@@ -31,3 +31,12 @@ Track source semantics and technical handoff changes in this category.
 - Impact: scoped, ordinary and chat views; supported markdown/native feedback.
 - Validation: public red/green; 149 synthetic regressions passed; real client unverified.
 - Detail record: [CR-20261114-001](../entries/2026/2026-11/CR-20261114-001-module-handoff.md).
+## CR-20261115-003 — Whole-step P0 reuse
+
+- Section changed: static P1/P2 authoring, dependency snapshots, review and isolated merge.
+- Before: every step required duplicated complete fields.
+- After: assessed complete source designs may become version-bound whole-step references; one resolver verifies order, fixed data and endpoint.
+- Why: #115 / AC-026 and AC-028.
+- Impact: existing complete candidates remain valid; execution dependencies and permissions unchanged.
+- Validation: public authoring, difference, corruption, review, feedback, selection and merge tests; client acceptance remains unverified.
+- Detail record: ../entries/2026/2026-11/CR-20261115-003-step-reuse.md

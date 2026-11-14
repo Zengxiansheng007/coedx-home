@@ -5,6 +5,11 @@ description: Turn a supplied Playwright recording or complete handwritten P0 and
 
 # P0 authoring and batch clarification
 
+Before selecting P0 steps for P1/P2 reuse or reviewing a compact reference batch,
+read [whole-step reuse](references/step-reuse.md). Supply complete source-based
+target steps and explicit four-part applicability/endpoint assessments; use the
+shared resolver before review. Missing or stale references return to clarification.
+
 Before any delivery or regenerated review, read [chat delivery](references/chat-delivery.md).
 Deliver the same-version XMind scope copy. For an explicitly needed selection of
 1–9 complete cases, call `presentation.render_chat` and show its returned text

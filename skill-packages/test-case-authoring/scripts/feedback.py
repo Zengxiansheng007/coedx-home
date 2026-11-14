@@ -40,7 +40,7 @@ def _initial(batch):
     if batch.get('kind') != 'scoped_review_copy':
         raise ValueError('Scoped review baseline required')
     base = batch['initial_copy_baseline']
-    if _digest({k: base[k] for k in ('cases', 'data', 'selection')}) != base['copy_version']:
+    if _digest({k: base[k] for k in ('cases', 'data', 'selection', *(['step_definitions'] if 'step_definitions' in base else []))}) != base['copy_version']:
         raise ValueError('Initial displayed baseline changed')
     result = copy.deepcopy(batch)
     if 'step_definitions' in base:
@@ -143,6 +143,8 @@ def _markdown_layout_changes(batch, markdown, case_bindings=None, *, legacy=Fals
     for collection in ('cases', 'data'):
         for index, item in enumerate(initial[collection]):
             for path in _leaves(item):
+                if 'step_reference' in path:
+                    continue  # Derived source labels and version bindings are never editable scalars.
                 probe = copy.deepcopy(initial)
                 marker = 'TCAFEEDBACKLEAFMARKER'
                 _set(probe[collection][index], path, marker)
@@ -386,7 +388,8 @@ def apply_feedback(pending, confirmation, deletion_decisions=None):
         case.setdefault('feedback_rule_history', []).extend(copy.deepcopy(decisions))
         case['semantic_version'] = _digest({k: v for k, v in case.items() if k != 'semantic_version'})
     for check in batch.get('coverage', []):
-        linked = [c for c in batch['cases'] if c['id'] in check.get('case_ids', [])]
+        from step_reuse import expanded  # Feedback summaries share the exact review resolver.
+        linked = [c for c in expanded(batch)['cases'] if c['id'] in check.get('case_ids', [])]
         if not any(c['id'] in affected for c in linked):
             continue
         check.setdefault('history', []).append({k: copy.deepcopy(v) for k, v in check.items() if k != 'history'})
