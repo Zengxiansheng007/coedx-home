@@ -44,4 +44,4 @@ Synthetic inputs only; no business execution, formal catalog mutation, global in
 
 ## Risks And Follow-up
 
-Client AC remains blocked. Complete multi-turn semantic rehearsal and final integrated regression are tracked honestly in external report; unverified items are not passed. This change is candidate implementation, not whole-ticket acceptance.
+Client AC remains blocked. Actual multi-turn synthetic rehearsal completed through same-file questions, local modification, explicit shared P0 change, old-evidence rejection, explicitly authorized synthetic requalification, final review and checkpoint/resume. External handoff-result.json reports no conflicts, same content version and both cases not_run. Permission/display fixture gaps remain unresolved. This change is candidate implementation, not whole-ticket acceptance; the client requirement and real downstream compatibility remain unverified.
