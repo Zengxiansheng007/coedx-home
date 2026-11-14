@@ -1,5 +1,26 @@
 # P0 whole-step reference contract
 
+## Explicit shared-source changes
+
+Use `prepare_feedback(..., shared_change=...)` only for an actual request to change P0.
+Supply `explicit_request`, exact `definition_digest`, a complete versioned
+`replacement` definition, and `assessments` for each actual referencing case.
+Each assessment contains `case_id`, `disposition` (`reference` or `independent`),
+and a concrete `reason`. Independent keeps the old complete step; further changes
+to that case use normal local feedback. The existing questions, summary agreement,
+and complete-case review remain authoritative, with no second approval system.
+Any deferred impacted owner retains the entire old shared proposal. Missing or
+incompatible identity/data bindings fail with a specific diagnostic and return to
+the existing clarification flow. No guessed bindings or partial inheritance.
+
+The new definition is appended after summary agreement, preserving historical
+definitions, initial displayed content and feedback evidence. A displayed exact
+P0 source is updated in the same operation and retains its previous content.
+An absent source is not invented: only its exact frozen definition is maintained.
+Presentation-only definition title changes update the projection without adding
+business questions or resetting business approval. Actual XMind client behavior
+and real downstream execution are outside this helper's evidence.
+
 At P1/P2 authoring, first write the complete target sequence from supplied source
 materials. Independently compare each proposed P0 step for operation, data
 business conditions, expected results and verification. Explain applicability to

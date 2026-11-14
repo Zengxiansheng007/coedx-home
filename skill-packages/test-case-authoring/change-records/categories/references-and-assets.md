@@ -1,5 +1,7 @@
 # references-and-assets Change Ledger
 
+- [CR-20261115-006](../entries/2026/2026-11/CR-20261115-006-shared-feedback.md): exact shared-source impact in existing feedback review.
+
 ## Purpose
 
 Trace rule Q&A changes in references-and-assets.
