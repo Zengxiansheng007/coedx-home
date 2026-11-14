@@ -165,3 +165,12 @@ final-inspection.json under the local task evidence root, outside this repositor
 - Impact: same-version total/scoped/chat views.
 - Validation: public-entry TDD and regression; external test-output/rr02.
 - Detail record: [CR-20261114-002](../entries/2026/2026-11/CR-20261114-002-review-expression.md)
+## CR-20261115-003 — Whole-step P0 reuse
+
+- Section changed: static P1/P2 authoring, dependency snapshots, review and isolated merge.
+- Before: every step required duplicated complete fields.
+- After: assessed complete source designs may become version-bound whole-step references; one resolver verifies order, fixed data and endpoint.
+- Why: #115 / AC-026 and AC-028.
+- Impact: existing complete candidates remain valid; execution dependencies and permissions unchanged.
+- Validation: public authoring, difference, corruption, review, feedback, selection and merge tests; client acceptance remains unverified.
+- Detail record: ../entries/2026/2026-11/CR-20261115-003-step-reuse.md

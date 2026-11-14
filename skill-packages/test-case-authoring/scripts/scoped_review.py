@@ -12,7 +12,7 @@ from review_expression import title, unique_checks  # Shared conservative displa
 GROUPS = ('common_preconditions', 'special_preconditions', 'steps', 'special_postconditions')
 
 
-TECHNICAL_FIELDS = frozenset(('id', 'source', 'lines', 'basis', 'provenance',
+TECHNICAL_FIELDS = frozenset(('reuse_target_digest', 'reuse_assessments', 'id', 'source', 'lines', 'basis', 'provenance',
     'semantic_version', 'data_version', 'assertion_id', 'assertion_ids', 'operator',
     'build_fingerprint', 'sha256', 'content_hash', 'summary_id', 'content_version', 'technical_handoff', 'rule_id', 'question_id'))  # Stable technical identities remain internal, including historical rule references.
 BUSINESS_LABELS = {
@@ -93,6 +93,9 @@ def _rule_lines(case, batch):
 
 
 def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, _expression_baseline=None):  # Probe visibility is bound to its original source.
+    if _expression_baseline is None:
+        from step_reuse import expanded  # Verify order and endpoint before compact display.
+        expanded(batch)
     from module_handoff import PROCESS_FIELDS, TITLE, module_notes  # Shared generated instructions for both views.
     tree = ['# 本轮范围副本（非全量）', '- 版本：' + batch['content_version'],
             '- 未展示不表示删除；关联展示不扩大功能验证范围']
@@ -137,6 +140,16 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
             if case.get(group):  # Notes precede the header; empty groups need no phantom table.
                 human.extend(['', '| 序号 | 操作 | 参数/数据 | 预期结果 |', '| --- | --- | --- | --- |'])  # Actual table boundary.
             for i, step in enumerate(case.get(group, []), 1):
+                from step_reuse import resolve_step  # One resolver for every displayed step.
+                owner = next((c for c in (_expression_baseline or batch)['cases'] if c['id'] == case['id']), case)  # Feedback probes cannot mutate reference applicability.
+                step, definition = resolve_step(reference_batch or batch, owner, group, step)
+                if definition:
+                    group_label = dict(zip(GROUPS, ('公共前置操作', '特殊前置操作', '测试步骤', '特殊后置操作')))[group]
+                    label = 'P0 ' + definition['title'] + '，' + group_label + '步骤 ' + str(definition['step_number'])
+                    tree.append(indent + f'  - 步骤 {i}：' + _cell(step['operation']))
+                    tree.append(indent + '    - 整步引用：' + _cell(label))
+                    human.append(f'| {i} | {_cell(step["operation"])} | 整步引用：{_cell(label)} | 见引用步骤 |')
+                    continue  # Shared data, expectation and assertion remain maintained in P0.
                 values = [line for ref in step.get('data_refs', [])
                           for line in _business_lines(data[ref], batch=reference_batch or batch)] or ['无']  # Preserve linked business data names.
                 extensions = {k: v for k, v in step.items()
@@ -212,7 +225,8 @@ def _differences(before, after, path=''):
 
 
 def _references(case):
-    return {ref for group in GROUPS for step in case.get(group, [])
+    from step_reuse import reference_data  # Fixed bindings are data references, not execution dependencies.
+    return reference_data(case) | {ref for group in GROUPS for step in case.get(group, [])
             for ref in step.get('data_refs', [])}
 
 
@@ -225,6 +239,8 @@ def build_scoped_review(catalog, batch_id, selection, approved_validation_scope=
     if not catalog.get('source_ref') or not catalog.get('content_version') or not batch_id:
         raise ValueError('Catalog identity and version required')
     full = copy.deepcopy(catalog)
+    from step_reuse import expanded  # Validate complete dependencies before selection loses context.
+    expanded(full)
     indexed = {c['id']: c for c in full['cases']}
     if len(indexed) != len(full['cases']):
         raise ValueError('Duplicate case identity')
@@ -308,6 +324,8 @@ def build_scoped_review(catalog, batch_id, selection, approved_validation_scope=
                 questions.append({'case_id': case['id'], 'field': 'context/' + key, 'reason': '源记录缺失，待核对'})
         for group in GROUPS:
             for i, step in enumerate(case.get(group, [])):
+                from step_reuse import resolve_step  # Scope completeness checks the actual inherited step.
+                step, _ = resolve_step(dict(full, data=data), case, group, step)
                 for key in ('operation', 'data_refs', 'expected', 'verification'):
                     if key not in step or (key != 'data_refs' and not step[key]):
                         questions.append({'case_id': case['id'], 'field': f'{group}/{i}/{key}', 'reason': '源记录缺失，待核对'})
@@ -316,6 +334,11 @@ def build_scoped_review(catalog, batch_id, selection, approved_validation_scope=
              'initial_copy_baseline': baseline, 'selection': copy.deepcopy(selection),
              'approved_validation_scope': scope, 'cases': selected, 'data': data, 'questions': questions}
     batch['data_version'] = _digest(data)
+    if full.get('step_definitions'):
+        used = {s['step_reference']['definition_digest'] for c in selected for g in GROUPS for s in c.get(g, []) if 'step_reference' in s}
+        batch['step_definitions'] = [copy.deepcopy(d) for d in full['step_definitions'] if _digest(d) in used]
+        baseline['step_definitions'] = copy.deepcopy(batch['step_definitions'])
+        baseline['copy_version'] = _digest({key: baseline[key] for key in ('cases', 'data', 'selection', 'step_definitions')})
     batch['content_version'] = _digest(batch)
     result = _render(batch)
     result['changes'] = changes

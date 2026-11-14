@@ -46,6 +46,8 @@ def _apply_delta(current, data, candidates, candidate_data, selected, actions, i
 def merge_reviewed(catalog, batch, instruction, *, target_kind):
     """Return a new full target and per-case results without mutating inputs."""
     _credential_guard([catalog, batch, instruction])
+    from step_reuse import expanded  # Reject missing dependencies before any isolated mutation.
+    resolved = expanded(batch)
     if target_kind != 'isolated' or catalog.get('kind') != 'authoring_full_catalog' or catalog.get('schema_version') != 1:
         raise ValueError('Only isolated authoring_full_catalog v1 is supported')
     if batch.get('kind') != 'scoped_review_copy' or batch.get('schema_version') != 1:
@@ -114,10 +116,10 @@ def merge_reviewed(catalog, batch, instruction, *, target_kind):
         else:
             validation = copy.deepcopy(c)
             try:
-                _validate_content(dict(cases=[validation], data=batch['data']))
+                _validate_content(dict(batch, cases=[validation]))
                 if any(not s.get('expected') or not s.get('verification')
                        for key in ('steps', 'common_preconditions', 'special_preconditions', 'special_postconditions')
-                       for s in c.get(key, [])):
+                       for s in next(item for item in resolved['cases'] if item['id'] == cid).get(key, [])):
                     reasons[cid] = 'incomplete_candidate'
             except (ValueError, KeyError, TypeError):
                 reasons[cid] = 'incomplete_candidate'
@@ -203,6 +205,10 @@ def merge_reviewed(catalog, batch, instruction, *, target_kind):
         instruction, [cid for cid in requested if cid not in reasons])
     target['cases'] = list(current.values())
     target['data'] = list(data.values())
+    if batch.get('step_definitions'):
+        definitions = {_digest(d): d for d in target.get('step_definitions', []) + batch['step_definitions']}
+        used = {s['step_reference']['definition_digest'] for c in target['cases'] for g in ('steps', 'common_preconditions', 'special_preconditions', 'special_postconditions') for s in c.get(g, []) if 'step_reference' in s}
+        target['step_definitions'] = [copy.deepcopy(definitions[key]) for key in used]
     if any(r['status'] == 'applied' for r in results):
         target['content_version'] = _digest({k: v for k, v in target.items() if k != 'content_version'})
     for cid in candidates:
