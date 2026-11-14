@@ -247,3 +247,4 @@ final-inspection.json under the local task evidence root, outside this repositor
 - Validation: 162 tests passed; external test-output/rr05/tests.txt; actual client not tested.
 - Detail record: entries/2026/2026-11/CR-20261115-005-local-feedback.md
 
+CR-20261115-010: Document versioned source bindings and historical retention. Detail: ../entries/2026/2026-11/CR-20261115-010-data-version-binding.md

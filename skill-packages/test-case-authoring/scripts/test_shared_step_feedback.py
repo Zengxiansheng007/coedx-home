@@ -10,6 +10,51 @@ from authoring import _digest
 
 
 class SharedFeedbackTests(unittest.TestCase):
+    def test_changed_data_is_version_bound(self):
+        for shown in (False, True):  # Both review projections must preserve data semantics.
+            for choice in ('reference', 'independent', 'mixed'):
+                with self.subTest(shown=shown, choice=choice):
+                    args = shared_design()
+                    batch = build_extension(*args, mode='simulation')['batch']
+                    if shown:
+                        source = copy.deepcopy(args[0]['cases'][0])
+                        batch['cases'].append(source)
+                        batch['selection'].append(dict(case_id=source['id'], action='related', reason='SIMULATED source'))
+                        base = batch['initial_copy_baseline']
+                        base['cases'].append(copy.deepcopy(source))
+                        base['copy_version'] = _digest({k: base[k] for k in ('cases', 'data', 'selection', 'step_definitions')})
+                    old = copy.deepcopy(batch)
+                    new = copy.deepcopy(batch['step_definitions'][0])
+                    new['data'][0]['value'] = 'SIMULATED revised input'
+                    new['data'][0]['generation_rule'] = 'SIMULATED revised generation rule'
+                    extra = dict(copy.deepcopy(new['data'][0]), id='extra-input', value='SIMULATED second input')
+                    new['data'].append(extra)
+                    new['step']['data_refs'].append(extra['id'])
+                    new['semantic_version'] = 'synthetic-data-v2'
+                    request = dict(explicit_request='SIMULATED change shared input', definition_digest=_digest(batch['step_definitions'][0]), replacement=new,
+                        assessments=[dict(case_id=c, disposition=('reference' if c == 'LOW' else 'independent') if choice == 'mixed' else choice, reason='SIMULATED assessed') for c in ('LOW', 'HIGH')])
+                    updated = confirm(prepare_feedback(batch, 'chat', actual_reply=request['explicit_request'], shared_change=request))['batch']
+                    rendered = expanded(updated)
+                    data = {d['id']: d for d in rendered['data']}
+                    for case in rendered['cases']:
+                        changed = case['priority'] == 'P0' or choice == 'reference' or (choice == 'mixed' and case['id'] == 'LOW')
+                        expected = 'SIMULATED revised input' if changed else 'Sample notice'
+                        self.assertEqual(data[case['steps'][0]['data_refs'][0]]['value'], expected)
+                        if changed:
+                            self.assertEqual(data[case['steps'][0]['data_refs'][1]]['value'], 'SIMULATED second input')
+                            self.assertEqual(data[case['steps'][0]['data_refs'][0]]['generation_rule'], 'SIMULATED revised generation rule')
+                    self.assertIn(old['step_definitions'][0], updated['step_definitions'])
+                    self.assertTrue(all(d in updated['data'] for d in old['data']))
+                    self.assertEqual(batch, old)
+                    followup = copy.deepcopy(new)
+                    followup['title'] = 'SIMULATED next title'
+                    again = dict(explicit_request='SIMULATED formatting', definition_digest=_digest(new), replacement=followup)
+                    confirm(prepare_feedback(updated, 'chat', actual_reply=again['explicit_request'], shared_change=again))  # Versioned source IDs remain maintainable.
+                    local = prepare_feedback(updated, 'chat', actual_reply='SIMULATED local action', changes=[dict(collection='cases', id='LOW', path=['steps', 0, 'operation'], value='SIMULATED local only')])
+                    local_result = confirm(local)['batch']
+                    self.assertEqual(local_result['step_definitions'], updated['step_definitions'])
+                    self.assertEqual(local_result['cases'][1], updated['cases'][1])
+
     def test_reviewed_source_change_preserves_history_and_independent_case(self):
         args = shared_design()
         other = copy.deepcopy(args[4]['candidates'][1])

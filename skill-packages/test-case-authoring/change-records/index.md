@@ -220,3 +220,4 @@ final-inspection.json under the local task evidence root, outside this repositor
 
 Data feedback materializes current whole-step consumers before binding changes. Baseline 66df0b4; candidate only; regression red then 22 targeted tests passed. Detail: entries/2026/2026-11/CR-20261115-009-data-feedback.md.
 
+CR-20261115-010: Shared data binding repair; entries/2026/2026-11/CR-20261115-010-data-version-binding.md
