@@ -18,6 +18,46 @@ def reuse_design():
 
 
 class StepReuseTests(unittest.TestCase):
+    def test_conflicting_current_data_is_not_silently_selected(self):
+        args = reuse_design()  # Conflicting authored values must return to source clarification.
+        item = copy.deepcopy(args[0]['data'][0])
+        args[4]['candidate_data'] = [item, dict(item, value='contradictory value')]
+        with self.assertRaisesRegex(ValueError, 'Duplicate candidate data identity'):
+            build_extension(*args, mode='simulation')
+
+    def test_dynamic_values_bind_current_case(self):
+        from step_reuse import expanded  # Public reconstruction of the authored batch.
+        args = list(reuse_design())  # Start with full source and target designs.
+        source = args[0]['data'][0]
+        source['generation_rule'] = 'unique title per case, maximum 20 characters'
+        from p0_evidence import approve_p0_scope
+        args[1] = approve_p0_scope(args[0], 'synthetic-round', ['EDIT', 'LINK'], 'SIMULATED: approve dynamic baseline')
+        args[3]['manual_start']['baseline_id'] = args[1]['id']
+        for index, case in enumerate(args[4]['candidates']):
+            item = copy.deepcopy(source)
+            item.update(id='current-' + str(index), value='Current ' + str(index))
+            args[4]['candidate_data'].append(item)
+            case['steps'][0]['data_refs'] = [item['id']]
+            case['reuse_assessments'] = copy.deepcopy(args[4]['candidates'][0]['reuse_assessments'])
+        result = build_extension(*args, mode='simulation')
+        self.assertTrue(all('step_reference' in case['steps'][0] for case in result['batch']['cases']))
+        restored = expanded(result['batch'])
+        self.assertEqual([case['steps'][0]['data_refs'] for case in restored['cases']], [['current-0'], ['current-1']])
+        self.assertIn('Current 0', result['xmind_markdown'])
+        self.assertIn('Current 1', result['xmind_markdown'])
+        for field in ('validity', 'object_ref'):
+            conflicting = copy.deepcopy(args)
+            conflicting[4]['candidate_data'][1][field] = 'different business condition'
+            output = build_extension(*conflicting, mode='simulation')
+            self.assertNotIn('step_reference', output['batch']['cases'][1]['steps'][0])
+        tampered = copy.deepcopy(result['batch'])
+        next(item for item in tampered['data'] if item['id'] == 'current-1')['value'] = 'neighbor value'
+        with self.assertRaisesRegex(ValueError, 'binding changed'):
+            render_extension(tampered)
+        args[4]['candidate_data'][1]['generation_rule'] = 'exactly 20 characters'
+        changed = build_extension(*args, mode='simulation')
+        self.assertNotIn('step_reference', changed['batch']['cases'][1]['steps'][0])
+
     def test_missing_stale_inapplicable_and_override_references_block(self):
         base = build_extension(*reuse_design(), mode='simulation')['batch']
         for failure in ('missing', 'version', 'group', 'override', 'context', 'data'):

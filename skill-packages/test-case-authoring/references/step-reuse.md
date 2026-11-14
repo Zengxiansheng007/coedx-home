@@ -1,7 +1,7 @@
 # P0 whole-step reference contract
 
 At P1/P2 authoring, first write the complete target sequence from supplied source
-materials. Independently compare each proposed P0 step for operation, fixed-data
+materials. Independently compare each proposed P0 step for operation, data
 business conditions, expected results and verification. Explain applicability to
 the current role/state and identify the target's final assertion. A matching
 string or an `equal=true` flag is not a semantic judgment.
@@ -14,16 +14,27 @@ steps and still enforces the P0 entry gate. No assessment means independent
 complete authoring. Any detected business difference keeps the entire step
 inline; partial inheritance and reference-plus-overrides are rejected.
 
-The fixed-data implementation conservatively requires identical data bindings
-and all business conditions. Different identifiers remain independent even if
-their values happen to match. Dynamic generation and value rebinding are outside
-this static contract. Source addresses and assertion IDs alone do not establish
+Fixed data requires identical bindings and business conditions. For dynamic data,
+put an explicit nonempty `generation_rule` string on each source and current data
+object. Keep constraints in that rule or existing business fields. Only `value`
+may differ; `object_ref`, validity, target requirements and all other business
+conditions must match. Different current data IDs bind each case independently.
+Do not embed concrete runtime values in operation/assertion prose: use the current
+data object. A changed target (for example exactly 20 characters), object relation,
+or validity keeps the entire step inline. Resolve contradictory source/target
+requirements through existing clarification before offering a complete design;
+duplicate candidate data identities are rejected rather than silently selected.
+The program cannot detect contradictions inside arbitrary natural-language rules.
+Source addresses and assertion IDs alone do not establish
 business equivalence. The deterministic comparison is a consistency check of
 the agent's source-based decision, not natural-language semantic reasoning.
 
 The candidate stores `id + step_reference` exclusively. The reference binds P0
 identity, group, step identity, semantic version, definition digest, data and
-context. Batch `step_definitions` contains version-pinned technical dependencies,
+context. `data_binding_digest` freezes the ordered current data objects, and the
+whole-target digest preserves their values through reconstruction. Dynamic current
+values remain visible in the concise review beside the P0 reference. Batch
+`step_definitions` contains version-pinned technical dependencies,
 including fixed data and the original Chinese title/step number. These are
 immutable recovery snapshots, not independently editable business definitions.
 The initial display baseline binds the same dependencies. Scope copies and
