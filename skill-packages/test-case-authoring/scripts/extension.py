@@ -11,6 +11,8 @@ from scoped_review import build_scoped_review, GROUPS, _render
 
 
 def _coverage(batch):
+    from step_reuse import expanded  # Coverage always evaluates complete resolved claims.
+    batch = expanded(batch)  # Invalid definitions fail before completeness can be reported.
     design = batch['extension_design']
     cases = {c['id']: c for c in batch['cases']}
     entries = design['coverage']
@@ -148,6 +150,18 @@ def build_extension(catalog, baseline, reports, entry_request, design, mode='pro
     result = build_scoped_review(catalog, design['batch_id'], selections, candidates=candidates,
                                  candidate_data=design['candidate_data'])
     batch = result['batch']
+    from step_reuse import select_reuse  # Selection follows complete source-design validation.
+    reused, definitions = select_reuse(catalog, candidates, design['candidate_data'])
+    by_id = {case['id']: case for case in reused}
+    if definitions:  # Preserve old complete-candidate representation when reuse is absent.
+        for case in batch['cases']:
+            if case['id'] in by_id:
+                for group in GROUPS:
+                    if group in by_id[case['id']]:
+                        case[group] = by_id[case['id']][group]
+                case.pop('reuse_assessments', None)
+        batch['step_definitions'] = definitions
+        batch['initial_copy_baseline']['step_definitions'] = copy.deepcopy(definitions)
     data = {d['id']: d for d in batch['data']}
     for item in data.values():
         if not all(item.get(k) for k in ('object_ref', 'validity', 'reuse_policy', 'invalidation_action')):

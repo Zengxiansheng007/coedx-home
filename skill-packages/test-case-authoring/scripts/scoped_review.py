@@ -136,6 +136,8 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False):
             if case.get(group):  # Notes precede the header; empty groups need no phantom table.
                 human.extend(['', '| 序号 | 操作 | 参数/数据 | 预期结果 |', '| --- | --- | --- | --- |'])  # Actual table boundary.
             for i, step in enumerate(case.get(group, []), 1):
+                from step_reuse import resolve_step  # One resolver for every displayed step.
+                step, definition = resolve_step(reference_batch or batch, case, group, step)
                 values = [line for ref in step.get('data_refs', [])
                           for line in _business_lines(data[ref], batch=reference_batch or batch)] or ['无']  # Preserve linked business data names.
                 extensions = {k: v for k, v in step.items()
@@ -147,6 +149,8 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False):
                 expected = _business_lines(step.get('expected', []), batch=reference_batch or batch) or ['待核对']  # Same source reference context.
                 checks = _business_lines(step.get('verification', []), batch=reference_batch or batch) or ['待核对']  # Same source reference context.
                 operation = step.get('operation', '待核对')
+                if definition:
+                    operation += '（引用：' + definition['title'] + '，步骤 ' + str(definition['step_number']) + '）'
                 tree.extend([indent + f'  - 步骤 {i}：' + _cell(operation), indent + '    - 参数/数据'])
                 tree.extend(indent + '      - ' + _cell(v) for v in values)
                 tree.append(indent + '    - 预期')

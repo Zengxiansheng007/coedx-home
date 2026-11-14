@@ -43,6 +43,8 @@ def _initial(batch):
     if _digest({k: base[k] for k in ('cases', 'data', 'selection')}) != base['copy_version']:
         raise ValueError('Initial displayed baseline changed')
     result = copy.deepcopy(batch)
+    if 'step_definitions' in base:
+        result['step_definitions'] = copy.deepcopy(base['step_definitions'])  # Restore the original display dependency snapshot.
     for key in ('cases', 'data', 'selection'):
         result[key] = copy.deepcopy(base[key])
     # The original generated version is captured when feedback is first read.
