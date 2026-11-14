@@ -42,7 +42,7 @@ Track source semantics and technical handoff changes in this category.
 - Impact: existing complete candidates remain valid; execution dependencies and permissions unchanged.
 - Validation: public authoring, difference, corruption, review, feedback, selection and merge tests; client acceptance remains unverified.
 - Detail record: ../entries/2026/2026-11/CR-20261115-003-step-reuse.md
- 
+
 ### CR-20261115-008 - Handoff applicability
 
 - Section changed: step technical instructions and contract.
