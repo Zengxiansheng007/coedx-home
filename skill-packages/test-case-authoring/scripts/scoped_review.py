@@ -193,7 +193,7 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
                 human.append('待核对：' + pending)  # Legacy human callers retain clarification reasons.
     from aggregation import aggregate  # Share the lossless directory projection.
     if not _legacy_feedback:  # Legacy return reconstruction retains historical layout.
-        for path, notes in module_notes(batch).items():
+        for path, notes in module_notes(_expression_baseline or batch).items():  # Feedback markers cannot rewrite immutable module instructions.
             human.extend(['', '## ' + TITLE, '模块：' + ' / '.join(path)])  # Instructions are separate from complete case tables.
             for heading, lines in notes:
                 human.extend(['说明适用：' + heading, *lines])  # Case headings remain reserved for actual business cases.

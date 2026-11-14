@@ -36,3 +36,5 @@ Synthetic inputs only. Diff contains no credentials or private business data. No
 
 ## Risks And Follow-up
 Independent review and merge pending; no actual XMind client qualification. Existing nested historical entries preserved rather than rewritten.
+
+Follow-up: initial full regression exposed four feedback-probe errors. scoped_review now uses its existing expression baseline for immutable module instructions; internal marker probes are not candidate sources. See regression-final.txt. Skill structural validator remains nonzero on inherited records (including CR-009); no CR-011 findings.
