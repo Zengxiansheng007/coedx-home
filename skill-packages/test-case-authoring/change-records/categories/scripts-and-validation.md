@@ -275,3 +275,7 @@ final-inspection.json under the local task evidence root, outside this repositor
 - Validation: 162 tests passed; external test-output/rr05/tests.txt; actual client not tested.
 - Detail record: entries/2026/2026-11/CR-20261115-005-local-feedback.md
 
+# CR-20261115-009
+
+Before: shared data edits failed frozen-binding checks. After: precise current consumers materialize full steps and refresh target digests; P0 snapshots stay frozen. Why: #117 / AC-030. Validation: reproduced failure and 22 passing targeted tests; dynamic isolation added. Detail: ../entries/2026/2026-11/CR-20261115-009-data-feedback.md.
+

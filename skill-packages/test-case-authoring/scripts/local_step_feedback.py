@@ -10,6 +10,21 @@ def materialize(batch, case, path):
             case[path[0]][path[1]] = resolve_step(batch, case, path[0], step)[0]  # Retain current data bindings.
 
 
+def materialize_data(batch, data_id):
+    consumers = []  # Only actual current bindings own this edit, never frozen definitions.
+    for case in batch['cases']:
+        touched = False
+        for group in GROUPS:
+            for index, step in enumerate(case.get(group, [])):
+                binding = step.get('step_reference', step)
+                if data_id in binding.get('data_refs', []):
+                    materialize(batch, case, [group, index, 'data_refs'])  # Resolve before data changes.
+                    touched = True
+        if touched:
+            consumers.append(case)
+    return consumers
+
+
 def refresh(batch, case):
     if case.get('reuse_target_digest'):  # Rebind only after agreed local edits; source versions stay frozen.
         data = {item['id']: item for item in batch['data']}

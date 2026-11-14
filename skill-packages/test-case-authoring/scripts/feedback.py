@@ -369,10 +369,13 @@ def apply_feedback(pending, confirmation, deletion_decisions=None):
         if consumers & blocked:
             continue
         target = next(v for v in batch[change['collection']] if v['id'] == change['id'])
-        from local_step_feedback import materialize, refresh  # Copies never touch shared definitions.
+        from local_step_feedback import materialize, materialize_data, refresh  # Copies never touch shared definitions.
+        data_consumers = materialize_data(batch, change['id']) if change['collection'] == 'data' else []
         if change['collection'] == 'cases':
             materialize(batch, target, change['path'])  # Persist a full step, never a field override.
         _set(target, change['path'], change['value'])
+        for consumer in data_consumers:
+            refresh(batch, consumer)  # Bind complete revised steps without rewriting source snapshots.
         parent = _get(target, change['path'][:-1])
         if isinstance(parent, dict) and 'source' in parent:
             parent['source'] = 'user_decision'
@@ -384,9 +387,13 @@ def apply_feedback(pending, confirmation, deletion_decisions=None):
             for update in decision['reply'].get('updates', []):  # Only declared question targets passed respond.
                 from local_step_feedback import materialize, refresh  # Actual answers use the same local copy rule.
                 path = update['path']
+                from local_step_feedback import materialize_data
+                data_consumers = materialize_data(batch, batch['data'][path[1]]['id']) if len(path) > 2 and path[0] == 'data' else []
                 if len(path) > 2 and path[0] == 'cases':
                     materialize(batch, batch['cases'][path[1]], path[2:])
                 _patch(batch, update)  # Candidate-only update with existing protected-field guards.
+                for consumer in data_consumers:
+                    refresh(batch, consumer)
                 if len(path) > 2 and path[0] == 'cases':
                     refresh(batch, batch['cases'][path[1]])
                 affected.add(decision['case_id'])  # Complete revised case must return to review.
