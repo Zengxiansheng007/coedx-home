@@ -1,5 +1,7 @@
 # references-and-assets Change Ledger
 
+- [CR-20261115-007](../entries/2026/2026-11/CR-20261115-007-handoff-revalidation.md): document current evidence input and receiver recovery conflicts.
+
 - [CR-20261115-006](../entries/2026/2026-11/CR-20261115-006-shared-feedback.md): exact shared-source impact in existing feedback review.
 
 ## Purpose

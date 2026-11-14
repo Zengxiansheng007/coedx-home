@@ -2,6 +2,8 @@
 
 ## Latest Changes
 
+- [CR-20261115-007](entries/2026/2026-11/CR-20261115-007-handoff-revalidation.md): same-version complete recovery and current qualified dependency checks; client acceptance blocked.
+
 - [CR-20261115-006](entries/2026/2026-11/CR-20261115-006-shared-feedback.md): P0 shared definition impact review and historical preservation.
 
 - 2026-11-12 CR-20261111-110 repair: prior-stage question IDs are reserved at feedback admission while current-stage answer history remains valid. Public red/green, 7 recovery and 137 full tests pass; actual QA108/109 replay remains compatible. Inherited seven scanner findings remain; independent repair review and combined actual behavior are pending. See [repair detail](entries/2026/2026-11/CR-20261111-110-cross-stage-recovery.md).

@@ -72,12 +72,43 @@ def read_notes(path):  # Report selection resumes from the same authoritative MD
     return copy.deepcopy([event for event in _load(Path(path)) if event['action'] in ('record_note', 'record_context')])  # Disposable source projection, not a second answer file.
 
 
-def checkpoint_record(path, stage, candidate_path, sources, next_step):  # Save recovery metadata inside the existing sole MD.
+def _handoff_meaning(batch, extension_evidence=None):  # Same reconstruction at outgoing and incoming boundaries.
+    from step_reuse import expanded  # Existing complete sequence and binding validation.
+    complete = expanded(batch)  # Never trust an earlier successful expansion.
+    if 'extension_entry' in batch:  # P1/P2 retains the original full P0 qualification boundary.
+        if not extension_evidence:
+            raise ValueError('P0 current evidence file required for extension handoff')  # A cached entry is not current evidence.
+        envelope = json.loads(Path(extension_evidence).read_text(encoding='utf-8-sig'))  # Re-read actual supplied artifacts.
+        from p0_evidence import check_extension  # Reuse established qualification without another approval flow.
+        entry = check_extension(**envelope)  # Current catalog, baseline, reports, request and explicit mode.
+        if not entry['can_extend']:
+            raise ValueError('P0 handoff blocked: ' + ', '.join(entry['blockers']))  # Unresolved and invalid dependencies remain visible.
+        catalog = envelope['catalog']  # Bind fixed definitions to the currently qualified sources.
+        cases = {case['id']: case for case in catalog['cases']}  # Stable identity, never Chinese display labels.
+        qualified = {case['case_id'] for case in entry['cases'] if case['execution_status'] == 'passed'}  # Only this approved round supplies qualification.
+        data = {item['id']: item for item in catalog['data']}  # Current source values as well as rules.
+        from authoring import _digest  # Existing fixed-definition identity.
+        from step_reuse import GROUPS  # Exact supported sequence groups.
+        active = {step['step_reference']['definition_digest'] for case in batch['cases'] for group in GROUPS for step in case.get(group, []) if 'step_reference' in step}  # Historical definitions are retained but not active dependencies.
+        for definition in batch.get('step_definitions', []):  # Reject valid but unrelated or superseded P0 evidence.
+            if _digest(definition) not in active:
+                continue  # Unused history never blocks a current independent step.
+            if definition['case_id'] not in qualified:
+                raise ValueError('P0 definition outside qualified scope: ' + definition['case_id'])  # Unrelated passed P0 cannot qualify an active source.
+            source = cases.get(definition['case_id'], {})  # Missing sources remain a blocker.
+            steps = [step for step in source.get(definition['group'], []) if step['id'] == definition['step_id']]  # Exact step identity.
+            if source.get('semantic_version') != definition['semantic_version'] or steps != [definition['step']] or any(data.get(item['id']) != item for item in definition['data']):
+                raise ValueError('P0 definition differs from current qualified source: ' + definition['case_id'])  # Historical closure cannot replace current validity.
+    return complete  # Transient only; no maintained expanded file.
+
+
+def checkpoint_record(path, stage, candidate_path, sources, next_step, *, extension_evidence=None):  # Save recovery metadata inside the existing sole MD.
     state = read_record(path)  # Never checkpoint a caller's cached answers.
     candidate_path = Path(candidate_path).resolve()  # Stable actual artifact location.
     candidate = json.loads(candidate_path.read_text(encoding='utf-8-sig'))  # Inspect the supplied candidate itself.
     if candidate != state['batch']:  # Version equality alone cannot establish matching content.
         raise ValueError('Candidate differs from Q&A projection; reconcile affected content first')  # No automatic overwrite.
+    _handoff_meaning(candidate, extension_evidence)  # Complete meaning and current entry evidence before recording.
     if stage not in ('p0', 'report', 'p1-p2', 'review') or not next_step or not sources:  # TCA stages, not another workflow.
         raise ValueError('Recovery needs a TCA stage, actual sources and next action')  # No empty handoff.
     known = {q['id'] for stage_state in state.get('prior_stages', []) + [state] for q in stage_state['questions']}  # Source dependencies retain permanent IDs across stages.
@@ -89,6 +120,10 @@ def checkpoint_record(path, stage, candidate_path, sources, next_step):  # Save 
             raise ValueError('Unknown source question binding')  # Keep the prior checkpoint intact.
         bindings.append(dict(path=str(source_path), sha256=hashlib.sha256(source_path.read_bytes()).hexdigest(), question_ids=ids))  # Actual byte identity.
     recovery = dict(stage=stage, candidate_path=str(candidate_path), sources=bindings, next_step=next_step, content_version=candidate['content_version'])  # Technical recovery location only.
+    recovery['event_count'] = state['qa_record']['event_count']  # Bind actual decisions as well as candidate bytes.
+    if extension_evidence is not None:  # Carry exact evidence location and bytes to the receiver.
+        evidence_path = Path(extension_evidence).resolve()  # No hidden chat dependency.
+        recovery['extension_evidence'] = dict(path=str(evidence_path), sha256=hashlib.sha256(evidence_path.read_bytes()).hexdigest())  # Same artifact version.
     display = '恢复位置：' + stage + '\n候选：' + str(candidate_path) + '\n下一步：' + next_step  # Human-readable stage chapter.
     return advance_record(path, 'record_context', dict(display=display, basis=[b['path'] for b in bindings], recovery=recovery))  # Reuse atomic save/read-back.
 
@@ -101,6 +136,9 @@ def resume_record(path):  # Fresh context reads actual MD, candidate and require
         return dict(state=state, recovery=None, conflicts=[], needs_checkpoint=True)  # Agent must inspect actual candidate/sources before advancing.
     recovery = copy.deepcopy(checkpoints[-1])  # Latest saved recovery location only.
     conflicts = []  # Report affected differences without mutating either source.
+    checkpoint_index = max(i for i, event in enumerate(events) if event['action'] == 'record_context' and 'recovery' in event['payload'])  # Derive position for legacy checkpoints too.
+    if recovery.get('event_count', checkpoint_index) != checkpoint_index or recovery['content_version'] != state['batch']['content_version'] or any(event['action'] not in ('record_context', 'record_note') for event in events[checkpoint_index + 1:]):
+        conflicts.append(dict(kind='checkpoint', reason='Checkpoint predates current decisions or candidate; save a current checkpoint'))  # Notes alone remain compatible.
     candidate_path = Path(recovery['candidate_path'])  # Read the actual candidate from the handoff.
     try:  # Missing files are evidence gaps, never success.
         candidate = json.loads(candidate_path.read_text(encoding='utf-8-sig'))  # Do not trust a stored version label.
@@ -115,7 +153,17 @@ def resume_record(path):  # Fresh context reads actual MD, candidate and require
             changed = True  # Agent reports the gap and its dependent work.
         if changed:  # Unrelated source bindings stay valid.
             conflicts.append(dict(kind='source', path=source['path'], question_ids=source['question_ids'], reason='Source changed or unavailable'))  # No inferred business answer.
-    return dict(state=state, recovery=recovery, conflicts=conflicts, needs_checkpoint=False)  # Read-only diagnostic; Agent resolves actual meaning.
+    complete = None  # Conflicted material never yields a usable complete projection.
+    try:  # Revalidate even when the saved checkpoint had succeeded.
+        evidence = recovery.get('extension_evidence')  # Legacy extension checkpoints require fresh evidence.
+        if evidence and hashlib.sha256(Path(evidence['path']).read_bytes()).hexdigest() != evidence['sha256']:
+            raise ValueError('P0 evidence changed since checkpoint')  # Reconcile exact source version first.
+        resolved = _handoff_meaning(state['batch'], evidence['path'] if evidence else None)  # Same outgoing validation logic.
+        if not conflicts:
+            complete = resolved  # Only a coherent same-version restoration is exposed.
+    except (OSError, ValueError, KeyError, TypeError) as error:  # Report missing or invalid material without inventing content.
+        conflicts.append(dict(kind='handoff', reason=str(error)))  # Preserve a concrete actionable failure.
+    return dict(state=state, recovery=recovery, conflicts=conflicts, needs_checkpoint=False, complete_batch=complete)  # Read-only transient reconstruction.
 
 
 def start_record(path, task_id, batch, questions):  # Save complete questions before exposing chat.

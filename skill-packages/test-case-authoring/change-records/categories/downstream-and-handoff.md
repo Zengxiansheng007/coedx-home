@@ -1,5 +1,7 @@
 # downstream-and-handoff Change Ledger
 
+- [CR-20261115-007](../entries/2026/2026-11/CR-20261115-007-handoff-revalidation.md): restore transient complete meaning using actual same-version evidence; no downstream execution claim.
+
 ## Purpose
 
 Track source semantics and technical handoff changes in this category.

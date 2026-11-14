@@ -1,5 +1,7 @@
 # scripts-and-validation Change Ledger
 
+- [CR-20261115-007](../entries/2026/2026-11/CR-20261115-007-handoff-revalidation.md): checkpoint/resume current qualification, exact active closure and stale-decision regressions.
+
 - [CR-20261115-006](../entries/2026/2026-11/CR-20261115-006-shared-feedback.md): exact shared-source impact in existing feedback review.
 
 ## Purpose
