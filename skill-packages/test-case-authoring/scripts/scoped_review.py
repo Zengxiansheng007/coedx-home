@@ -143,6 +143,10 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
                 from step_reuse import resolve_step  # One resolver for every displayed step.
                 owner = next((c for c in (_expression_baseline or batch)['cases'] if c['id'] == case['id']), case)  # Feedback probes cannot mutate reference applicability.
                 step, definition = resolve_step(reference_batch or batch, owner, group, step)
+                if _expression_baseline is not None and not definition:  # Preserve compact layout for a materialized feedback probe.
+                    original = owner.get(group, [])[i - 1]
+                    if 'step_reference' in original:
+                        _, definition = resolve_step(_expression_baseline, owner, group, original)  # Only visible action is mapped; source label stays immutable.
                 if definition:
                     group_label = dict(zip(GROUPS, ('公共前置操作', '特殊前置操作', '测试步骤', '特殊后置操作')))[group]
                     label = 'P0 ' + definition['title'] + '，' + group_label + '步骤 ' + str(definition['step_number'])

@@ -142,6 +142,11 @@ formats and pending formal ui-test mapping explicitly.
 
 ## Receive chat or edited Markdown feedback
 
+For referenced P1/P2 steps, default feedback to the current case only. Read
+[the step reference contract](references/step-reuse.md): agreed business edits
+materialize a complete local step; never edit shared snapshots or retain partial
+overrides. Unknown rules still require actual clarification and final review.
+
 For an actual native `.xmind` return, read [the native feedback adapter](references/xmind-feedback-contract.md)
 and read the file with its public entry before continuing this same review gate.
 If it reports pending verification, retain the input and resolve the identity or

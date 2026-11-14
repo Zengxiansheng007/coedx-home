@@ -7,7 +7,7 @@ from clarification import start_grill, summarize, review, _validate_content, _ap
 from scoped_review import _render, _references, _business_lines, GROUPS, TECHNICAL_FIELDS
 
 
-PROTECTED = TECHNICAL_FIELDS | frozenset(('module_path', 'data_refs', 'credential_ref',
+PROTECTED = TECHNICAL_FIELDS | frozenset(('step_reference', 'module_path', 'data_refs', 'credential_ref',
     'review_status', 'rule_status', 'merge_status', 'execution_status', 'final_review',
     'review_history', 'rule_decisions', 'active_rule_decisions', 'rule_decision_history',
     'feedback_rule_history', 'supplied_content_confirmation'))
@@ -140,13 +140,17 @@ def _markdown_layout_changes(batch, markdown, case_bindings=None, *, legacy=Fals
     before, after = blocks(original), blocks(incoming)
     changes, missing = [], list(before.keys() - after.keys())
     all_bindings = {}
+    from step_reuse import expanded  # Probe inherited visible business leaves without exposing source metadata.
     for collection in ('cases', 'data'):
-        for index, item in enumerate(initial[collection]):
+        for index, item in enumerate(expanded(initial)[collection]):
             for path in _leaves(item):
                 if 'step_reference' in path:
                     continue  # Derived source labels and version bindings are never editable scalars.
                 probe = copy.deepcopy(initial)
                 marker = 'TCAFEEDBACKLEAFMARKER'
+                if collection == 'cases':
+                    from local_step_feedback import materialize  # Probe copy alone may contain an inline step.
+                    materialize(probe, probe[collection][index], path)
                 _set(probe[collection][index], path, marker)
                 rendered = blocks(_render(probe, flat=True, reference_batch=initial, _legacy_feedback=legacy, _expression_baseline=initial)['xmind_markdown'].splitlines())  # Bind duplicate visibility to the original source, not the probe marker.
                 for cid, lines in rendered.items():
@@ -221,13 +225,16 @@ def prepare_feedback(batch, channel, *, actual_reply, changes=None, markdown=Non
         collection, identity, path = change['collection'], change['id'], change['path']
         if collection not in ('cases', 'data') or not path or any(p in PROTECTED for p in path if isinstance(p, str)):
             raise ValueError('Identity, reference and workflow changes need a new scoped baseline')
-        base = next((v for v in initial[collection] if v['id'] == identity), None)
-        current = next((v for v in batch[collection] if v['id'] == identity), None)
+        from step_reuse import expanded  # Read inherited business fields through the existing resolver.
+        base = next((v for v in expanded(initial)[collection] if v['id'] == identity), None)
+        current = next((v for v in expanded(batch)[collection] if v['id'] == identity), None)
         if base is None or current is None or tuple(path) not in set(_leaves(base)):
             raise ValueError('Unknown displayed business field')
         old, accepted, new = _get(base, path), _get(current, path), change['value']
         if not isinstance(new, str) or not new.strip():
             raise ValueError('Nonempty business text required')
+        if collection == 'cases' and len(path) == 3 and path[0] in GROUPS and path[2] == 'operation' and new.strip() == accepted.strip():  # Outer display whitespace does not alter business action.
+            continue  # Keep valid references and approvals for a formatting-only return.
         if current_source and channel == 'chat' and change.get('before') != accepted:
             raise ValueError('Explicit current field value required for a revision')
         if accepted == new or (old == new and not current_source):
@@ -344,15 +351,26 @@ def apply_feedback(pending, confirmation, deletion_decisions=None):
         if consumers & blocked:
             continue
         target = next(v for v in batch[change['collection']] if v['id'] == change['id'])
+        from local_step_feedback import materialize, refresh  # Copies never touch shared definitions.
+        if change['collection'] == 'cases':
+            materialize(batch, target, change['path'])  # Persist a full step, never a field override.
         _set(target, change['path'], change['value'])
         parent = _get(target, change['path'][:-1])
         if isinstance(parent, dict) and 'source' in parent:
             parent['source'] = 'user_decision'
+        if change['collection'] == 'cases':
+            refresh(batch, target)  # Bind the revised order and endpoint before validation.
     from clarification import _patch  # Use the same validated business update seam as normal clarification.
     for decision in active_decisions:  # Completed focused answers join the centralized write only now.
         if decision['case_id'] not in blocked:  # Deferred dependencies remain unchanged.
             for update in decision['reply'].get('updates', []):  # Only declared question targets passed respond.
+                from local_step_feedback import materialize, refresh  # Actual answers use the same local copy rule.
+                path = update['path']
+                if len(path) > 2 and path[0] == 'cases':
+                    materialize(batch, batch['cases'][path[1]], path[2:])
                 _patch(batch, update)  # Candidate-only update with existing protected-field guards.
+                if len(path) > 2 and path[0] == 'cases':
+                    refresh(batch, batch['cases'][path[1]])
                 affected.add(decision['case_id'])  # Complete revised case must return to review.
     for deletion in pending['deletions']:
         cid = deletion['case_id']

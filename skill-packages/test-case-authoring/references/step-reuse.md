@@ -50,9 +50,14 @@ Never guess missing content or call that candidate review-ready or handoff-ready
 
 Returned unchanged Markdown uses the same baseline. Reference labels and
 definition identities are derived fields, not editable scalar bindings. An edit
-to inherited content must return to explicit clarification; complete local step
-materialization and shared P0 updates are separate capabilities. Changing a
-reference case's business sequence invalidates its old target proof.
+to inherited content enters the existing clarification and summary gate. Chat
+may address resolved business leaves; Markdown/native returns may edit the
+displayed action. After agreement the changed step becomes complete local
+content, using current-case data bindings. Other steps, P0 snapshots and other
+cases remain unchanged. Outer action whitespace is formatting only and keeps
+the reference. Other ambiguous equivalence claims require clarification.
+Explicit requests to change P0 require shared-impact review; do not reinterpret
+them as permission to alter a dependency snapshot. Shared updates are separate.
 
 Do not append P0's remaining success path to a negative scenario. Definition
 reuse neither executes P0 nor carries its historic pass result. Existing complete

@@ -263,4 +263,13 @@ final-inspection.json under the local task evidence root, outside this repositor
 - Impact: whole-step resolver and scoped review; no execution authority.
 - Validation: 160 tests passed; corrected fixture fails on baseline.
 - Detail record: ../entries/2026/2026-11/CR-20261115-004-dynamic-data.md
+### CR-20261115-005 - Local referenced-step feedback
+
+- Section changed: candidate feedback and reference projection.
+- Before: inherited actions could not accept local scalar feedback.
+- After: chat, Markdown and native feedback materialize only the changed local step.
+- Why: #117 / AC-030.
+- Impact: source snapshots and unrelated cases remain unchanged; existing review gates apply.
+- Validation: 162 tests passed; external test-output/rr05/tests.txt; actual client not tested.
+- Detail record: entries/2026/2026-11/CR-20261115-005-local-feedback.md
 
