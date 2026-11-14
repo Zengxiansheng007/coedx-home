@@ -214,3 +214,13 @@ approved/not_run/not_merged synthetic cases. Candidate status remains applied;
 this is not host acceptance, execution readiness, installation or publishing.
 See CR110 detail and external evidence/qa110/final-review/acceptance.md and
 final-inspection.json under the local task evidence root, outside this repository.
+
+## CR-20261114-001 — Module handoff partition
+
+- Section changed: review projection and feedback.
+- Before: hidden provenance and repeated process metadata.
+- After: direct-owner module instruction branches; business applicability remains visible.
+- Why: #113 / REQ-015-016 / AC-023-024.
+- Impact: scoped, ordinary and chat views; supported markdown/native feedback.
+- Validation: public red/green; 149 synthetic regressions passed; real client unverified.
+- Detail record: [CR-20261114-001](../entries/2026/2026-11/CR-20261114-001-module-handoff.md).

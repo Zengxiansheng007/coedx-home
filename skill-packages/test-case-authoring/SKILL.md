@@ -327,3 +327,5 @@ with the review copy. Report only actual applied isolated changes, pending cases
 and their reasons, version and unchanged full P0 verification scope. Recommend
 separately user-started ui-test after applied P1/P2 merge. Formal synchronization
 awaits the next PR; this branch never merges P0 formally or starts execution.
+
+For review generation and returned-file interpretation, read [module handoff](references/module-handoff-contract.md). Classify general governance explicitly; preserve business applicability and unresolved rules in the case body. Generated instructions never grant execution authority.
