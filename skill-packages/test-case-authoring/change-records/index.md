@@ -214,3 +214,7 @@ final-inspection.json under the local task evidence root, outside this repositor
 - Validation: 162 tests passed; external test-output/rr05/tests.txt; actual client not tested.
 - Detail record: entries/2026/2026-11/CR-20261115-005-local-feedback.md
 
+# CR-20261115-009
+
+Data feedback materializes current whole-step consumers before binding changes. Baseline 66df0b4; candidate only; regression red then 22 targeted tests passed. Detail: entries/2026/2026-11/CR-20261115-009-data-feedback.md.
+

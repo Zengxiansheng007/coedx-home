@@ -14,6 +14,41 @@ def shared_design():
 
 
 class LocalStepFeedbackTests(unittest.TestCase):
+    def test_dynamic_data_feedback_is_scoped_to_current_binding(self):
+        from p0_evidence import approve_p0_scope
+        args = list(shared_design())
+        source = args[0]['data'][0]
+        source['generation_rule'] = 'unique title per case, maximum 20 characters'
+        args[1] = approve_p0_scope(args[0], 'synthetic-round', ['EDIT', 'LINK'], 'SIMULATED: dynamic baseline')
+        args[3]['manual_start']['baseline_id'] = args[1]['id']
+        for index, case in enumerate(args[4]['candidates']):
+            item = dict(copy.deepcopy(source), id='current-' + str(index), value='Current ' + str(index))
+            args[4]['candidate_data'].append(item)
+            case['steps'][0]['data_refs'] = [item['id']]
+        batch = build_extension(*args, mode='simulation')['batch']
+        frozen = copy.deepcopy(batch)
+        pending = prepare_feedback(batch, 'chat', actual_reply='SIMULATED: current data only', changes=[
+            dict(collection='data', id='current-0', path=['value'], value='Revised')])
+        updated = confirm(pending)['batch']
+        self.assertEqual(pending['affected_case_ids'], ['LOW'])
+        self.assertNotIn('step_reference', updated['cases'][0]['steps'][0])
+        self.assertEqual(updated['cases'][1], frozen['cases'][1])
+        self.assertEqual(updated['step_definitions'], frozen['step_definitions'])
+        self.assertEqual(batch, frozen)
+
+    def test_explicit_shared_data_feedback_materializes_consumers(self):
+        batch = build_extension(*shared_design(), mode='simulation')['batch']
+        frozen = copy.deepcopy(batch)
+        pending = prepare_feedback(batch, 'chat', actual_reply='SIMULATED: edit shared data', changes=[
+            dict(collection='data', id=batch['data'][0]['id'], path=['value'], value='changed input')])
+        updated = confirm(pending)['batch']
+        self.assertEqual(set(pending['affected_case_ids']), {'LOW', 'HIGH'})
+        for case in updated['cases']:
+            self.assertNotIn('step_reference', case['steps'][0])
+            self.assertTrue(case['steps'][0]['expected'])
+        self.assertEqual(updated['step_definitions'], frozen['step_definitions'])
+        self.assertEqual(batch, frozen)
+
     def test_layout_whitespace_keeps_reference_and_review_scope(self):
         batch = build_extension(*reuse_design(), mode='simulation')['batch']
         old = batch['step_definitions'][0]['step']['operation']
