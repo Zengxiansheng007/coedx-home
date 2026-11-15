@@ -3,7 +3,8 @@
 Read before display, rename, same-name feedback or a Markdown/native return.
 
 Author a Chinese business title from the supplied meaning; never prefix it with
-the stable English case ID. Preserve priority, business actions, data and checks.
+the stable English case ID. Display priority, one space and the Chinese title,
+for example `P0 创建系统公告`; keep the stored title unprefixed. Preserve actions, data and checks.
 `render_batch` and `render_review_batch` project one candidate version. Public
 trees omit English identity headings and use business names in references.
 The internal flat renderer is source mapping only, never a user deliverable.

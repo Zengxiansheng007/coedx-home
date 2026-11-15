@@ -102,7 +102,7 @@ class HandwrittenTests(unittest.TestCase):
             session = review(session, dict(approved=True, content_version=session['batch']['content_version'],
                 case_ids=['DEMO-P0-001'], actual_reply='[SIMULATED] full case approved'))
             # Compare displayed business semantics; versions/provenance properly differ.
-            outcomes.append(tuple('\n'.join(line for line in session[v].splitlines() if '版本：' not in line)
+            outcomes.append(tuple('\n'.join(line for line in session[v].splitlines() if not any(marker in line for marker in ('版本：', '版本映射：', '录制资料，行 ', '手写资料，行 ')))  # New source-location instructions intentionally differ; all business leaves remain compared.
                                   for v in ('human_view', 'xmind_markdown')))
         self.assertEqual(outcomes[0], outcomes[1])
 

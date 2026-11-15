@@ -7,7 +7,7 @@ from clarification import start_grill, summarize, review, _validate_content, _ap
 from scoped_review import _render, _references, _business_lines, GROUPS, TECHNICAL_FIELDS
 
 
-PROTECTED = TECHNICAL_FIELDS | frozenset(('module_path', 'data_refs', 'credential_ref',
+PROTECTED = TECHNICAL_FIELDS | frozenset(('step_reference', 'module_path', 'data_refs', 'credential_ref',
     'review_status', 'rule_status', 'merge_status', 'execution_status', 'final_review',
     'review_history', 'rule_decisions', 'active_rule_decisions', 'rule_decision_history',
     'feedback_rule_history', 'supplied_content_confirmation'))
@@ -40,9 +40,11 @@ def _initial(batch):
     if batch.get('kind') != 'scoped_review_copy':
         raise ValueError('Scoped review baseline required')
     base = batch['initial_copy_baseline']
-    if _digest({k: base[k] for k in ('cases', 'data', 'selection')}) != base['copy_version']:
+    if _digest({k: base[k] for k in ('cases', 'data', 'selection', *(['step_definitions'] if 'step_definitions' in base else []))}) != base['copy_version']:
         raise ValueError('Initial displayed baseline changed')
     result = copy.deepcopy(batch)
+    if 'step_definitions' in base:
+        result['step_definitions'] = copy.deepcopy(base['step_definitions'])  # Restore the original display dependency snapshot.
     for key in ('cases', 'data', 'selection'):
         result[key] = copy.deepcopy(base[key])
     # The original generated version is captured when feedback is first read.
@@ -94,7 +96,7 @@ def _markdown_layout_changes(batch, markdown, case_bindings=None, *, legacy=Fals
                    if key in case for line in _business_lines({key: case[key]}, batch=batch)}  # Resolve only typed reference metadata.
         pending_line = prefix + '最终评审：pending'
         approved_line = prefix + '最终评审：approved'
-        return [approved_line if line == pending_line else line for line in lines if line not in trusted]
+        return [line.replace('最终评审：pending', '最终评审：approved') if line.strip() == '- 最终评审：pending' else line for line in lines if line not in trusted]  # Same trusted status may now appear in generated module instructions.
 
     from aggregation import feedback_topics  # Validate raw identity evidence before trusted metadata normalization.
     raw_topics = feedback_topics('\n'.join(incoming))  # Retain raw returned digests as the identity-evidence baseline.
@@ -115,7 +117,7 @@ def _markdown_layout_changes(batch, markdown, case_bindings=None, *, legacy=Fals
                 raise ValueError('Trusted metadata normalization is ambiguous; clarify')  # Stop when normalization cannot uniquely preserve identity.
             binding['returned_digest'] = topics[0]['returned_digest']  # Same raw topic, only trusted review metadata differs.
         case_bindings = normalized_bindings  # Use normalized digests only for the following structural match.
-    incoming = expand_feedback(initial, '\n'.join(original), '\n'.join(incoming), case_bindings).splitlines()  # Clarified mapping binds edits to the displayed version.
+    incoming = expand_feedback(initial, '\n'.join(original), '\n'.join(incoming), case_bindings, handoff=not legacy).splitlines()  # Historical baseline stays exact; current instructions remain protected.
 
     def blocks(lines):
         headers = []
@@ -138,13 +140,19 @@ def _markdown_layout_changes(batch, markdown, case_bindings=None, *, legacy=Fals
     before, after = blocks(original), blocks(incoming)
     changes, missing = [], list(before.keys() - after.keys())
     all_bindings = {}
+    from step_reuse import expanded  # Probe inherited visible business leaves without exposing source metadata.
     for collection in ('cases', 'data'):
-        for index, item in enumerate(initial[collection]):
+        for index, item in enumerate(expanded(initial)[collection]):
             for path in _leaves(item):
+                if 'step_reference' in path:
+                    continue  # Derived source labels and version bindings are never editable scalars.
                 probe = copy.deepcopy(initial)
                 marker = 'TCAFEEDBACKLEAFMARKER'
+                if collection == 'cases':
+                    from local_step_feedback import materialize  # Probe copy alone may contain an inline step.
+                    materialize(probe, probe[collection][index], path)
                 _set(probe[collection][index], path, marker)
-                rendered = blocks(_render(probe, flat=True, reference_batch=initial, _legacy_feedback=legacy)['xmind_markdown'].splitlines())  # Probe the same layout; protected audit rows never become leaves.
+                rendered = blocks(_render(probe, flat=True, reference_batch=initial, _legacy_feedback=legacy, _expression_baseline=initial)['xmind_markdown'].splitlines())  # Bind duplicate visibility to the original source, not the probe marker.
                 for cid, lines in rendered.items():
                     for line_index, line in enumerate(lines):
                         if marker in line:
@@ -198,12 +206,19 @@ def _question(qid, cid, field, reason, checks):
 
 def prepare_feedback(batch, channel, *, actual_reply, changes=None, markdown=None,
                      removed_case_ids=None, deletion_decisions=None, source_version=None, case_bindings=None,
-                     clear_changes=False, questions=None):  # Preserve both identity and focused feedback APIs.
+                     clear_changes=False, questions=None, shared_change=None):  # Shared impact uses the same review boundary.
     """Locate proposed changes against first display and later accepted content."""
     _credential_guard([batch, actual_reply, changes, markdown, deletion_decisions, case_bindings])  # Binding replies follow the same credential boundary.
     if not actual_reply or channel not in ('chat', 'markdown'):
         raise ValueError('Actual feedback and supported channel required')
     initial = _initial(batch)
+    shared_plan, shared_ids = None, []
+    if shared_change is not None:
+        from shared_step_feedback import prepare
+        _credential_guard(shared_change)
+        if channel != 'chat' or changes or markdown or removed_case_ids:
+            raise ValueError('Shared source request must be explicit and separate from local edits')
+        shared_plan, shared_ids = prepare(batch, shared_change)
     if source_version is not None and source_version != batch['content_version']:
         raise ValueError('Feedback source version is not current')
     current_source = source_version == batch['content_version']
@@ -217,13 +232,16 @@ def prepare_feedback(batch, channel, *, actual_reply, changes=None, markdown=Non
         collection, identity, path = change['collection'], change['id'], change['path']
         if collection not in ('cases', 'data') or not path or any(p in PROTECTED for p in path if isinstance(p, str)):
             raise ValueError('Identity, reference and workflow changes need a new scoped baseline')
-        base = next((v for v in initial[collection] if v['id'] == identity), None)
-        current = next((v for v in batch[collection] if v['id'] == identity), None)
+        from step_reuse import expanded  # Read inherited business fields through the existing resolver.
+        base = next((v for v in expanded(initial)[collection] if v['id'] == identity), None)
+        current = next((v for v in expanded(batch)[collection] if v['id'] == identity), None)
         if base is None or current is None or tuple(path) not in set(_leaves(base)):
             raise ValueError('Unknown displayed business field')
         old, accepted, new = _get(base, path), _get(current, path), change['value']
         if not isinstance(new, str) or not new.strip():
             raise ValueError('Nonempty business text required')
+        if collection == 'cases' and len(path) == 3 and path[0] in GROUPS and path[2] == 'operation' and new.strip() == accepted.strip():  # Outer display whitespace does not alter business action.
+            continue  # Keep valid references and approvals for a formatting-only return.
         if current_source and channel == 'chat' and change.get('before') != accepted:
             raise ValueError('Explicit current field value required for a revision')
         if accepted == new or (old == new and not current_source):
@@ -255,6 +273,15 @@ def prepare_feedback(batch, channel, *, actual_reply, changes=None, markdown=Non
             q['example'] = 'SIMULATED: exclude this round; keep the existing record active'
             questions.append(q)
     proposal_digest = _digest({'changes': normalized, 'deletions': deletions})
+    if shared_plan:
+        proposal_digest = _digest({'changes': normalized, 'deletions': deletions, 'shared_change': shared_plan})
+        affected.update(shared_ids)
+        for assessment in ([] if shared_plan['formatting_only'] else shared_plan['assessments']):
+            questions.append(_question('shared-' + proposal_digest + '-' + assessment['case_id'], assessment['case_id'],
+                'shared_definition', 'P0 change: ' + repr(shared_plan['replacement']['step']) + '; ' + assessment['disposition'] + ': ' + assessment['reason'], []))
+        if shared_plan['source_present'] and not shared_plan['formatting_only']:
+            questions.append(_question('shared-source-' + proposal_digest, shared_plan['replacement']['case_id'],
+                'shared_definition', 'Review displayed P0 source update: ' + repr(shared_plan['replacement']['step']), []))
     binding_digest = _digest(case_bindings or {})  # Bind identity evidence separately from shared product proposals.
     scope_identity = {'batch_id': batch['id'], 'copy_version': batch['initial_copy_baseline']['copy_version']}
     question_proposal = _digest(dict(scope_identity, proposal=proposal_digest))
@@ -288,7 +315,7 @@ def prepare_feedback(batch, channel, *, actual_reply, changes=None, markdown=Non
         questions.extend(supplied_questions)  # start_grill validates omissions and dependencies.
         affected.update(q['case_id'] for q in supplied_questions if q.get('stale') or not q.get('history'))  # Reopened dependencies also need review.
     return {'batch': copy.deepcopy(batch), 'channel': channel, 'actual_reply': actual_reply,
-            'base_version': batch['content_version'], 'changes': normalized, 'deletions': deletions,
+            'base_version': batch['content_version'], 'changes': normalized, 'deletions': deletions, 'shared_change': shared_plan,
             'affected_case_ids': sorted(affected), 'proposal_digest': proposal_digest,
             'grill': start_grill(batch, questions), 'case_bindings': copy.deepcopy(case_bindings or {}), 'binding_digest': binding_digest}  # Preserve actual identity clarification with the proposal.
 
@@ -306,6 +333,8 @@ def apply_feedback(pending, confirmation, deletion_decisions=None):
     if pending.get('binding_digest') != _digest(pending.get('case_bindings', {})):
         raise ValueError('Identity clarification changed after presentation')
     proposal = {'changes': pending['changes'], 'deletions': pending['deletions']}
+    if pending.get('shared_change'):
+        proposal['shared_change'] = pending['shared_change']
     if pending.get('product_resolution'):
         proposal['product_resolution'] = pending['product_resolution']
         if pending['product_resolution'] != pending['batch'].get('product_reconciliation', {}).get('formal_conclusion'):
@@ -340,15 +369,33 @@ def apply_feedback(pending, confirmation, deletion_decisions=None):
         if consumers & blocked:
             continue
         target = next(v for v in batch[change['collection']] if v['id'] == change['id'])
+        from local_step_feedback import materialize, materialize_data, refresh  # Copies never touch shared definitions.
+        data_consumers = materialize_data(batch, change['id']) if change['collection'] == 'data' else []
+        if change['collection'] == 'cases':
+            materialize(batch, target, change['path'])  # Persist a full step, never a field override.
         _set(target, change['path'], change['value'])
+        for consumer in data_consumers:
+            refresh(batch, consumer)  # Bind complete revised steps without rewriting source snapshots.
         parent = _get(target, change['path'][:-1])
         if isinstance(parent, dict) and 'source' in parent:
             parent['source'] = 'user_decision'
+        if change['collection'] == 'cases':
+            refresh(batch, target)  # Bind the revised order and endpoint before validation.
     from clarification import _patch  # Use the same validated business update seam as normal clarification.
     for decision in active_decisions:  # Completed focused answers join the centralized write only now.
         if decision['case_id'] not in blocked:  # Deferred dependencies remain unchanged.
             for update in decision['reply'].get('updates', []):  # Only declared question targets passed respond.
+                from local_step_feedback import materialize, refresh  # Actual answers use the same local copy rule.
+                path = update['path']
+                from local_step_feedback import materialize_data
+                data_consumers = materialize_data(batch, batch['data'][path[1]]['id']) if len(path) > 2 and path[0] == 'data' else []
+                if len(path) > 2 and path[0] == 'cases':
+                    materialize(batch, batch['cases'][path[1]], path[2:])
                 _patch(batch, update)  # Candidate-only update with existing protected-field guards.
+                for consumer in data_consumers:
+                    refresh(batch, consumer)
+                if len(path) > 2 and path[0] == 'cases':
+                    refresh(batch, batch['cases'][path[1]])
                 affected.add(decision['case_id'])  # Complete revised case must return to review.
     for deletion in pending['deletions']:
         cid = deletion['case_id']
@@ -369,6 +416,12 @@ def apply_feedback(pending, confirmation, deletion_decisions=None):
             case['feedback_disposition'] = 'excluded_this_round'
         else:
             case.pop('feedback_disposition', None)
+    if pending.get('shared_change'):
+        from shared_step_feedback import apply as apply_shared
+        applied = apply_shared(batch, pending['shared_change'], blocked)
+        if not applied:
+            affected.difference_update(pending['affected_case_ids'])
+            blocked.update(pending['affected_case_ids'])  # A deferred shared proposal cannot masquerade as applied.
     _validate_content(batch)
     batch['data_version'] = _digest(batch['data'])
     for case in batch['cases']:
@@ -383,8 +436,11 @@ def apply_feedback(pending, confirmation, deletion_decisions=None):
         _apply_rule_decisions(case, decisions, blocked=case['id'] in blocked, product=product)
         case.setdefault('feedback_rule_history', []).extend(copy.deepcopy(decisions))
         case['semantic_version'] = _digest({k: v for k, v in case.items() if k != 'semantic_version'})
+        if pending.get('shared_change') and case['id'] == pending['shared_change']['replacement']['case_id'] and case['id'] not in blocked:
+            case['semantic_version'] = pending['shared_change']['replacement']['semantic_version']  # Source and reviewed definition share the same declared version.
     for check in batch.get('coverage', []):
-        linked = [c for c in batch['cases'] if c['id'] in check.get('case_ids', [])]
+        from step_reuse import expanded  # Feedback summaries share the exact review resolver.
+        linked = [c for c in expanded(batch)['cases'] if c['id'] in check.get('case_ids', [])]
         if not any(c['id'] in affected for c in linked):
             continue
         check.setdefault('history', []).append({k: copy.deepcopy(v) for k, v in check.items() if k != 'history'})
@@ -396,6 +452,8 @@ def apply_feedback(pending, confirmation, deletion_decisions=None):
         'summary': current, 'confirmation': confirmation, 'changes': pending['changes'], 'deletions': pending['deletions']})
     if pending.get('returned_source'):
         batch['feedback_history'][-1]['returned_source'] = copy.deepcopy(pending['returned_source'])
+    if pending.get('shared_change'):
+        batch['feedback_history'][-1]['shared_change'] = copy.deepcopy(pending['shared_change'])
     if pending.get('case_bindings'):  # Empty optional metadata must not change historical semantic versions.
         batch['feedback_history'][-1]['case_bindings'] = copy.deepcopy(pending['case_bindings'])  # Retain actual identity evidence only.
     # Keep enriched original doubts and their actual answer history so the

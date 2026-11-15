@@ -62,7 +62,7 @@ class XmindFeedbackTests(unittest.TestCase):
             for broken in ('identity', 'path', 'notes', 'second_sheet'):
                 changed = copy.deepcopy(root)
                 def break_topic(topic):
-                    if topic['title'] == 'Save a notice':
+                    if topic['title'] == 'P0 Save a notice':
                         if broken == 'identity':
                             topic['title'] = 'UNKNOWN unknown case'
                         if broken == 'notes':
