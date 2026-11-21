@@ -1,3 +1,4 @@
 interface:
-  display_name: "Research"
-  short_description: "Research from high-trust sources"
+  display_name: "Research Router"
+  short_description: "AnySearch default; automatic Codex fallback with evidence continuity."
+  default_prompt: "Use research to retrieve public evidence with the requested provider, automatically use Codex on default AnySearch service failure, preserve verified evidence and honor permission limits."

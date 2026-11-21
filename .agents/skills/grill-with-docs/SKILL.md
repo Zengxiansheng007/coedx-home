@@ -1,7 +1,11 @@
 ---
 name: grill-with-docs
-description: "通过访谈澄清需求或设计，按需研究事实，生成供人阅读并由用户确认的需求文档与交付清单，同时维护必要术语和 ADR。"
+description: "通过访谈澄清需求或设计，每轮保存 Markdown 问答记录，按需研究事实；访谈结论确认后统一更新需求文档、必要术语和 ADR，并交付供用户审阅的版本。"
 ---
+
+<!-- grill-coverage:integration:start -->
+在首次提问或恢复访谈前，必须读取并应用[覆盖扩展](../../skill-extensions/grill-with-docs-coverage/extension.md)及其必需引用，贯穿逐轮答复、汇总复核、文档审阅和确认清理。扩展在这些阶段的记录与完成条件优先于本技能及辅助技能的宽松收尾规则；文件缺失或流程冲突时先按扩展接入说明修复，未恢复前报告具体阻塞。
+<!-- grill-coverage:integration:end -->
 
 ## Codex执行约定
 
@@ -9,7 +13,15 @@ description: "通过访谈澄清需求或设计，按需研究事实，生成供
 
 直接调用、受管调用及恢复已有访谈时，先读取 [grill 入口与回流操作](../develop-system/references/grill-routing.md)。使用目标项目的只读 inspect-grill 判定：明确独立优先；唯一且归属明确的合法活动运行才继承，由调度器登记或恢复帧。历史已结束运行排除，旧 schema、暂停和归属歧义不自动恢复，无匹配时独立且不创建运行。只有完成入口登记后才开展受管访谈。
 
-Load `grilling` and `domain-modeling` as helper skills using the Codex loading guidance; apply the terminology discipline as decisions land. Apply the following question and research rules throughout this interview, including questions produced by the `grilling` helper. These additions are scoped to `grill-with-docs`.
+Load `grilling` and `domain-modeling` as helper skills using the Codex loading guidance. Apply their questioning and terminology discipline throughout the interview; within `grill-with-docs`, the deferred document-write rules below override helper instructions to write glossary entries or ADRs immediately. Apply the following question and matt-research rules to helper-produced questions as well. These additions are scoped to `grill-with-docs`.
+
+## 访谈记录与写入时机
+
+首次提问前及恢复访谈时，读取 [问答记录与恢复](references/interview-record.md)。每轮以固定结构 Markdown 保存问题、推荐及理由、用户实际回复、答复历史、当前归纳、未决项和待更新位置；它是唯一访谈记录，不并行维护 JSON 副本。
+
+访谈期间只维护问答记录，必要研究证据单独保存；需求正文、术语表、ADR 及其他目标文档（包括新文档和草稿）均延后创建或更新。明确的术语与决策先记入问答记录。受管流程必要的登记、状态和结果事件仍按原协议处理，不作为目标文档改写。
+
+必要问题与辅助工作已解决，或用户明确延期、排除、调整范围后，汇总最终决定、未决项处置和待更新文档，等待用户确认理解一致。确认绑定该次汇总；已有对同一内容的明确确认直接复用。确认后进入统一更新阶段，按下文生成可审阅版本。暂停、阻塞或提前退出只保存已有问答与证据，不据此提前改写目标文档。
 
 ## 提问：推荐、理由与例子
 
@@ -24,32 +36,33 @@ Load `grilling` and `domain-modeling` as helper skills using the Codex loading g
 
 例如：
 
-> ❓ **Q1 — research 何时介入？** 遇到影响设计的未知事实时，是否先调研再提出依赖该事实的问题？
+> ❓ **Q1 — matt-research 何时介入？** 遇到影响设计的未知事实时，是否先调研再提出依赖该事实的问题？
 >
 > ➡️ **推荐**：按需调研，其他独立问题继续讨论。
 >
 > **设计理由**：先查明事实可以减少建立在错误前提上的决策；代价是相关问题要等待调研结果，因此把研究范围限定在会影响当前选择的事实。
 >
-> **例子（假设）**：设计支付重试时，不确定支付接口是否支持幂等键，先用 research 查官方文档，再讨论防重复扣款方案；页面文案问题可以同时提问。
+> **例子（假设）**：设计支付重试时，不确定支付接口是否支持幂等键，先用 matt-research 查官方文档，再讨论防重复扣款方案；页面文案问题可以同时提问。
 
-## 按需 research：访谈前与访谈中
+## 按需 matt-research：访谈前与访谈中
 
-在首次提问前、每轮重算 frontier 时，判断是否有影响决策的事实缺口。涉及未知的 API/平台能力、需要核实的技术限制、版本变化、证据冲突或需要参考设计依据时，加载真实 `research` 技能开展针对性检索。已有充分且适用于当前版本的证据时直接使用；research 不是每轮必跑步骤。
+在首次提问前、每轮重算 frontier 时，判断是否有影响决策的事实缺口。涉及未知的 API/平台能力、需要核实的技术限制、版本变化、证据冲突或需要参考设计依据时，加载真实 `matt-research` 技能开展针对性检索。已有充分且适用于当前版本的证据时直接使用；matt-research 不是每轮必跑步骤。
 
 - **访谈前**：研究当前设计依赖的未知事实，用结论形成第一轮问题、设计理由和例子。
 - **访谈中**：用户的新信息或回答暴露事实缺口时补充研究。依赖研究的提问暂缓，其他 frontier 问题仍可提出；结果回来后重算 frontier。若结果改变已确认决策的依据，向用户说明变化并重新确认受影响的选择。
-- **研究范围与产物**：向 research 提供具体问题、项目/版本背景、影响的决策和已有证据。按其规则使用一手资料并保存带引用的 Markdown 结论；区分已证实事实、设计推断与未解决项。提问中的资料依据附对应来源链接，便于用户核查。
-- **返回与恢复**：显式 develop-system 流程内，由总路由登记和分派 research 子帧，结果先回流 develop-system，再恢复本技能或对应 grilling 父帧；流程外 research 返回调用它的访谈技能。遵守统一协议的委派条件，无授权或可用代理时顺序执行。
-- **无法查明时**：说明缺失资料与它影响的决策，保留为未决前提；受管流程内缺失 research 技能按协议阻塞，不代做。研究结论提供事实依据，用户的偏好和业务决策仍由用户回答，等待时间不算确认。
+- **研究范围与产物**：向 matt-research 提供具体问题、项目/版本背景、影响的决策和已有证据。按其规则使用一手资料并保存带引用的 Markdown 结论；区分已证实事实、设计推断与未解决项。提问中的资料依据附对应来源链接，便于用户核查。
+- **返回与恢复**：显式 develop-system 流程内，由总路由登记和分派 matt-research 子帧，结果先回流 develop-system，再恢复本技能或对应 grilling 父帧；流程外 matt-research 返回调用它的访谈技能。遵守统一协议的委派条件，无授权或可用代理时顺序执行。
+- **无法查明时**：说明缺失资料与它影响的决策，保留为未决前提；受管流程内缺失 matt-research 技能按协议阻塞，不代做。研究结论提供事实依据，用户的偏好和业务决策仍由用户回答，等待时间不算确认。
 
 ## 文档与完成
 
-开始起草需求文档、收尾审阅或恢复已有文档时，读取并应用 [需求文档与结束交付](references/requirements-delivery.md) 中的模板、质量检查、版本确认和明确清单。
+进入统一更新阶段、收尾审阅或恢复已有文档时，读取并应用 [需求文档与结束交付](references/requirements-delivery.md) 中的模板、质量检查、版本确认和明确清单。
 
-访谈中可以起草；访谈收尾必须形成供人阅读的需求文档。先保存可审阅版本，再请用户确认其准确性；已有对同一版本的明确确认直接复用。默认中文 Markdown，沿用目标项目约定，无约定时使用 `docs/requirements/<主题>.md`；用户指定的语言、格式与位置优先。
+访谈结论确认后，统一更新本次涉及的目标文档，形成供人阅读的需求文档。先保存可审阅版本，再请用户确认其准确性；汇总确认不自动等于后来生成的文档版本确认，已有对同一版本的明确确认直接复用。默认中文 Markdown，沿用目标项目约定，无约定时使用 `docs/requirements/<主题>.md`；用户指定的语言、格式与位置优先。
 
-由 `domain-modeling` 按原有规则记录已明确的术语和确有必要的 ADR；research 产物保留研究证据并供需求文档引用。文档由本技能编写和检查，develop-system 只登记与调度。
+统一更新时，由 `domain-modeling` 按其格式及 ADR 必要性标准写入访谈记录中已明确的术语和决策；matt-research 产物保留研究证据并供需求文档引用。文档由本技能编写和检查，develop-system 只登记与调度。
 
-**完成条件**：本次范围的必要问题和辅助工作已解决，文档及结束交付清单已保存，用户已确认当前版本。未确认返回 `waiting_user`，事实/环境阻塞如实返回 `blocked`；允许保存草稿，但不当作确认基线。当前范围的阻塞性未决项须解决，或由用户明确延期、排除或调整范围；非阻塞的未来建议如实保留。
+**完成条件**：本次范围的必要问题和辅助工作已解决，访谈记录与最终汇总确认依据已保存，目标文档及结束交付清单已保存，用户已确认当前版本。汇总或文档尚未确认返回 `waiting_user`，事实/环境阻塞如实返回 `blocked`；只有进入统一更新阶段后才可保存目标文档草稿，草稿不当作确认基线。当前范围的阻塞性未决项须解决，或由用户明确延期、排除或调整范围；非阻塞的未来建议如实保留。
 
-已确认文档实质改变时记录差异并重新确认受影响内容；排版或错别字修正不重复整轮访谈。需求文档确认不代表功能实现或软件验收通过。结束时提供文档路径、版本、确认依据和清单，按交付参考中的双入口规则衔接：独立调用展示 `to-spec / implement` 后停止等待选择；受管调用先回流 develop-system，由总路由自动选择并推进已授权的 `to-spec → to-tickets` 或 `implement` 路线。路线选择无需用户审批；真实需求确认、未决业务决定与外部动作仍按既有边界处理。
+文档审阅暴露新的业务决定或已确认内容实质改变时，先回到问答记录补充 grill；保留当前文档，待受影响结论确认后再统一修订并重新确认受影响版本内容；排版或错别字修正不重复整轮访谈。需求文档确认不代表功能实现或软件验收通过。结束时提供文档路径、版本、确认依据和清单，按交付参考中的双入口规则衔接：独立调用展示 `to-spec / implement` 后停止等待选择；受管调用先回流 develop-system，由总路由自动选择并推进已授权的 `to-spec → to-tickets` 或 `implement` 路线。路线选择无需用户审批；真实需求确认、未决业务决定与外部动作仍按既有边界处理。
+

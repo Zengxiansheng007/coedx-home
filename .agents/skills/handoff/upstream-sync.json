@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "repository": "https://github.com/mattpocock/skills",
+  "upstream_commit": "a496f5513d4a4cf889bc48e189e579f4b0bdf6aa",
+  "comparison_baseline": "4588b32ecab9ecc9fc8cc6b6c5e7d675b6004b0d",
+  "synced_on": "2026-10-30",
+  "scope": "Reviewed incremental upstream merge preserving local adaptations.",
+  "upstream_skill": "handoff",
+  "upstream_files": [
+    {
+      "path": "SKILL.md",
+      "git_blob_sha": "a224edc643a20ddb989f9bca1547440169159810",
+      "sha256": "4cbb043950dad2ffd3662ff1a5a0b51ae676004b5cae10e3787e8ee7a4ee69d3"
+    }
+  ],
+  "local_changes": [
+    {
+      "path": "SKILL.md",
+      "sha256": "4cbb043950dad2ffd3662ff1a5a0b51ae676004b5cae10e3787e8ee7a4ee69d3"
+    }
+  ],
+  "historical_source_record": null,
+  "notes": [
+    "Historical source.json commit/original_files remain the baseline provenance; latest_sync identifies this incremental merge.",
+    "Matt research remains installed as matt-research; existing research routers are not replaced."
+  ]
+}

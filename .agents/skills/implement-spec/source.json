@@ -11,5 +11,10 @@
     "Codex loading/delegation adapter",
     "in-flow mandatory returns",
     "specialist responsibility and platform/authorization boundaries"
-  ]
+  ],
+  "latest_sync": {
+    "commit": "a496f5513d4a4cf889bc48e189e579f4b0bdf6aa",
+    "record": "upstream-sync.json",
+    "date": "2026-10-30"
+  }
 }

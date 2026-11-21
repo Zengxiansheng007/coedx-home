@@ -1,0 +1,18 @@
+{
+  "schemaVersion": "1.0",
+  "semantics": "Expected reviewer routing; not automatic semantic classification",
+  "cases": [
+    {"id": "FORMAT-MD-JSON", "trigger": "format-only", "expected": "validate-without-reopen"},
+    {"id": "LINK-HASH-VERSION", "trigger": "non-semantic-rebinding", "expected": "validate-without-reopen"},
+    {"id": "NEW-CONVERSATION", "trigger": "continuation", "expected": "preserve-closure"},
+    {"id": "PLAN-DRAFT", "trigger": "downstream-drafting", "expected": "preserve-closure"},
+    {"id": "TECHNICAL-GATE", "trigger": "known-qualification-pending", "expected": "separate-qualification"},
+    {"id": "ORDINARY-TEST-FAILURE", "trigger": "in-scope-defect", "expected": "owner-repair"},
+    {"id": "PERMISSION-CHANGE", "trigger": "substantive-requirement-change", "expected": "targeted-reopen"},
+    {"id": "SOURCE-CONFLICT", "trigger": "evidenced-conflict", "expected": "targeted-reopen"},
+    {"id": "NEW-DATA-RISK", "trigger": "new-major-risk", "expected": "targeted-reopen"},
+    {"id": "UNKNOWN-DRIFT", "trigger": "unclassified", "expected": "inspect-and-block-dependent-work"},
+    {"id": "FORMAT-LABEL-WITH-MEANING-CHANGE", "trigger": "substantive-requirement-change", "expected": "targeted-reopen"},
+    {"id": "WHOLE-REVIEW", "trigger": "cross-cutting-impact", "expected": "explicit-user-scope-required"}
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "repository": "Zengxiansheng007/develop-system",
+  "pull_request": 24,
+  "main_commit": "a0a0ada94c3101f1663ea7288aa1ad630cdc9c2f",
+  "source_commit": "f8d3d210f845c037ee581edddf8bf64f83e87d64",
+  "tree": "4d178eb92cafe178bb5d8c071c79e7e4cb009637",
+  "declared_repository_version": "0.2.0",
+  "installation_date": "2026-11-15",
+  "upstream_matt_sync_preserved": "2026-10-30/a496f5513d4a4cf889bc48e189e579f4b0bdf6aa",
+  "adaptations": [
+    "Retain global registry mapping research to matt-research.",
+    "Retain local navigation paths and historical source/upstream records.",
+    "Merge the Oct 30 fresh-context directive into the accepted issue-sync runtime protocol."
+  ],
+  "automatic_sync_enabled": false,
+  "real_project_configuration_adopted": false,
+  "historical_runs_migrated": false
+}

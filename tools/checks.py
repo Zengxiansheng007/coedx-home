@@ -62,7 +62,9 @@ def stage(name, installed):
         for root in roots:
             path = root / 'develop-system/registry.json'
             data = json.loads(path.read_text(encoding='utf-8'))
-            errors = validate(data, path.parent)
+            # Distribution copies are checked byte-for-byte by the copies stage.
+            # Their sibling skills live under .agents/skills in this repository.
+            errors = validate(data, path.parent, package=root != ROOT / 'skill-packages')
             if errors:
                 raise ValueError('; '.join(errors))
             print(f'VALID: {path}: {len(data["skills"])} skills')

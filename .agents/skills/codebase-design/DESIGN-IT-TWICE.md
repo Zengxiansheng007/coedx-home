@@ -18,7 +18,7 @@ Show this to the user, then immediately proceed to Step 2. The user can review t
 
 ### 2. Generate independent alternatives
 
-Produce at least three radically different interface designs. Use the unified Codex delegation protocol, bounded by free slots, or produce them sequentially. Each design task returns its result to the caller for comparison.
+Produce at least three radically different interface designs. Start each actual sub-agent with a fresh context window. Use the unified Codex delegation protocol, bounded by free slots, or produce them sequentially. Each design task returns its result to the caller for comparison.
 
 Give each design task a separate technical brief (file paths, coupling details, dependency category from [DEEPENING.md](DEEPENING.md), what sits behind the seam). The brief is independent of the user-facing problem-space explanation in Step 1. Give each design task a different constraint:
 
