@@ -3,9 +3,9 @@
 
 ## Codex 开发流程技能
 
-这里保存当前定制版本：develop-system 调度器、20 个注册执行技能，以及 ask-matt、writing-for-agents、wait-what、handoff，合计 25 个技能目录。相关引用、脚本、调用策略和许可证随目录保存。
+这里保存 develop-system 调度器、ask-matt 导航员及定制开发技能。相关引用、脚本、调用策略和许可证随目录保存。
 
-另外提供独立的 [test-case-authoring](.agents/skills/test-case-authoring/README.md)，用于录制或完整手写 P0 的编写、按批澄清、评审和用户启动的 P1/P2 隔离增量合并。它不属于 develop-system 的 20 个注册执行技能；加上它，仓库共有 26 个技能目录。使用 `$test-case-authoring` 直接进入，详见包内使用说明。正式 ui-test 接收、同步、P0 合并与真实联合验收仍待后续接入。
+仓库另有独立的 [test-case-authoring](.agents/skills/test-case-authoring/README.md) 与 ask-test。开发套件及调研、验证、技能维护等配套工具的跨机同步范围见 38 项[同步清单](docs/development/skill-sync-list.json)。
 
 - 导航：ask-matt。只推荐流程与技能。
 - 准备：setup-matt-pocock-skills。
@@ -16,7 +16,7 @@
 
 ### 安装与调用
 
-本仓库克隆后，`.agents/skills/` 是项目技能目录。全局使用时，将需要的完整技能目录复制到 `$CODEX_HOME/skills`（默认 `~/.codex/skills`），保留同级目录关系；建议整套安装以满足相互引用，已有定制目录先备份再更新。
+本仓库克隆后，`.agents/skills/` 是项目技能目录。跨项目使用时，按同步清单从同一个 Git 提交复制完整技能目录到 `~/.agents/skills`，保留目录的同级关系。先检查该位置与原有 Codex 技能目录的同名项，备份本机定制，避免重复加载。涉及外部服务或工具的技能需要在目标电脑按用途完成单独配置。
 
 使用 `$ask-matt` 获取导航建议；使用 `$develop-system` 启动/恢复流程。它只调度，专业技能执行实现、测试与评审，完成后回流调度器。没有后台唤醒或宿主完成钩子。
 
@@ -31,7 +31,7 @@ python -m pip install -r requirements-checks.txt
 python -B tools/checks.py
 ```
 
-也可 `npm run check`；额外检查全局副本用 `npm run check:local`。统一入口包含 67 项状态/路由测试及 8 项检查工具回归、核心技能格式、注册表和副本一致性，所有命令产生实际退出码与原始输出记录。Windows/Linux GitHub Actions 使用同一入口；使用细节见 [验证说明](docs/development/verification.md)。
+也可运行 `npm run check`。验证用户级副本时，可以运行 `python -B tools/checks.py --installed ~/.agents/skills`，并将参数替换为目标电脑的实际绝对路径。统一入口检查工作流、验证工具、技能格式、注册表和副本一致性，并保留退出码与原始输出。Windows 和 Linux 的 GitHub Actions 使用同一入口。使用细节见 [验证说明](docs/development/verification.md)。
 
 ### 来源与许可
 

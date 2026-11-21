@@ -1,0 +1,4 @@
+interface:
+  display_name: "Research Guided"
+  short_description: "Guided evidence research with Codex by default."
+  default_prompt: "Use research-guided to plan, retrieve and review evidence with Codex, with one reinforcement round if needed. Use Claude retrieval only when I explicitly choose it."

@@ -11,6 +11,18 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 
 class RecordedCheckTests(unittest.TestCase):
+    def test_grill_coverage_can_load_from_an_isolated_skill_directory(self):
+        from shutil import copytree
+        from checks import ROOT, validate_grill_coverage
+
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / 'grill-with-docs'
+            copytree(ROOT / '.agents/skills/grill-with-docs', target)
+            validate_grill_coverage(target)
+            (target / 'references/grill-with-docs-coverage/record.md').unlink()
+            with self.assertRaisesRegex(ValueError, 'Missing coverage reference.*record.md'):
+                validate_grill_coverage(target)
+
     def test_invalid_working_directory_still_records_failed_execution(self):
         from record_check import run_record, validate_record
         with tempfile.TemporaryDirectory() as directory:
@@ -69,19 +81,34 @@ class RecordedCheckTests(unittest.TestCase):
         self.assertEqual(before, fixture.store.path.read_bytes())
 
     def test_changed_check_record_invalidates_dependent_work(self):
-        from record_check import run_record
-        fixture = self.fixture()
-        state = fixture.dispatch(fixture.create())
-        record = fixture.root / 'passed.json'
-        run_record([sys.executable, '-c', "print('ok')"], fixture.root, record)
-        event = fixture.event(state, checks=[{'status': 'passed', 'record': str(record)}])
+        from test_worktree_checks import WorktreeCheckTests
+        fixture = WorktreeCheckTests()
+        self.addCleanup(fixture.doCleanups)
+        fixture.setUp()
+        fixture.state = fixture.store.extend_plan(fixture.state['revision'], [
+            {'step_id': 'design', 'skill_id': 'codebase-design', 'depends_on': ['a']},
+        ], 'synthetic design dependency')
+        frame = fixture.dispatch()
+        record, result = fixture.check(frame)
+        self.assertEqual(result['status'], 'passed', result['error'])
+        state = fixture.state
+        event = fixture.event(frame, record)
+        event['acceptance_checks'] = [{'id': '1', 'kind': 'technical', 'status': 'passed',
+                                      'completion_checked': True, 'evidence': [str(record)]}]
         state = fixture.store.receive(state['revision'], event)
         duplicate = fixture.store.receive(state['revision'], event)
         self.assertEqual(state['revision'], duplicate['revision'])
-        state = fixture.receive(fixture.dispatch(state, 'to-spec', 'spec-step'))
+        state = fixture.store.dispatch(state['revision'], 'codebase-design', 'design-v1', 'design')
+        design = state['frames'][-1]
+        design_event = fixture.event(design, record)
+        artifact = fixture.project / 'design.md'
+        artifact.write_text('Synthetic design result.', encoding='utf-8')
+        design_event.update(skill_id=design['skill_id'], input_version=design['input_version'],
+                            artifacts=[str(artifact)], checks=[])
+        state = fixture.store.receive(state['revision'], design_event)
         record.write_text(record.read_text(encoding='utf-8') + ' ', encoding='utf-8')
         with self.assertRaises(ValueError):
-            fixture.complete(state)
+            fixture.store.complete(state['revision'], [{'id': '1', 'source_frame_id': frame['frame_id']}])
         state = fixture.store.resume(state['revision'])
         self.assertEqual([step['status'] for step in state['plan']], ['pending', 'pending'])
 

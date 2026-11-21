@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "repository": "https://github.com/mattpocock/skills",
+  "upstream_commit": "a496f5513d4a4cf889bc48e189e579f4b0bdf6aa",
+  "comparison_baseline": "4588b32ecab9ecc9fc8cc6b6c5e7d675b6004b0d",
+  "synced_on": "2026-10-30",
+  "scope": "Reviewed incremental upstream merge preserving local adaptations.",
+  "upstream_skill": "codebase-design",
+  "upstream_files": [
+    {
+      "path": "DESIGN-IT-TWICE.md",
+      "git_blob_sha": "aebdc9f8c05b40d7832de38e2fd8380e1e5507ac",
+      "sha256": "c222ab5a82e0405672eb9062d62496139a08828e45d07fc5f18e4952c10fac1a"
+    }
+  ],
+  "local_changes": [
+    {
+      "path": "DESIGN-IT-TWICE.md",
+      "sha256": "6da497a8633f27b85b9b3d555905868a64850bd6e86f9d4fee15864a8001c923"
+    }
+  ],
+  "historical_source_record": null,
+  "notes": [
+    "Historical source.json commit/original_files remain the baseline provenance; latest_sync identifies this incremental merge.",
+    "Matt research remains installed as matt-research; existing research routers are not replaced."
+  ]
+}

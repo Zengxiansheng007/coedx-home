@@ -25,5 +25,10 @@
       "sha256": "bdffbc5a0a99ed1b6ef3253d251d755fd18162b9845972e380007f844b09b05c"
     }
   ],
-  "mode": "dual-entry-dispatch-only"
+  "mode": "dual-entry-dispatch-only",
+  "latest_sync": {
+    "commit": "a496f5513d4a4cf889bc48e189e579f4b0bdf6aa",
+    "record": "upstream-sync.json",
+    "date": "2026-10-30"
+  }
 }
