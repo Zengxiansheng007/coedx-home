@@ -4,7 +4,7 @@ description: "通过访谈澄清需求或设计，每轮保存 Markdown 问答�
 ---
 
 <!-- grill-coverage:integration:start -->
-在首次提问或恢复访谈前，必须读取并应用[覆盖扩展](../../skill-extensions/grill-with-docs-coverage/extension.md)及其必需引用，贯穿逐轮答复、汇总复核、文档审阅和确认清理。扩展在这些阶段的记录与完成条件优先于本技能及辅助技能的宽松收尾规则；文件缺失或流程冲突时先按扩展接入说明修复，未恢复前报告具体阻塞。
+在首次提问或恢复访谈前，必须读取并应用[覆盖扩展](references/grill-with-docs-coverage/extension.md)及其必需引用，贯穿逐轮答复、汇总复核、文档审阅和确认清理。扩展在这些阶段的记录与完成条件优先于本技能及辅助技能的宽松收尾规则。文件缺失或流程冲突时，先按[恢复接入与兼容性](references/grill-with-docs-coverage/reintegrate.md)修复，恢复前报告具体阻塞。
 <!-- grill-coverage:integration:end -->
 
 ## Codex执行约定

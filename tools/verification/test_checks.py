@@ -11,6 +11,18 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 
 class RecordedCheckTests(unittest.TestCase):
+    def test_grill_coverage_can_load_from_an_isolated_skill_directory(self):
+        from shutil import copytree
+        from checks import ROOT, validate_grill_coverage
+
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / 'grill-with-docs'
+            copytree(ROOT / '.agents/skills/grill-with-docs', target)
+            validate_grill_coverage(target)
+            (target / 'references/grill-with-docs-coverage/record.md').unlink()
+            with self.assertRaisesRegex(ValueError, 'Missing coverage reference.*record.md'):
+                validate_grill_coverage(target)
+
     def test_invalid_working_directory_still_records_failed_execution(self):
         from record_check import run_record, validate_record
         with tempfile.TemporaryDirectory() as directory:

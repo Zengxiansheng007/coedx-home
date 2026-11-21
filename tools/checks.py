@@ -34,6 +34,22 @@ def installed_root():
     return Path(os.environ.get('CODEX_HOME', str(Path.home() / '.codex'))) / 'skills'
 
 
+def validate_grill_coverage(skill_root):
+    relative = 'references/grill-with-docs-coverage'
+    entry = (skill_root / 'SKILL.md').read_text(encoding='utf-8')
+    for name in ('extension.md', 'reintegrate.md'):
+        if f']({relative}/{name})' not in entry:
+            raise ValueError(f'{skill_root}: missing coverage link to {name}')
+    for name in ('extension.md', 'record.md', 'reintegrate.md'):
+        path = skill_root / relative / name
+        if not path.is_file() or not path.read_text(encoding='utf-8').strip():
+            raise ValueError(f'Missing coverage reference: {path}')
+    extension = (skill_root / relative / 'extension.md').read_text(encoding='utf-8')
+    for name in ('record.md', 'reintegrate.md'):
+        if f']({name})' not in extension:
+            raise ValueError(f'{skill_root}: coverage extension is missing its link to {name}')
+
+
 def stage(name, installed):
     if name == 'dependencies':
         import importlib.metadata
@@ -53,6 +69,8 @@ def stage(name, installed):
                 valid, message = validate_skill(root / skill)
                 if not valid:
                     raise ValueError(f'{root / skill}: {message}')
+                if skill == 'grill-with-docs':
+                    validate_grill_coverage(root / skill)
                 print(f'VALID: {root / skill}: {message}')
     elif name == 'registry':
         from validate_registry import validate
