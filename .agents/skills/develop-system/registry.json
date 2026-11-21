@@ -136,7 +136,7 @@
       "path": "../grill-with-docs/SKILL.md"
     },
     {
-      "id": "matt-research",
+      "id": "research",
       "stage": "requirements-design",
       "role": "auxiliary",
       "enabled": true,
@@ -148,7 +148,7 @@
       "outputs": [
         "带引用的调研结论"
       ],
-      "path": "../matt-research/SKILL.md",
+      "path": "../research/SKILL.md",
       "required_calls": []
     },
     {
