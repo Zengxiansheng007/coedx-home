@@ -15,7 +15,7 @@ FIXTURE = Path(__file__).with_name("formatted-cmd.txt")
 WRITER = ROOT / ".agents/skills/jmeter-tps-writer/scripts/writer.py"
 
 
-def verify(fixture, output):
+def verify(fixture, output, writer=WRITER, gui_pilot=False):
     events = []
 
     class Receiver(BaseHTTPRequestHandler):
@@ -47,13 +47,14 @@ def verify(fixture, output):
         accounts = root / "accounts.tsv"
         accounts.write_text(f"cookie\n{first}\n{second}\n", encoding="utf8")
         out = root / "out"
-        subprocess.run([sys.executable, "-X", "utf8", WRITER, "--requests", request, "--accounts",
-                        accounts, "--pilot-account", "2", "--out", out], check=True)
-        assert [e[0] for e in events[:2]] == [second, second]
+        mode = ["--accounts-stdin", "--gui-pilot"] if gui_pilot else ["--accounts", accounts, "--pilot-account", "2"]
+        subprocess.run([sys.executable, "-X", "utf8", writer, "--requests", request, "--out", out, *mode],
+                       input=accounts.read_bytes() if gui_pilot else None, check=True)
+        assert [e[0] for e in events[:2]] == [second, first if gui_pilot else second]
         assert sorted(e[0] for e in events[2:]) == sorted([first, second])
         assert all(e[1:] == ("/govportal/portal/affairs/getServiceWithCategory", "person",
                    b'{"personType":"1","searchChannel":"PC","siteId":"510000","tabOption":"THEME"}') for e in events)
-        print(check(out))
+        print(check(out, "1" if gui_pilot else "2"))
 
 
 
@@ -61,8 +62,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--fixture", type=Path, default=FIXTURE)
     parser.add_argument("--output", type=Path, help="retain synthetic artifacts in a new directory")
+    parser.add_argument("--writer", type=Path, default=WRITER)
+    parser.add_argument("--gui-pilot", action="store_true")
     args = parser.parse_args()
-    verify(args.fixture, args.output)
+    verify(args.fixture, args.output, args.writer, args.gui_pilot)
 
 
 

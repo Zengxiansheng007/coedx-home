@@ -2,7 +2,9 @@
 import argparse
 from collections import Counter
 import hashlib
+import json
 import shutil
+import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -40,7 +42,10 @@ def main():
     parser.add_argument("--html", action="store_true")
     source.add_argument("--rebuild-report", type=Path, metavar="FINAL_JTL")
     parser.add_argument("--out", type=Path)
-    parser.add_argument("--accounts", type=Path)
+    account_input = parser.add_mutually_exclusive_group()
+    account_input.add_argument("--accounts", type=Path)
+    account_input.add_argument("--accounts-stdin", action="store_true", help="从 UTF-8 标准输入读取单列 TSV，保存为计划旁的 accounts.tsv")
+    parser.add_argument("--gui-pilot", action="store_true", help="打开最终 JMX，点击启动并在结束后关闭 GUI，随后自动执行最终轮")
     parser.add_argument("--jmeter", default="jmeter.bat")
     parser.add_argument("--pilot-account", type=int, default=1)
     parser.add_argument("--confirmed-code-zero", action="append", default=[])
@@ -50,6 +55,8 @@ def main():
     parser.add_argument("--guest-target", action="append", default=[], help="已确认免登录的目标编号")
     parser.add_argument("--login-target", action="append", default=[], help="已确认需要登录的目标编号")
     args = parser.parse_args()
+    if args.gui_pilot and (not args.requests or args.pilot_account != 1 or args.diagnose_target):
+        parser.error("--gui-pilot 用于新建计划，按 GUI 默认读取账号 1。")
     if args.rebuild_report:
         try:
             report = args.out or (args.rebuild_report.resolve().parent.parent / "report-rebuilt")
@@ -101,6 +108,11 @@ def main():
                 if label in args.login_target and not target.captured_session:
                     raise ValueError(f"{label} 请补充抓包会话 Cookie。")
             guest_only = all(not target.captured_session for target in targets)
+        if args.accounts_stdin and not guest_only:
+            args.accounts = args.out / "accounts.tsv"
+            data = sys.stdin.buffer.read().decode("utf-8-sig")
+            with args.accounts.open("x", encoding="utf8") as stream:
+                stream.write(data.replace("\r\n", "\n"))
         if not guest_only and not args.accounts:
             raise ValueError("需登录接口需要 --accounts。")
         cookies = read_column(args.accounts, "cookie") if args.accounts and not guest_only else []
@@ -111,10 +123,17 @@ def main():
             raise ValueError("先导账号编号超出输入行数。")
         if args.ctokens and len(read_column(args.ctokens, "ctoken")) != count:
             raise ValueError("ctoken 行数必须与账号行数相同。")
-        if cookies:
+        account_file = "accounts.tsv" if args.accounts_stdin or not cookies else str(args.accounts.resolve())
+        if cookies and args.plan and ".private/accounts.path" in plan.read_text(encoding="utf8"):
             reference = plan.parent / ".private" / "accounts.path"
             reference.parent.mkdir()
             reference.write_text(str(args.accounts.resolve()), encoding="utf8")
+        elif cookies and args.plan:
+            source = tree.find(".//elementProp[@name='account_source']/stringProp[@name='Argument.value']")
+            if source is not None and source.text != account_file:
+                source.text = account_file
+                xml = ET.tostring(tree.getroot(), encoding="utf-8", xml_declaration=True)
+                plan.write_bytes(xml.replace(b"\r", b"&#13;"))
         if args.requests:
             account_numbers = {}
             for label, target in zip(labels, targets):
@@ -126,7 +145,8 @@ def main():
                 else:
                     account_numbers[label] = "guest"
             if not launcher_args(args.jmeter):
-                generate(targets, plan, confirmed_code_zero=args.confirmed_code_zero, ctoken_targets=args.ctoken_target)
+                generate(targets, plan, confirmed_code_zero=args.confirmed_code_zero, ctoken_targets=args.ctoken_target,
+                         account_file=account_file)
                 raise ValueError("缺少 JMeter 或 Java；已保存未执行的草稿 plan.jmx")
             with TemporaryDirectory() as private:
                 raw = Path(private).resolve() / "raw.jmx"
@@ -151,7 +171,7 @@ def main():
                     summary.write_text("\n\n".join(lines), encoding="utf8")
                     return 1
                 generate(targets, plan, confirmed_code_zero=args.confirmed_code_zero, ctoken_targets=args.ctoken_target,
-                         raw_plan=raw)
+                         raw_plan=raw, account_file=account_file, gui_pilot=args.gui_pilot and not guest_only)
             labels = [n.get("testname") for n in ET.parse(plan).findall(".//HTTPSamplerProxy")]
         if args.diagnose_target:
             with TemporaryDirectory() as private:
@@ -183,11 +203,24 @@ def main():
                                         ("full", "最终验证", 1, 1 if guest_only else count)]:
         if guest_only and phase == "pilot":
             continue
-        status, samples = run_round(plan, args.accounts, args.out, phase, first, threads, args.jmeter, args.ctokens)
+        before = hashlib.sha256(plan.read_bytes()).hexdigest()
+        status, samples = run_round(plan, args.accounts, args.out, phase, first, threads, args.jmeter, args.ctokens,
+                                    gui=args.gui_pilot and phase == "pilot")
         expected = [(str(a), label) for a in range(first, first + threads) for label in labels if label not in guest_labels]
         if phase == "full":
             expected.extend(("guest", label) for label in labels if label in guest_labels)
         passed = check_round(status, samples, expected)
+        if hashlib.sha256(plan.read_bytes()).hexdigest() != before:
+            passed = False
+            lines.append("运行期间 JMX 已修改，请用保存后的计划重新验证。")
+        if passed and phase == "full":
+            try:
+                total = json.loads((args.out / "report/statistics.json").read_text(encoding="utf8"))["Total"]
+                passed = total["sampleCount"] == len(samples) and total["errorCount"] == 0
+            except (OSError, ValueError, KeyError, TypeError):
+                passed = False
+            if not passed:
+                lines.append("Dashboard 汇总与最终 JTL 无法核对。")
         lines.append(f"# {title}\n\n{status}，预期 {len(expected)} 条，实际 {len(samples)} 条。")
         lines.extend(coverage(samples, expected))
         for row in samples:
@@ -215,7 +248,15 @@ def main():
                    f'--pilot-account {args.pilot_account}' + extra)
         if guest_only:
             command = 'python scripts/writer.py --plan "<上轮输出>\\plan.jmx" --out "<新的输出目录>"'
-        (args.out / "rerun.md").write_text("从技能目录执行，替换路径。按需追加 --jmeter 或 --html。\n\n```powershell\n" + command + "\n```\n", encoding="utf8")
+        def quoted(value):
+            return "'" + str(value).replace("'", "''") + "'"
+        native = (f"& {quoted(shutil.which(args.jmeter) or args.jmeter)} -n -t {quoted(plan)} "
+                  f"-l {quoted(args.out / 'result' / 'rerun.jtl')} -e -o {quoted(args.out / 'report-rerun')} "
+                  f"'-Jthreads={count or 1}'")
+        if args.ctokens:
+            native += " " + quoted("-Jctokens.file=" + str(args.ctokens.resolve()))
+        (args.out / "rerun.md").write_text("JMeter 最终轮复跑（再次执行请换新的 JTL 和报告路径）\n\n```powershell\n"
+            + native + "\n```\n\nWriter 分轮复验\n\n```powershell\n" + command + "\n```\n", encoding="utf8")
     summary.write_text("\n\n".join(lines) + "\n", encoding="utf8")
     return 0 if passed else 1
 

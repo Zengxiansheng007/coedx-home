@@ -64,7 +64,7 @@ def rebuild_report(jtl, report, jmeter):
     return result.returncode == 0 and (report / "index.html").is_file()
 
 
-def run_round(plan, accounts, out, phase, first, threads, jmeter, ctokens=None):
+def run_round(plan, accounts, out, phase, first, threads, jmeter, ctokens=None, *, gui=False):
     launcher = launcher_args(jmeter)
     if not launcher:
         return "未执行：缺少 JMeter 或 Java", []
@@ -74,7 +74,10 @@ def run_round(plan, accounts, out, phase, first, threads, jmeter, ctokens=None):
     if result.exists():
         result = results / (phase + "-" + uuid.uuid4().hex + ".jtl")
     report = out / "report"
-    command = launcher + ["-n", "-t", str(plan.resolve()), "-l", str(result.resolve()),
+    mode = ["-t", str(plan.resolve()), "-Jsave_automatically_before_run=false",
+            "-Jwriter.gui.jtl=" + str(result.resolve())] if gui else [
+        "-n", "-t", str(plan.resolve()), "-l", str(result.resolve())]
+    command = launcher + mode + [
                "-j", str(result.with_suffix(".private.log").resolve()),
                f"-Jaccount.first={first}", f"-Jthreads={threads}",
                "-Jtrial.phase=" + phase, "-Jsample_variables=" + VARIABLES, "-Jhttpclient4.retrycount=0",
@@ -83,7 +86,7 @@ def run_round(plan, accounts, out, phase, first, threads, jmeter, ctokens=None):
                "-Jjmeter.save.saveservice.response_message=true",
                "-Jjmeter.save.saveservice.assertion_results_failure_message=true"]
     selected = None
-    if accounts:
+    if accounts and not gui:
         source = accounts.resolve()
         command.append("-Jaccounts.source=" + str(source))
         if phase in ("pilot", "diagnostic") and b"<CSVDataSet " in plan.read_bytes():

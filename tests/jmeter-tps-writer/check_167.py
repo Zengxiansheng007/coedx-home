@@ -17,7 +17,7 @@ def require(ok, description):
         raise ValueError(description)
 
 
-def check(out):
+def check(out, pilot_account="2"):
     plan = out / "plan.jmx"
     digest = hashlib.sha256(plan.read_bytes()).hexdigest()
     require(digest in (out / "summary.md").read_text(encoding="utf8"), "final JMX digest")
@@ -41,7 +41,7 @@ def check(out):
     require(any(all(x in line for x in ("T01", TITLE, ALIAS)) for line in targets.splitlines()), "original aliases")
     result = out / "result"
     require(len(list(result.glob("*.jtl"))) == 3, "three independent JTL files")
-    for phase, accounts in (("raw", ["2"]), ("pilot", ["2"]), ("full", ["1", "2"])):
+    for phase, accounts in (("raw", ["2"]), ("pilot", [pilot_account]), ("full", ["1", "2"])):
         with (result / f"{phase}.jtl").open(encoding="utf-8-sig", newline="") as stream:
             rows = list(csv.DictReader(stream))
         require(Counter(r["account_no"] for r in rows) == Counter(accounts), f"{phase} account coverage")
