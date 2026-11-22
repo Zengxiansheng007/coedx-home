@@ -254,6 +254,8 @@ def _patch(batch, update):
 
 
 def _validate_content(batch):
+    from step_reuse import expanded  # Recheck exact dependencies before any approval path.
+    batch = expanded(batch)
     ids = [d['id'] for d in batch['data']]
     if len(ids) != len(set(ids)):
         raise ValueError('Duplicate data identity')
@@ -371,6 +373,7 @@ def review(session, final_review):
     """Record full-case review of the current version, independently of rules."""
     _credential_guard(final_review)
     batch = session['batch']
+    _validate_content(batch)  # Approval never trusts a stale reference snapshot.
     if (not session.get('summary_confirmation') or not session.get('summary') or
             session['summary']['revision'] != session['revision'] or
             session.get('applied_content_version') != batch['content_version']):

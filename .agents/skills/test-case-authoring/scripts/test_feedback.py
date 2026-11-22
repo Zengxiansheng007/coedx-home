@@ -159,7 +159,7 @@ class FeedbackTests(unittest.TestCase):
         original = scope()
         # Delete only the case subtree; shared directories belong to remaining cases.
         lines = original['xmind_markdown'].splitlines()
-        start = next(i for i, line in enumerate(lines) if line.strip() == '- Save a notice')  # Fixture explicitly selects its first Notes case.
+        start = next(i for i, line in enumerate(lines) if line.strip() == '- P0 Save a notice')  # Fixture explicitly selects its first Notes case.
         depth = len(lines[start]) - len(lines[start].lstrip())
         end = next((i for i in range(start + 1, len(lines)) if len(lines[i]) - len(lines[i].lstrip()) <= depth), len(lines))
         edited = '\n'.join(lines[:start] + lines[end:]) + '\n'
