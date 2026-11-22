@@ -1,5 +1,9 @@
 # references-and-assets Change Ledger
 
+- [CR-20261115-007](../entries/2026/2026-11/CR-20261115-007-handoff-revalidation.md): document current evidence input and receiver recovery conflicts.
+
+- [CR-20261115-006](../entries/2026/2026-11/CR-20261115-006-shared-feedback.md): exact shared-source impact in existing feedback review.
+
 ## Purpose
 
 Trace rule Q&A changes in references-and-assets.
@@ -186,3 +190,72 @@ approved/not_run/not_merged synthetic cases. Candidate status remains applied;
 this is not host acceptance, execution readiness, installation or publishing.
 See CR110 detail and external evidence/qa110/final-review/acceptance.md and
 final-inspection.json under the local task evidence root, outside this repository.
+
+## CR-20261114-001 — Module handoff partition
+
+- Section changed: review projection and feedback.
+- Before: hidden provenance and repeated process metadata.
+- After: direct-owner module instruction branches; business applicability remains visible.
+- Why: #113 / REQ-015-016 / AC-023-024.
+- Impact: scoped, ordinary and chat views; supported markdown/native feedback.
+- Validation: public red/green; 149 synthetic regressions passed; real client unverified.
+- Detail record: [CR-20261114-001](../entries/2026/2026-11/CR-20261114-001-module-handoff.md).
+
+
+### CR-20261114-002 - Review expression
+
+- Section changed: graded review titles and repeated expectations.
+- Before: ungraded titles and repeated expected/check text.
+- After: one-space graded titles, exact deduplication, stable source feedback.
+- Why: issue 114.
+- Impact: same-version total/scoped/chat views.
+- Validation: public-entry TDD and regression; external test-output/rr02.
+- Detail record: [CR-20261114-002](../entries/2026/2026-11/CR-20261114-002-review-expression.md)
+## CR-20261115-003 — Whole-step P0 reuse
+
+- Section changed: static P1/P2 authoring, dependency snapshots, review and isolated merge.
+- Before: every step required duplicated complete fields.
+- After: assessed complete source designs may become version-bound whole-step references; one resolver verifies order, fixed data and endpoint.
+- Why: #115 / AC-026 and AC-028.
+- Impact: existing complete candidates remain valid; execution dependencies and permissions unchanged.
+- Validation: public authoring, difference, corruption, review, feedback, selection and merge tests; client acceptance remains unverified.
+- Detail record: ../entries/2026/2026-11/CR-20261115-003-step-reuse.md
+
+### CR-20261115-008 - Handoff applicability
+
+- Section changed: step technical instructions and contract.
+- Before: sourceless step policies lost applicability.
+- After: group, ordinal and operation bind every policy.
+- Why: independent #113 review finding.
+- Impact: human/tree generated views and unchanged feedback.
+- Validation: 151 tests passed; test-output/rr01-fix/tests.txt.
+- Detail record: ../entries/2026/2026-11/CR-20261115-008-handoff-applicability.md
+# CR-20261115-004 dynamic data
+
+- Section changed: dynamic whole-step contract and current data projection.
+- Before: only fixed bindings could be selected.
+- After: explicit rules allow independent runtime values with full binding checks.
+- Why: issue #116, AC-027.
+- Impact: whole-step resolver and scoped review; no execution authority.
+- Validation: 160 tests passed; corrected fixture fails on baseline.
+- Detail record: ../entries/2026/2026-11/CR-20261115-004-dynamic-data.md
+### CR-20261115-005 - Local referenced-step feedback
+
+- Section changed: candidate feedback and reference projection.
+- Before: inherited actions could not accept local scalar feedback.
+- After: chat, Markdown and native feedback materialize only the changed local step.
+- Why: #117 / AC-030.
+- Impact: source snapshots and unrelated cases remain unchanged; existing review gates apply.
+- Validation: 162 tests passed; external test-output/rr05/tests.txt; actual client not tested.
+- Detail record: entries/2026/2026-11/CR-20261115-005-local-feedback.md
+
+CR-20261115-010: Document versioned source bindings and historical retention. Detail: ../entries/2026/2026-11/CR-20261115-010-data-version-binding.md
+
+## CR-20261115-011
+
+- Before: recursive history and lost referenced instructions.
+- After: flat complete snapshots and checked handoff resolution.
+- Why: final standards P2 findings.
+- Impact: candidate-only; existing historical content retained.
+- Validation: public TDD and full regression, external test-output/final-repairs.
+- Detail record: entries/2026/2026-11/CR-20261115-011-final-repairs.md

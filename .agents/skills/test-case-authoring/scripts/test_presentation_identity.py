@@ -10,9 +10,9 @@ class PresentationIdentityTests(unittest.TestCase):
     def test_legacy_displayed_ids_keep_scalar_feedback_compatible(self):
         from test_feedback import scope
         original = scope()
-        legacy = original['xmind_markdown'].replace('- Save a notice\n', '- EDIT Save a notice\n', 1)
+        legacy = original['xmind_markdown'].replace('- P0 Save a notice\n', '- EDIT Save a notice\n', 1)
         offset = legacy.index('- Accounts')
-        legacy = legacy[:offset] + legacy[offset:].replace('- Save a notice\n', '- LINK Save a notice\n', 1)
+        legacy = legacy[:offset] + legacy[offset:].replace('- P0 Save a notice\n', '- LINK Save a notice\n', 1)
         edited = legacy.replace('Saved message is visible', '模拟：保存成功')
         pending = prepare_feedback(original['batch'], 'markdown', markdown=edited, actual_reply='模拟：修改历史英文编号稿的预期')
         self.assertEqual({c['id'] for c in pending['changes']}, {'EDIT', 'LINK'})
@@ -30,10 +30,10 @@ class PresentationIdentityTests(unittest.TestCase):
         changed = result['xmind_markdown'].replace('初始状态：signed in', '初始状态：已授权', 1)
         with self.assertRaises(ValueError):
             prepare_feedback(result['batch'], 'markdown', markdown=changed, actual_reply='模拟：修改保存资料')
-        topics = [t for t in feedback_topics(changed) if t['title'] == '保存资料']
+        topics = [t for t in feedback_topics(changed) if t['title'] == 'P0 保存资料']
         bindings = {'EDIT': dict(topics[0], source_version=result['batch']['content_version'], actual_reply='模拟：修改编辑员的初始状态，审核员不变')}
         lines = changed.splitlines()
-        starts = [i for i, line in enumerate(lines) if line == '          - 保存资料']  # Move complete known fixture subtrees after explicit binding.
+        starts = [i for i, line in enumerate(lines) if line == '          - P0 保存资料']  # Move complete known fixture subtrees after explicit binding.
         changed = '\n'.join(lines[:starts[0]] + lines[starts[1]:] + lines[starts[0]:starts[1]]) + '\n'
         pending = prepare_feedback(result['batch'], 'markdown', markdown=changed, actual_reply='模拟：编辑员已授权', case_bindings=bindings)
         self.assertEqual(pending['affected_case_ids'], ['EDIT'])
@@ -51,11 +51,11 @@ class PresentationIdentityTests(unittest.TestCase):
         from aggregation import feedback_topics
         from test_feedback import confirm
         original = synthetic_scope()
-        edited = original['xmind_markdown'].replace('- Save a notice\n', '- 保存修订资料\n', 1)
+        edited = original['xmind_markdown'].replace('- P0 Save a notice\n', '- P0 保存修订资料\n', 1)
         with self.assertRaises(ValueError):
             prepare_feedback(original['batch'], 'markdown', markdown=edited, actual_reply='模拟：已改名')
         topics = feedback_topics(edited)
-        target = next(t for t in topics if t['title'] == '保存修订资料')
+        target = next(t for t in topics if t['title'] == 'P0 保存修订资料')
         bindings = {'EDIT': dict(target, source_version=original['batch']['content_version'], actual_reply='模拟：修改资料目录下准备模拟资料的创建用例名称，关联用例保持不变')}
         pending = prepare_feedback(original['batch'], 'markdown', markdown=edited, actual_reply='模拟：已改名', case_bindings=bindings)
         updated = confirm(pending)

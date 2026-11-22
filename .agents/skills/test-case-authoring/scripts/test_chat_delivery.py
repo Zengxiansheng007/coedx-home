@@ -62,7 +62,7 @@ class ChatDeliveryTests(unittest.TestCase):
         batch['cases'] = [dict(copy.deepcopy(prototype), id=f'C{i}', title=f'模拟用例{i}') for i in range(10)]  # Ten distinct identities.
         ids = [case['id'] for case in batch['cases']]  # Internal selection only.
         result = presentation.render_chat(batch, ids[:9])  # Inclusive upper bound.
-        self.assertEqual(result['human_view'].count('# 模拟用例'), 9)  # Exactly the requested cases.
+        self.assertEqual(result['human_view'].count('# P0 模拟用例'), 9)  # Exactly the requested cases.
         self.assertNotIn('模拟用例9', result['human_view'])  # Unselected case stays outside chat.
         self.assertEqual(len(batch['cases']), 10)  # No source deletion.
         for request in ([], ids, ['missing'], ['C0', 'C0'], 'C0'):  # No implicit all, skipping or truncation.

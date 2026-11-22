@@ -71,7 +71,9 @@ class RecoveryTests(unittest.TestCase):  # Verify observable persistence and rec
         self.assertEqual(state['prior_stages'][0]['questions'], self.state['questions'])  # Old unanswered and history retained.
         self.assertEqual([c['id'] for c in state['batch']['cases']], ['LOW', 'HIGH'])  # Real extension result.
         self.candidate.write_text(json.dumps(state['batch']), encoding='utf-8')  # Persist actual new-stage candidate.
-        checkpoint_record(self.qa, 'p1-p2', self.candidate, [{'path': str(self.source), 'question_ids': ['Q1']}], 'Continue extension')  # Earlier-stage source decisions remain valid bindings.
+        evidence = self.root / 'extension-evidence.json'  # Current supplied evidence travels with the handoff.
+        evidence.write_text(json.dumps(dict(zip(('catalog', 'baseline', 'reports', 'request'), args[:4]), mode='simulation')), encoding='utf-8')  # Explicit synthetic evidence, no cached success.
+        checkpoint_record(self.qa, 'p1-p2', self.candidate, [{'path': str(self.source), 'question_ids': ['Q1']}], 'Continue extension', extension_evidence=evidence)  # Earlier-stage source decisions remain valid bindings.
         payload['envelope']['reports'] = []  # Missing full P0 evidence must still reject.
         before = self.qa.read_bytes()  # Rejection cannot erase prior stage.
         with self.assertRaises(ValueError):  # Existing public evidence gate.
