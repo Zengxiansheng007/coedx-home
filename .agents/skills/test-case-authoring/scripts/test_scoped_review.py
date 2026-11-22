@@ -100,7 +100,7 @@ class ScopedReviewTests(unittest.TestCase):
         self.assertEqual(changes[0]['before'], full['cases'][0]['title'])
         self.assertEqual(changes[0]['after'], 'Revised synthetic title')
         self.assertEqual(changes[0]['coverage_impact'], 'CHECK-1 revised')
-        self.assertEqual(result['xmind_markdown'].count('- Revised synthetic title\n'), 2)  # Same-name independent candidates both remain visible.
+        self.assertEqual(result['xmind_markdown'].count('- P0 Revised synthetic title\n'), 2)  # Same-name independent candidates both remain visible.
         self.assertIn('Revised synthetic value', result['xmind_markdown'])
 
     def test_shared_data_change_cannot_silently_modify_a_related_record(self):

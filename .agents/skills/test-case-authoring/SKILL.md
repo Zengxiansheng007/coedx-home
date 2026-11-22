@@ -5,6 +5,11 @@ description: Turn a supplied Playwright recording or complete handwritten P0 and
 
 # P0 authoring and batch clarification
 
+Before selecting P0 steps for P1/P2 reuse or reviewing a compact reference batch,
+read [whole-step reuse](references/step-reuse.md). Explicit P0 changes enter the existing feedback `shared_change` impact proposal; local edits never imply shared authority. Supply complete source-based
+target steps and explicit four-part applicability/endpoint assessments; use the
+shared resolver before review. Missing or stale references return to clarification.
+
 Before any delivery or regenerated review, read [chat delivery](references/chat-delivery.md).
 Deliver the same-version XMind scope copy. For an explicitly needed selection of
 1–9 complete cases, call `presentation.render_chat` and show its returned text
@@ -12,7 +17,8 @@ directly in chat. Keep candidate/Q&A records; human-view tables have no file art
 
 Before display, rename, same-name feedback or Markdown/native return, read
 [the presentation identity contract](references/presentation-identity.md).
-Use Chinese business titles and retain P0/P1/P2. Keep stable IDs internal; ask
+Use titles `P0 中文用例名`, `P1 中文用例名`, `P2 中文用例名` with one space. Read
+[expectation expression](references/review-expression.md) before presenting repeated checks. Keep stable IDs internal; ask
 about business role, state, path and intended change when identity is unclear.
 Users never maintain IDs or subtree hashes. Both views use one candidate version.
 
@@ -135,6 +141,11 @@ are separate capabilities; this step applies neither. State unsupported native
 formats and pending formal ui-test mapping explicitly.
 
 ## Receive chat or edited Markdown feedback
+
+For referenced P1/P2 steps, default feedback to the current case only. Read
+[the step reference contract](references/step-reuse.md): agreed business edits
+materialize a complete local step; never edit shared snapshots or retain partial
+overrides. Unknown rules still require actual clarification and final review.
 
 For an actual native `.xmind` return, read [the native feedback adapter](references/xmind-feedback-contract.md)
 and read the file with its public entry before continuing this same review gate.
@@ -327,3 +338,5 @@ with the review copy. Report only actual applied isolated changes, pending cases
 and their reasons, version and unchanged full P0 verification scope. Recommend
 separately user-started ui-test after applied P1/P2 merge. Formal synchronization
 awaits the next PR; this branch never merges P0 formally or starts execution.
+
+For review generation and returned-file interpretation, read [module handoff](references/module-handoff-contract.md). Classify general governance explicitly; preserve business applicability and unresolved rules in the case body. Generated instructions never grant execution authority.

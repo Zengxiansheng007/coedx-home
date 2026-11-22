@@ -16,6 +16,20 @@ stage 为 `p0/report/p1-p2/review`；sources 是实际文件路径及其影响�
 保存来源摘要、候选定位及下一步到同一 MD；候选必须与当前回放完整一致。
 来源身份摘要不是业务结论，仍需读取原文核对具体含义、版本和适用范围。
 
+P1/P2 候选还必须传 `extension_evidence=实际证据JSON路径`。该文件沿用
+既有 `check_extension` 输入：`catalog`、`baseline`、`reports`、`request`，
+合成材料显式指定 `mode: simulation`。它是必要技术来源，不是新审批或
+人工展开稿。checkpoint 和 resume 都重新还原完整动作、当前数据、预期、
+断言及声明终点，重新核对当前完整 P0 资格及活动引用的源版本、步骤和数据。
+历史未再引用的定义继续留存，不作为活动依赖阻塞。没有当前证据的历史
+P1/P2 checkpoint 仍可恢复问答，但不能宣称交接核对通过。
+
+接收方读取同一问答 MD、候选 JSON、来源文件及上述证据文件，核对
+`conflicts` 为空后使用瞬时 `complete_batch`；不落盘人工维护展开版。
+证据变动、缺失或还原失败时 `complete_batch` 为空，返回具体冲突。
+该结果保留原审批状态，不授予合并或执行权限，也不证明下游 UI-Test
+已支持当前契约或业务测试通过。未知规则继续原澄清，默认反馈仅影响当前用例。
+
 报告核对继续使用 record_context/record_note，不新建批次问答。实际进入
 P1/P2时用 `advance_record(qa_path, 'start_extension', payload)`，payload 包含
 既有 build_extension 的 `envelope`（catalog、baseline、reports、entry_request、
