@@ -9,7 +9,7 @@ import uuid
 
 ROOT = Path(__file__).resolve().parents[1]
 SKILLS = ('develop-system', 'grill-with-docs')
-REPOSITORY_SKILLS = (*SKILLS, 'test-case-authoring')
+REPOSITORY_SKILLS = (*SKILLS, 'test-case-authoring', 'jmeter-tps-writer')
 SCRIPTS = ROOT / '.agents/skills/develop-system/scripts'
 sys.path.insert(0, str(SCRIPTS))
 from record_check import run_record
@@ -95,6 +95,7 @@ def main():
         ('workflow-tests', [sys.executable, '-B', '-m', 'unittest', 'discover', '-s', str(SCRIPTS), '-p', 'test_*.py', '-v']),
         ('verification-tests', [sys.executable, '-B', '-m', 'unittest', 'discover', '-s', str(ROOT / 'tools/verification'), '-p', 'test_*.py', '-v']),
         ('authoring-tests', [sys.executable, '-B', '-m', 'unittest', 'discover', '-s', str(ROOT / '.agents/skills/test-case-authoring/scripts'), '-p', 'test_*.py', '-v']),
+        ('jmeter-writer-tests', [sys.executable, '-B', '-m', 'unittest', 'discover', '-s', str(ROOT / 'tests/jmeter-tps-writer'), '-v']),
         ('skill-format', stage_command('format')),
         ('registry', stage_command('registry')),
         ('copies', stage_command('copies')),

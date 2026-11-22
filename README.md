@@ -5,7 +5,9 @@
 
 这里保存当前定制版本：develop-system 调度器、20 个注册执行技能，以及 ask-matt、writing-for-agents、wait-what、handoff，合计 25 个技能目录。相关引用、脚本、调用策略和许可证随目录保存。
 
-另外提供独立的 [test-case-authoring](.agents/skills/test-case-authoring/README.md)，用于录制或完整手写 P0 的编写、按批澄清、评审和用户启动的 P1/P2 隔离增量合并。它不属于 develop-system 的 20 个注册执行技能；加上它，仓库共有 26 个技能目录。使用 `$test-case-authoring` 直接进入，详见包内使用说明。正式 ui-test 接收、同步、P0 合并与真实联合验收仍待后续接入。
+另外提供独立的 [test-case-authoring](.agents/skills/test-case-authoring/README.md)，用于录制或完整手写 P0 的编写、按批澄清、评审和用户启动的 P1/P2 隔离增量合并。这项技能与下列 Writer 都可独立使用。加上这两项，仓库共有 27 个技能目录。使用 `$test-case-authoring` 直接进入，详见包内使用说明。正式 ui-test 接收、同步、P0 合并与真实联合验收仍待后续接入。
+
+独立技能 [jmeter-tps-writer](.agents/skills/jmeter-tps-writer/SKILL.md) 将浏览器 cURL 转为可编辑的中文 JMX，在 Windows JMeter 5.6.3 分轮验证访客或登录请求，并交付最终轮原生 Dashboard。[回环测试](tests/jmeter-tps-writer/README.md) · [脱敏验收](evidence/jmeter-tps-writer/README.md)
 
 - 导航：ask-matt。只推荐流程与技能。
 - 准备：setup-matt-pocock-skills。
