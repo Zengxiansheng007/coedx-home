@@ -1,0 +1,47 @@
+1、线上办按主题查询接口
+
+curl.exe ^"[https://portal.example.invalid/govportal/portal/affairs/getServiceWithCategory^](https://portal.example.invalid/govportal/portal/affairs/getServiceWithCategory^)" ^\
+&#x20; \--compressed ^\
+&#x20; -X POST ^\
+&#x20; -H ^"User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:160.0) Gecko/20100101 Firefox/160.0^" ^\
+&#x20; -H ^"Accept: application/json^" ^\
+&#x20; -H ^"Accept-Language: zh-CN,zh;q=0.9,zh-TW;q=0.8,zh-HK;q=0.7,en-US;q=0.6,en;q=0.5^" ^\
+&#x20; -H ^"Accept-Encoding: gzip, deflate, br, zstd^" ^\
+&#x20; -H ^"Referer: [https://portal.example.invalid/govportal/web/portal/personalPage?areaCode=510000^](https://portal.example.invalid/govportal/web/portal/personalPage?areaCode=510000^)" ^\
+&#x20; -H ^"Content-Type: application/json;charset=UTF-8^" ^\
+&#x20; -H ^"guc-endpoint: C^" ^\
+&#x20; -H ^"guc-platform: pc^" ^\
+&#x20; -H ^"guc-accountType: person^" ^\
+&#x20; -H ^"channel: pc^" ^\
+&#x20; -H ^"Origin: https\://portal.example\.invalid^" ^\
+&#x20; -H ^"Connection: keep-alive^" ^\
+&#x20; -H ^"Cookie: ssoOnlineUserInfo=EXAMPLE_ONLY_INFO_2; C_sc_gsid=EXAMPLE_ONLY_SESSION_2; C_sc_platform=pc; C_sc_accountType=person^" ^\
+&#x20; -H ^"Sec-Fetch-Dest: empty^" ^\
+&#x20; -H ^"Sec-Fetch-Mode: cors^" ^\
+&#x20; -H ^"Sec-Fetch-Site: same-origin^" ^\
+&#x20; -H ^"Priority: u=4^" ^\
+&#x20; \--data-raw ^"^{^\\^"personType^\\^":^\\^"1^\\^",^\\^"searchChannel^\\^":^\\^"PC^\\^",^\\^"siteId^\\^":^\\^"510000^\\^",^\\^"tabOption^\\^":^\\^"THEME^\\^"^}^"
+
+2、根据个法获取当前的一件事
+
+curl.exe ^"[https://portal.example.invalid/govportal/portal/affairs/getServiceWithCategory^](https://portal.example.invalid/govportal/portal/affairs/getServiceWithCategory^)" ^\
+&#x20; \--compressed ^\
+&#x20; -X POST ^\
+&#x20; -H ^"User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:160.0) Gecko/20100101 Firefox/160.0^" ^\
+&#x20; -H ^"Accept: application/json^" ^\
+&#x20; -H ^"Accept-Language: zh-CN,zh;q=0.9,zh-TW;q=0.8,zh-HK;q=0.7,en-US;q=0.6,en;q=0.5^" ^\
+&#x20; -H ^"Accept-Encoding: gzip, deflate, br, zstd^" ^\
+&#x20; -H ^"Referer: [https://portal.example.invalid/govportal/web/portal/personalPage?areaCode=510000^](https://portal.example.invalid/govportal/web/portal/personalPage?areaCode=510000^)" ^\
+&#x20; -H ^"Content-Type: application/json;charset=UTF-8^" ^\
+&#x20; -H ^"guc-endpoint: C^" ^\
+&#x20; -H ^"guc-platform: pc^" ^\
+&#x20; -H ^"guc-accountType: person^" ^\
+&#x20; -H ^"channel: pc^" ^\
+&#x20; -H ^"Origin: https\://portal.example\.invalid^" ^\
+&#x20; -H ^"Connection: keep-alive^" ^\
+&#x20; -H ^"Cookie: ssoOnlineUserInfo=EXAMPLE_ONLY_INFO_2; C_sc_gsid=EXAMPLE_ONLY_SESSION_2; C_sc_platform=pc; C_sc_accountType=person^" ^\
+&#x20; -H ^"Sec-Fetch-Dest: empty^" ^\
+&#x20; -H ^"Sec-Fetch-Mode: cors^" ^\
+&#x20; -H ^"Sec-Fetch-Site: same-origin^" ^\
+&#x20; -H ^"Priority: u=4^" ^\
+&#x20; \--data-raw ^"^{^\\^"personType^\\^":^\\^"1^\\^",^\\^"searchChannel^\\^":^\\^"PC^\\^",^\\^"siteId^\\^":^\\^"510000^\\^",^\\^"tabOption^\\^":^\\^"THEME^\\^"^}^"

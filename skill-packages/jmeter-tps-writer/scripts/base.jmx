@@ -1,0 +1,156 @@
+<?xml version='1.0' encoding='utf-8'?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="接口试运行" enabled="true">
+      <stringProp name="TestPlan.comments" />
+      <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="Variables" enabled="true">
+        <collectionProp name="Arguments.arguments" />
+      </elementProp>
+    </TestPlan>
+    <hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="账号" enabled="true">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="一次" enabled="true">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">1</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">${__P(threads,1)}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">0</stringProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+      </ThreadGroup>
+      <hashTree>
+        <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="绑定当前账号行" enabled="true">
+          <stringProp name="scriptLanguage">groovy</stringProp>
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="script">import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.Paths
+
+int row = (props.getProperty('account.first', '1') as int) + ctx.getThreadNum()
+vars.put('account_no', row.toString())
+vars.put('trial_phase', props.getProperty('trial.phase', 'pilot'))
+try {
+    String filename = props.getProperty('accounts.file', '')
+    def rows = Files.readAllLines(Paths.get(filename), StandardCharsets.UTF_8)
+    if (rows.isEmpty() || rows[0].replace('\uFEFF', '') != 'cookie' || row &lt; 1 || row &gt;= rows.size()) {
+        throw new IllegalArgumentException()
+    }
+    String capturedSession = rows[row]
+    if (!capturedSession || !capturedSession.contains('=') || capturedSession =~ /[\r\n\t]/) {
+        throw new IllegalArgumentException()
+    }
+    vars.put('account_cookie', capturedSession)
+    def tokenFile = props.getProperty('ctokens.file', '')
+    if (tokenFile) {
+        def tokens = Files.readAllLines(Paths.get(tokenFile), StandardCharsets.UTF_8)
+        vars.put('account_ctoken', java.net.URLEncoder.encode(tokens[row], 'UTF-8').replace('+', '%20'))
+    }
+    SampleResult.setIgnore()
+} catch (Exception ignored) {
+    SampleResult.setResponseCode('ACCOUNT_INPUT')
+    SampleResult.setResponseMessage('Account data unavailable for input row ' + row)
+    SampleResult.setSuccessful(false)
+    SampleResult.setStopTestNow(true)
+}</stringProp>
+        </JSR223Sampler>
+        <hashTree />
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="目标" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value" />
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          <stringProp name="HTTPSampler.domain" />
+          <stringProp name="HTTPSampler.protocol">https</stringProp>
+          <stringProp name="HTTPSampler.path" />
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <stringProp name="HTTPSampler.implementation">HttpClient4</stringProp>
+          <stringProp name="HTTPSampler.contentEncoding">UTF-8</stringProp>
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <boolProp name="HTTPSampler.follow_redirects">false</boolProp>
+          <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+          <boolProp name="HTTPSampler.image_parser">false</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <stringProp name="HTTPSampler.connect_timeout">10000</stringProp>
+          <stringProp name="HTTPSampler.response_timeout">15000</stringProp>
+        <stringProp name="HTTPSampler.port" /></HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="浏览器请求头及当前账号 Cookie" enabled="true">
+            <collectionProp name="HeaderManager.headers">
+              </collectionProp>
+          </HeaderManager>
+          <hashTree />
+          <JSR223Assertion guiclass="TestBeanGUI" testclass="JSR223Assertion" testname="HTTP 2xx、布尔 success、会话提示" enabled="true">
+            <stringProp name="scriptLanguage">groovy</stringProp>
+            <stringProp name="cacheKey">true</stringProp>
+            <stringProp name="script">import groovy.json.JsonSlurper
+
+String http = prev.getResponseCode() ?: ''
+String body = prev.getResponseDataAsString() ?: ''
+vars.put('redirect_codes', (prev.getSubResults() ?: []).collect { it.getResponseCode() }.findAll { it ==~ /3\d\d/ }.join('|'))
+vars.put('timeout_state', http.contains('Timeout') ? 'server-outcome-unknown' : '')
+prev.setResponseMessage(http ==~ /[0-9]{3}/ ? 'HTTP ' + http : 'Transport failure')
+if (http != 'REDIRECT_BLOCKED' &amp;&amp; !(http ==~ /[0-9]{3}/)) { prev.setResponseCode('TRANSPORT_ERROR') }
+String trimmed = body.trim()
+def loginPattern = ~/登[录入](?:状态|态|信息|凭证|会话)?(?:已|已经)?(?:失效|过期|超时)|未登[录入]|请(?:先|重新)登[录入]/
+boolean loginHint = loginPattern.matcher(body).find()
+def payload
+String kind = 'empty'
+if (trimmed) {
+    kind = trimmed.startsWith('&lt;') ? 'markup' : 'other'
+    try {
+        payload = new JsonSlurper().parseText(trimmed)
+        def pending = [payload]
+        while (!loginHint &amp;&amp; !pending.isEmpty()) {
+            def value = pending.pop()
+            if (value instanceof Map) { pending.addAll(value.values()) }
+            else if (value instanceof List) { pending.addAll(value) }
+            else if (value instanceof String) { loginHint = loginPattern.matcher(value).find() }
+        }
+        kind = payload instanceof Map ? 'json-object' : 'json-value'
+    } catch (Exception ignored) {
+        // The retained evidence classifies the body without storing its contents.
+    }
+}
+boolean hasSuccess = payload instanceof Map &amp;&amp; payload.containsKey('success')
+def success = hasSuccess ? payload.success : null
+String observed = !hasSuccess ? 'absent' : success instanceof Boolean ? success.toString() : success == null ? 'null' : success instanceof String ? 'string' : 'other'
+def keys = ['success', 'code', 'status', 'errorCode', 'message', 'msg', 'data', 'result', 'rows', 'total']
+String knownKeys = payload instanceof Map ? keys.findAll { payload.containsKey(it) }.join('|') : ''
+def code = payload instanceof Map ? (payload.containsKey('code') ? payload.code : payload.status) : null
+String safeCode = code != null &amp;&amp; code.toString() ==~ /-?\d{1,8}/ ? code.toString() : ''
+def msg = payload instanceof Map ? (payload.message ?: payload.msg) : null
+String safeMessage = msg instanceof String &amp;&amp; msg.trim().toLowerCase(java.util.Locale.ROOT) in ['ok','success','成功','操作成功','查询成功','请求成功'] ? 'success-message' : ''
+if (msg instanceof String &amp;&amp; msg.trim() ==~ /(?i)(?:missing|required) (?:query |URL )?ctoken|(?:URL |query )?ctoken (?:is )?(?:required|missing)|(?:缺少|缺失)(?:查询参数|URL参数)?ctoken|ctoken(?:不能为空|缺失|必填)/) {
+    safeMessage = 'ctoken-required'
+}
+vars.put('wire_method', prev.getHTTPMethod())
+vars.put('wire_ctoken', (prev.getURL()?.getQuery()?.split('&amp;')?.any { it.split('=', 2)[0].equalsIgnoreCase('ctoken') } ?: false).toString())
+vars.put('wire_cookie', (prev.getCookies() || (prev.getRequestHeaders() ?: '').readLines().any { it.split(':', 2)[0].equalsIgnoreCase('Cookie') }).toString())
+vars.put('body_kind', kind)
+vars.put('success_value', observed)
+vars.put('login_hint', loginHint.toString())
+vars.put('known_fields', knownKeys)
+vars.put('service_code', safeCode)
+vars.put('message_kind', safeMessage)
+boolean numericZero = payload instanceof Map &amp;&amp; payload.code instanceof Number &amp;&amp; payload.code == 0
+vars.put('code_kind', numericZero ? 'numeric-zero' : 'other')
+def failures = []
+if (!(http ==~ /2\d\d/)) { failures &lt;&lt; 'HTTP status outside 2xx' }
+if (!Boolean.TRUE.equals(success)) { failures &lt;&lt; ('top-level success=' + observed) }
+if (loginHint) { failures &lt;&lt; 'login expiry/sign-in prompt' }
+if (!failures.isEmpty()) {
+    AssertionResult.setFailure(true)
+    AssertionResult.setFailureMessage(failures.join(' / '))
+}</stringProp>
+          </JSR223Assertion>
+          <hashTree />
+        </hashTree>
+      </hashTree>
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>

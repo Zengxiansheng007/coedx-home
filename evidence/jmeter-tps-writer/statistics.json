@@ -1,0 +1,34 @@
+{
+  "线上办按主题查询接口 [T01]" : {
+    "transaction" : "线上办按主题查询接口 [T01]",
+    "sampleCount" : 2,
+    "errorCount" : 0,
+    "errorPct" : 0.0,
+    "meanResTime" : 457.5,
+    "medianResTime" : 457.5,
+    "minResTime" : 457.0,
+    "maxResTime" : 458.0,
+    "pct1ResTime" : 458.0,
+    "pct2ResTime" : 458.0,
+    "pct3ResTime" : 458.0,
+    "throughput" : 4.366812227074235,
+    "receivedKBytesPerSec" : 5.658945141921397,
+    "sentKBytesPerSec" : 4.697308269650655
+  },
+  "Total" : {
+    "transaction" : "Total",
+    "sampleCount" : 2,
+    "errorCount" : 0,
+    "errorPct" : 0.0,
+    "meanResTime" : 457.5,
+    "medianResTime" : 457.5,
+    "minResTime" : 457.0,
+    "maxResTime" : 458.0,
+    "pct1ResTime" : 458.0,
+    "pct2ResTime" : 458.0,
+    "pct3ResTime" : 458.0,
+    "throughput" : 4.366812227074235,
+    "receivedKBytesPerSec" : 5.658945141921397,
+    "sentKBytesPerSec" : 4.697308269650655
+  }
+}
