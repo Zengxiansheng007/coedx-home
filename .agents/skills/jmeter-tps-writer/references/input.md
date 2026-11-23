@@ -14,4 +14,4 @@ v0.3 可直接接收聊天中带 Markdown 链接、HTML 空格实体和续行符
 
 有 Cookie 的抓包默认按需登录处理，无 Cookie 的抓包默认按访客处理。Cookie 仅用于追踪、目标的身份要求不明确、或用户希望验证登录状态时，先向用户确认每个目标的分类。使用可重复的 `--guest-target T02` 明确要求访客请求，或 `--login-target T01` 明确指定需登录请求。需登录目标应提供含完整会话的原始抓包，使原样试跑可以核对实际账号。
 
-本地 UTF-8 文件首行为 `cookie`，每个后续物理行是一份完整且唯一的 Cookie。使用 `--pilot-account 2` 选第二条数据行。打开计划时读取计划旁的 `.private/accounts.path`，其中一行是本机账号文件的绝对路径。换账号或移动计划时更新本地引用。交付 JMX、原生报告和分轮 JTL，账号数据另行保管。确认响应要求各账号查询令牌后，在独立复验目录传入 `--ctoken-target T01 --ctokens 本机文件`。该文件首行为 `ctoken`，行序与账号一致。
+本地 UTF-8 文件首行为 `cookie`，每个后续物理行是一份完整且唯一的 Cookie。使用 `--pilot-account 2` 选第二条数据行。粘贴的账号通过 --accounts-stdin 保存到计划旁的 accounts.tsv，已有 TSV 使用 --accounts 复用。GUI 的 account_source 默认值显示文件位置，移动外部文件时更新该变量。旧版计划复跑时保留原本的路径引用。交付 JMX、原生报告和分轮 JTL，账号数据另行保管。确认响应要求各账号查询令牌后，在独立复验目录传入 `--ctoken-target T01 --ctokens 本机文件`。该文件首行为 `ctoken`，行序与账号一致。

@@ -4,7 +4,8 @@ import java.nio.file.Paths
 def source = props.getProperty('accounts.source')
 if (source == null) {
     // GUI reads the same resolved account file as the native CSV Data Set.
-    source = vars.get('account_source')
+    source = Paths.get(org.apache.jmeter.services.FileServer.getFileServer().getBaseDir())
+                  .resolve(vars.get('account_source')).toString()
 }
 def lines = Files.readAllLines(Paths.get(source))
 int row = lines.indexOf(vars.get('cookie'))

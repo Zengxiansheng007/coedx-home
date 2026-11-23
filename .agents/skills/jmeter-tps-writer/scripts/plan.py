@@ -26,7 +26,8 @@ def assertion(title, field, pattern, variable=None):
     return check
 
 
-def generate(targets, path, confirmed_code_zero=(), *, ctoken_targets=(), raw_plan=None):
+def generate(targets, path, confirmed_code_zero=(), *, ctoken_targets=(), raw_plan=None,
+             account_file="accounts.tsv", gui_pilot=False):
     tree = ET.parse(Path(__file__).with_name("base.jmx"))
     group = tree.find(".//ThreadGroup/../hashTree")
     sampler, children = list(group)[-2:]
@@ -39,13 +40,9 @@ def generate(targets, path, confirmed_code_zero=(), *, ctoken_targets=(), raw_pl
         variables = tree.find(".//collectionProp[@name='Arguments.arguments']")
         source = ET.SubElement(variables, "elementProp", name="account_source", elementType="Argument")
         ET.SubElement(source, "stringProp", name="Argument.name").text = "account_source"
-        ET.SubElement(source, "stringProp", name="Argument.value").text = (
-            "${__groovy(props.getProperty('accounts.file') ?: "
-            "new File(org.apache.jmeter.services.FileServer.getFileServer().getBaseDir()"
-            "+'/.private/accounts.path').getText('UTF-8'))}"
-        )
+        ET.SubElement(source, "stringProp", name="Argument.value").text = str(account_file)
         csv = element("CSVDataSet", "TestBeanGUI", "CSV 数据文件设置")
-        for key, value in (("filename", "${account_source}"),
+        for key, value in (("filename", "${__P(accounts.file,${account_source})}"),
                            ("fileEncoding", "UTF-8"), ("variableNames", "cookie"),
                            ("delimiter", r"\t"), ("shareMode", "shareMode.all")):
             ET.SubElement(csv, "stringProp", name=key).text = value
@@ -179,6 +176,10 @@ def generate(targets, path, confirmed_code_zero=(), *, ctoken_targets=(), raw_pl
                        ("StatVisualizer", "聚合报告")):
         listener = element("ResultCollector", gui, title)
         listener.set("enabled", "false")
+        group.extend([listener, ET.Element("hashTree")])
+    if gui_pilot:
+        listener = element("ResultCollector", "SimpleDataWriter", "保存 GUI 单账号试跑结果")
+        ET.SubElement(listener, "stringProp", name="filename").text = "${__P(writer.gui.jtl,)}"
         group.extend([listener, ET.Element("hashTree")])
     ET.indent(tree)
     xml = ET.tostring(tree.getroot(), encoding="utf-8", xml_declaration=True)
