@@ -46,8 +46,9 @@ def _apply_delta(current, data, candidates, candidate_data, selected, actions, i
 def merge_reviewed(catalog, batch, instruction, *, target_kind):
     """Return a new full target and per-case results without mutating inputs."""
     _credential_guard([catalog, batch, instruction])
-    from step_reuse import expanded  # Reject missing dependencies before any isolated mutation.
-    resolved = expanded(batch)
+    from restoration import preflight  # Shared public closure preserves independent isolated merge scope.
+    checked = preflight(batch, source_catalog=catalog, require_current_sources=True)
+    resolved = checked['complete_batch']
     if target_kind != 'isolated' or catalog.get('kind') != 'authoring_full_catalog' or catalog.get('schema_version') != 1:
         raise ValueError('Only isolated authoring_full_catalog v1 is supported')
     if batch.get('kind') != 'scoped_review_copy' or batch.get('schema_version') != 1:
@@ -90,6 +91,8 @@ def merge_reviewed(catalog, batch, instruction, *, target_kind):
                 or approval.get('content_version') != batch['content_version']
                 or cid not in approval.get('case_ids', []) or not approval.get('actual_reply')):
             reason = 'current_final_review_required'
+        elif cid in checked['blocked_case_ids']:
+            reason = 'dependency_restoration_required'
         elif c.get('rule_status') not in ('formal', 'provisional'):
             reason = 'rule_unresolved'
         elif c.get('rule_status') == 'provisional' and not _provisional_conditions(c):
@@ -118,7 +121,7 @@ def merge_reviewed(catalog, batch, instruction, *, target_kind):
             try:
                 _validate_content(dict(batch, cases=[validation]))
                 if any(not s.get('expected') or not s.get('verification')
-                       for key in ('steps', 'common_preconditions', 'special_preconditions', 'special_postconditions')
+                       for key in ('steps', 'common_preconditions', 'special_preconditions', 'special_postconditions', 'common_postconditions')
                        for s in next(item for item in resolved['cases'] if item['id'] == cid).get(key, [])):
                     reasons[cid] = 'incomplete_candidate'
             except (ValueError, KeyError, TypeError):
@@ -207,7 +210,7 @@ def merge_reviewed(catalog, batch, instruction, *, target_kind):
     target['data'] = list(data.values())
     if batch.get('step_definitions'):
         definitions = {_digest(d): d for d in target.get('step_definitions', []) + batch['step_definitions']}
-        used = {s['step_reference']['definition_digest'] for c in target['cases'] for g in ('steps', 'common_preconditions', 'special_preconditions', 'special_postconditions') for s in c.get(g, []) if 'step_reference' in s}
+        used = {s['step_reference']['definition_digest'] for c in target['cases'] for g in ('steps', 'common_preconditions', 'special_preconditions', 'special_postconditions', 'common_postconditions') for s in c.get(g, []) if 'step_reference' in s}
         target['step_definitions'] = [copy.deepcopy(definitions[key]) for key in used]
     if any(r['status'] == 'applied' for r in results):
         target['content_version'] = _digest({k: v for k, v in target.items() if k != 'content_version'})

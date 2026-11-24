@@ -5,6 +5,10 @@ skill reading actual sources; the helper checks deterministic completeness,
 identity, versions and gates. Structured sample input alone does not evaluate
 the skill's interpretation of natural language.
 
+构建 `design` 前完成[专业生成核对](professional-generation.md)：先解释本轮材料，
+确定真实业务路径和逐例目标，再写完整步骤、独立检查方面、覆盖关联和分级理由。
+首次生成、修改与恢复沿用同一判断流程；旧稿或通过的结构测试不代替本轮解释。
+
 ## Public batch entry
 
 ```python
@@ -30,6 +34,8 @@ The resulting evidence remains simulated and cannot open a real business gate.
   and its actual `input`. A boundary links one case; different inputs in the
   same group use different case IDs. Compare data/operation semantics against
   the input yourself; the helper cannot understand arbitrary prose limits.
+  每个方面表达可单独观察/失败的业务结果，能定位到当前完整步骤；具体拆分与部分
+  覆盖规则见专业生成核对。所填方面被全部关联仅是映射完整，不证明来源结果无遗漏。
 - `coverage`: exactly one record per required check, with `check_id` and
   `links`, each containing `case_id` and covered `aspects`. Missing aspects
   require a concrete `pending` explanation. A deliberate disposition instead
@@ -46,12 +52,20 @@ The resulting evidence remains simulated and cannot open a real business gate.
   exploration, re-evaluate evidence. Independent work can use a separate batch.
   Write-first preserves the gap and user authorization, not invented UI facts.
 
+Before filling candidate fields, apply [goal/preparation ownership](goal-preparation.md).
+Search existing goals before adding a case; preserve current-value consumers and
+source gaps when populating preparation and steps.
+
 Each candidate has `priority: P1 | P2`, `priority_basis`, `priority_factors`
 with `importance`, `risk`, `frequency`, complete `context.role/initial_state`,
 and `data_preparation`. Each operation has expected and observable verification
 claims. Data references resolve to single-source data records with object,
 validity, reuse and invalidation conditions. The agent proposes these conditions
 from sources and brings doubts into grill. Data is never actually prepared here.
+
+同级用例仍按本例目标、失败影响及触发场景分别写理由；有效的已确认等级复用，
+仅实质改变等级依据时澄清。具体分级方法及不确定性按专业生成核对，不用全批通用
+理由替代。准备与目标的分界逐动作判断，保留完整就绪状态和本次值依赖。
 
 The helper resets new/revised candidates to unconfirmed, pending review,
 not merged and not run. Each priority proposal creates a required batch doubt.
@@ -71,13 +85,18 @@ verification summaries come from current linked cases, not a second edited text.
 The batch retains original manual input, coverage mappings, decisions and P0
 entry basis in `extension_design` and `extension_entry`.
 
-After `apply_summary`, call `render_extension(session['batch'])` for the scoped
+After `apply_summary`, call `render_extension(session['batch'], source_catalog=catalog)` for the scoped
 Markdown and coverage notes at the updated content version. Use
-`render_extension(batch, case_id='...')` for a requested single case, or keyword
+`render_extension(batch, case_id='...', source_catalog=catalog)` for a requested single case, or keyword
 `case_ids=[...]` for 1–9 requested cases; follow [chat delivery](chat-delivery.md).
 The returned four-column text stays in chat. Regeneration preserves the original scope baseline;
 it does not apply returned-file feedback or merge. Read complete cases and all
 coverage decisions during final review, including missing/deferred scope.
+
+首次生成使用已有完整 catalog；同一 QA 的反馈、恢复和范围副本重生成时，
+同样传调用方实际读取的准确完整 source_catalog。正文、对话与 coverage 的
+内部还原共用此父源；不以当前候选或展示子集代替。缺失或漂移父源仍只阻塞
+受影响内容；真实未覆盖方面与未知项继续保留 partial/gap，不因渲染成功算完成。
 
 ```text
 python -B scripts/extension.py --input envelope.json --output-dir new-review

@@ -36,7 +36,7 @@ Only affected current consumers change. Pure layout feedback and protected refer
 
 ## Validation Evidence
 
-Evidence directory: external `D:/reference/tca-review-reuse-20261114/test-output/rr05-fix`.
+Evidence directory: external `本地验收证据`.
 
 | Check | Command or Method | Result | Evidence |
 |---|---|---|---|

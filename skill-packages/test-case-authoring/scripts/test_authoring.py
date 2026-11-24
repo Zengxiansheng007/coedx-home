@@ -53,6 +53,10 @@ class BatchTests(unittest.TestCase):
 
     def test_credentials_rejected_everywhere_and_reference_only_is_rendered(self):
         recording, draft = sample()
+        nested = copy.deepcopy(draft)  # 新来源类型适配也必须保留全树凭据保护。
+        nested['data'][0]['value'] = {'nested': dict(password='SIMULATED-negative-secret')}  # 合成负例沿现有安全测试单处验证。
+        with self.assertRaisesRegex(ValueError, 'credential'):
+            build_batch(recording, nested)  # 真实 value 不参与来源解释，但仍参与凭据校验。
         with self.assertRaisesRegex(ValueError, 'credential'):
             build_batch(recording + "await page.getByLabel('Password').fill('synthetic-secret');", draft)
         draft['title'] = 'Bearer synthetic-access-token'

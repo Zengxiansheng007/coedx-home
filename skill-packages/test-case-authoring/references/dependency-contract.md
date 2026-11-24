@@ -7,14 +7,7 @@ with source locations and explain inclusion/exclusion consequences. Ask the user
 to choose scope through the existing batch clarification workflow. A dependency
 display never grants execution or change approval to its target.
 
-Inspect complete source cases, including their last action and final state. If
-the existing case ends by disabling an object needed enabled, propose a new or
-split independent P0; retain the original. Never select only its first steps.
-Missing usable P0, including an unsuitable complete case, returns to either the
-recording or complete handwritten input branch, then the same clarification,
-final review and user-started ui-test full validation/merge path. Direct stable
-script reuse requires an applicable asset already managed by ui-test, with a
-traceable asset reference and applicability basis. Other scripts are P0 input.
+Read whole independent cases and select a suitable business endpoint. If none fits, write the complete needed operations inline; unknown endpoints return to clarification. Never slice arbitrary ranges or silently skip trailing actions.
 
 ## Public batch entry
 
@@ -29,7 +22,7 @@ persisting/replacing actual identifiers, scheduling and execution are downstream
 Each proposal contains:
 
 - `id`, `current_case_id`, target `case_id` and full `module_path`, `direction`
-  (`pre` or `post`), and `basis` with exact source references for the impact.
+  (`operation`, `pre` or `post`), and `basis` with exact source references for the impact.
 - `purpose`, `required_state`, `inputs`, `outputs`, `object_binding` mapping
   business object names to existing `data_refs`. Bind a postcondition to the
   exact object produced by this run, with its recipient/role references as needed.
@@ -41,7 +34,7 @@ Each proposal contains:
   `managed_by: ui-test`, `applicable: true`, `ref`, and `basis`.
 
 The included current case contains the reference and all necessary conditions,
-also in the corresponding special pre/post operation. The complete target stays
+at its requested operation position or explicit pre/post group. The complete target stays
 independent with its original module path. A special post group appears only
 when required, with the same one-data-node and sibling-expectation structure as
 special preconditions. Shared data remains authoritative in `data`.
@@ -97,3 +90,13 @@ same-version XMind Markdown. Expansion uses the existing scoped-copy default.
 Render again via `authoring.render_batch`; clarification preserves these groups.
 No extra execution handoff checklist is generated. XMind desktop import and
 formal ui-test consumption still need their separate verification.
+
+## Ordered whole-case references and recovery
+
+Use direction: operation and zero-based position to place a whole reference within the actual step order. Pre/post groups are only used when explicitly requested. Read the current full source case, including trailing actions, and its explicit endpoint. Any priority may be independently complete; this does not waive the full P0 qualification for a new P1/P2 extension.
+
+required_state must match the source endpoint. Unknown endpoints return to clarification. For incompatible endpoints (such as payment after creating an unpaid order), select alternative_case_id from the current catalog or author all needed inline_operations with unique IDs, complete operation/data/expected/verification, inline_endpoint and inline_basis. Preserve purpose, necessary conditions and same-object input/output bindings. Never extract arbitrary ranges or silently skip trailing actions.
+
+Every new reference binds source_digest to actual complete source content and referenced data. cross_module_references.resolve_case_reference(catalog, edge) rereads supplied content and rejects missing or changed sources even when version labels are unchanged. Reload actual sources before generation, changes and recovery; a cached catalog is not evidence of currentness. Legacy unbound references require reassessment. TAS-11 composes nested preparation/P0 dependencies and cycle checks before review. Only affected references require reassessment; no persistent expanded copy is produced.
+
+Updating the same proposal ID replaces its reference without duplicating operations or changing the independent target. A shared target change is separately reviewed.

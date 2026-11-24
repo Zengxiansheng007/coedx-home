@@ -88,3 +88,9 @@ and XMind-client support still requires separate qualification.
 Reviewed shared data changes create versioned bindings for P0 and continuing consumers. Independent consumers and historical snapshots retain old data. Unchanged generated slots retain current-case values. Subsequent shared and local feedback use the updated bindings.
 
 Shared source history appends a complete prior source snapshot without recursively copying its history field. Existing history entries remain unchanged and traceable.
+
+## TAS-08 consistency corrections
+
+Comparison excludes trace metadata only at the declared step, data record and assertion record levels. Nested business objects keep all fields, including id, source and basis: different object identities cannot qualify as the same step. Reconstruction uses this same rule; an older saved reference that depended on erased nested identities must return to source assessment, never be silently rebound.
+
+Outer operation whitespace is formatting only in generation, local feedback and explicit shared proposals. Literal data and assertion text are not normalized. Shared data feedback that would change both a displayed P0 and P1/P2 is refused before application: use the explicit shared-change proposal with impact dispositions, or author a separately bound local candidate. P0-only feedback retains its existing behavior.

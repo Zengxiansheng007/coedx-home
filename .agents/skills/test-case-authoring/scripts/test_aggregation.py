@@ -14,19 +14,39 @@ from xmind_feedback import prepare_xmind_feedback  # Synthetic native files exer
 from clarification import start_grill, respond, summarize, apply_summary  # Exercise real answer history.
 
 
-def synthetic_scope():
+def synthetic_scope(*, grouped=False):
     full = catalog()  # Reuse a source-traced synthetic catalog.
     full['cases'][1]['title'] = '保存关联资料'  # Make the shared-tree fixture distinguishable without public English IDs.
     for case in full['cases'][:2]:
+        if grouped:
+            case['business_group'] = {'path': ['SIMULATED business group'], 'source': 'SIMULATED assessment'}
         case['module_path'] = ['模拟项目', '同名平台', '同名平台', '资料', '保存']  # Semantic levels remain separate.
         case['common_preconditions'] = [copy.deepcopy(case['steps'][1])]  # Identical complete preparation.
         case['common_preconditions'][0]['operation'] = '准备模拟资料'  # Distinct from case steps.
+    from preparation_scope import review_preparation_scope  # Explicit simulated review replaces automatic extraction.
+    full = review_preparation_scope(full, applicable_case_ids=['EDIT', 'LINK'], exception_case_ids=[],
+        coverage='vast_majority_few_exceptions', basis='SIMULATED entire existing group requires preparation',
+        actual_reply='SIMULATED reviewer approves all existing cases', version='SIMULATED-v1', frequency='执行时按实际数据条件完成')
     return build_scoped_review(full, 'SIMULATED-aggregation', [
         {'case_id': cid, 'action': 'related', 'reason': 'SIMULATED review'}
         for cid in ('EDIT', 'LINK')])  # Unselected OTHER stays outside the copy.
 
 
 class AggregationTests(unittest.TestCase):
+    def test_module_preparation_precedes_business_groups(self):
+        batch = synthetic_scope(grouped=True)['batch']
+        shown = render_batch(batch)
+        self.assertNotIn('公共后置操作 ', shown['xmind_markdown'])
+        self.assertEqual(prepare_feedback(batch, 'markdown', markdown=shown['xmind_markdown'], actual_reply='SIMULATED unchanged')['changes'], [])
+        lines = shown['xmind_markdown'].splitlines(keepends=True)
+        start = next(i for i, line in enumerate(lines) if '- 公共前置操作 1' in line)
+        stop = next(i for i in range(start + 1, len(lines)) if '- SIMULATED business group' in lines[i])
+        legacy = ''.join(lines[:start] + lines[stop:] + lines[start:stop])
+        self.assertEqual(prepare_feedback(batch, 'markdown', markdown=legacy, actual_reply='SIMULATED unchanged old order')['changes'], [])
+        edited = prepare_feedback(batch, 'markdown', markdown=legacy.replace('准备模拟资料', '准备新的模拟资料'), actual_reply='SIMULATED old order edit')
+        self.assertEqual({change['id'] for change in edited['changes']}, {'EDIT', 'LINK'})
+        self.assertLess(shown['xmind_markdown'].index('公共前置操作 1'), shown['xmind_markdown'].index('SIMULATED business group'))
+
     def test_explicit_empty_preparation_is_under_its_group_and_unknown_remains_pending(self):
         for scoped in (False, True):  # Explicit absence and unknown absence have different business meaning.
             batch = synthetic_scope()['batch']
@@ -43,7 +63,7 @@ class AggregationTests(unittest.TestCase):
             for view in ('human_view', 'xmind_markdown'):
                 self.assertEqual(shown[view].count(note), 1)
                 self.assertNotIn('未提供，待核对', shown[view])
-                self.assertGreater(shown[view].index(note), shown[view].index('公共前置操作'))
+                self.assertNotIn('特殊前置操作', shown[view])  # Explicit absence must not manufacture a special operation.
             self.assertEqual(batch, before)
             case.pop('common_preconditions_note')
             unknown = render_batch(batch)
@@ -121,8 +141,7 @@ class AggregationTests(unittest.TestCase):
         single['cases'] = single['cases'][:1]
         tree = render_batch(single)['xmind_markdown']
         self.assertEqual(tree.count('准备模拟资料'), 1)
-        self.assertIn('适用用例：Save a notice', tree)
-        self.assertIn('执行时仍须完成', tree)
+        self.assertNotIn('适用：公共前置操作', tree)  # Incomplete membership needs fresh scope review.
 
     def test_special_groups_and_case_data_are_preserved_after_shared_projection(self):
         batch = synthetic_scope()['batch']

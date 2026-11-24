@@ -1,9 +1,20 @@
 # Public batch clarification contract
 
+Shared interaction is owned by the host-resolved test-grill-me Skill. Read
+[the stage adapter](stage-adapter.md) for parent context and confirmation intent.
+This reference defines TCA API fields and professional effects, not a second
+dialogue workflow.
+
 For actual conversations, use [the single Markdown adapter](qa-record-contract.md)
 to save questions before sending and actual replies before dependent judgments.
 The pure functions below are computation seams; their returned session is a
 derived projection, never a second independently editable business answer source.
+
+涉及显示评估、公共适用或本例特殊归属时，读取 [同一 QA 持久化流程](qa-record-contract.md#显示评估与公共特殊归属)
+及 [完整新作者/特殊归属契约](aggregation-contract.md#完整新作者范围与本例特殊归属)。对应纯适配函数
+assess_review_projection 与 review_preparation_scope 保留问题、真实答案、汇总及业务审批边界；
+纯元数据变化只延续原本有效的 applied_content_version，不把未确认状态提升为已确认。
+未完成反馈绑定原版本时先完成该反馈，再评估显示；真实业务变化继续按受影响范围澄清及复评。
 
 `scripts/clarification.py` provides pure Python entry points. They accept and
 return JSON-compatible batch/session objects without files, network, browser,
@@ -19,6 +30,7 @@ session = respond(session, replies)  # only actual answers; repeat for later rou
 # Live conversations must actually reread sources/history/dependencies and persist
 # record_coverage through qa_record before summarize; see coverage-review.md.
 session = summarize(session)       # show session['summary'] to the user
+# Only after both summary agreement and explicit continuation; confirm-only is a journal note.
 session = apply_summary(session, confirmation)
 session = review(session, final_review)
 session = record_actions(session, explicit_actions)  # only when actually requested
@@ -76,6 +88,8 @@ reply changes candidate content or its views.
 `id`, original content version, answer revision, actual decisions, proposed
 updates, product conditions and blocked cases/questions. Confirmation has
 `confirmed: true`, that `summary_id`, and the actual agreement in `actual_reply`.
+In a live conversation save confirm-only intent through record_note and wait.
+Call apply_summary only with explicit continuation or applicable prior authority.
 Only `apply_summary` changes candidates, atomically, validates business content,
 updates data/semantic/content versions and returns `human_view` and
 `xmind_markdown`. Conflicting writes to one path require another clarification.

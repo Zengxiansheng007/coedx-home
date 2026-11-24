@@ -91,3 +91,5 @@ Run synthetic behavioral checks:
 ```text
 python -B -m unittest discover -s scripts -p test_authoring.py -v
 ```
+
+Optional sourced common_postconditions and common_postconditions_note use the same step/claim schema as common_preconditions. Authoring retains and validates these fields and actual special_preconditions/special_postconditions. Omit absent post fields; no cleanup default. See [aggregation contract](aggregation-contract.md) for shared review records and directional ordering.

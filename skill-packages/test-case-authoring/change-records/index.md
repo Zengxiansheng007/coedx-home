@@ -1,6 +1,28 @@
 # Change records
 
+- CR-20261118-002：[复核当前来源与收尾保存边界](entries/2026/2026-11/CR-20261118-002-scope-closure-current-sources.md)，同版审批回读来源，两次保存各自核对实际问答和候选，applied candidate。
+
+- CR-20261118-001：[原审批证明与明确范围收尾](entries/2026/2026-11/CR-20261118-001-scope-closure-review-reuse.md)；同 QA 原审批还原证明与有据 scope_bindings，保留原候选/汇总/历史；applied candidate。
+
+- CR-20261117-119：[旧候选问题的准确历史索引](entries/2026/2026-11/CR-20261117-119-legacy-question-index.md)；合法无编号建议保留，缺失已应用身份不获只读例外；applied candidate。
+
+- CR-20261117-118：[历史技术定位与反馈目标分工](entries/2026/2026-11/CR-20261117-118-feedback-technical-history.md)；保留同QA已完成技术历史，仅本轮实际业务目标进入写集；applied candidate。
+
+- CR-20261117-117：[有效规则解释的来源投影](entries/2026/2026-11/CR-20261117-117-rule-source-projection.md)；规则解释与条件采用逐叶投影，保留真实未知、原决定和唯一 QA；applied candidate。
+
+- CR-20261117-116：[coverage 准确父源上下文](entries/2026/2026-11/CR-20261117-116-coverage-source-context.md)；首次生成、QA反馈及恢复共用准确父源，真实缺口/局部阻塞不放松；applied candidate。
+
 ## Latest Changes
+
+- [CR-20261117-115](entries/2026/2026-11/CR-20261117-115-typed-feedback-source-roles.md)：准确控制行 owner、实际输入/产出字面职责及混合来源漂移保护；applied candidate，独立复核与全仓验证由 Root 后续执行。
+
+- [CR-20261117-113](entries/2026/2026-11/CR-20261117-113-qa-projection-lifecycle.md)：唯一 QA 显示/公共及特殊归属回放、typed 业务投影、可见空格与真实回传恢复；applied candidate，继承及独立审查限制保留。
+
+- [CR-20261117-114](entries/2026/2026-11/CR-20261117-114-professional-generation.md)：从材料解释业务路径、逐例目标/准备、独立观察方面和分级理由；结构保留检查与独立实际生成语义评审分开，applied candidate。
+
+- [CR-20261117-101](entries/2026/2026-11/CR-20261117-101-simple-data.md): named scalar data, compound feedback and historical exports; applied candidate.
+
+- [CR-20261116-005](entries/2026/2026-11/CR-20261116-005-business-hierarchy.md): source-assessed business groups and stable identity; candidate, user/client review pending.
 
 - [CR-20261115-007](entries/2026/2026-11/CR-20261115-007-handoff-revalidation.md): same-version complete recovery and current qualified dependency checks; client acceptance blocked.
 
@@ -234,3 +256,72 @@ CR-20261115-010: Shared data binding repair; entries/2026/2026-11/CR-20261115-01
 - Detail record: entries/2026/2026-11/CR-20261115-011-final-repairs.md
 
 CR-20261115-009 record correction: completed required metadata and sections from rr05-fix/results.md (transcribed), merge-tests.txt (168 passed), and merge-repro.txt. Documentation only; no product tests rerun.
+
+## CR-20261116-008 - Whole-step consistency
+
+- Status: applied candidate; public regression evidence, actual dialogue/client pending.
+- Detail: [CR-20261116-008](entries/2026/2026-11/CR-20261116-008-whole-step-consistency.md).
+
+
+- [CR-20261116-009 - Ordered whole-case references](entries/2026/2026-11/CR-20261116-009-whole-case-references.md) — applied candidate; public tests passed.
+
+## CR-20261116-003 - TCA shared stage adapter
+
+- Status: applied candidate; public regressions passed, changed-route actual dialogue pending.
+- Detail: [CR-20261116-003](entries/2026/2026-11/CR-20261116-003-stage-adapter.md).
+
+
+- [CR-20261116-007 - Reviewed preparation scope](entries/2026/2026-11/CR-20261116-007-preparation-scope.md) — applied; candidate only.
+
+## CR-20261116-004 - scoped-recovery-closure
+
+Status applied; candidate. [Detail](entries/2026/2026-11/CR-20261116-004-scoped-recovery-closure.md). Recovery and safe scoped cleanup; public API evidence and actual interaction kept separate.
+
+
+## CR-20261116-006 - Semantic projection
+
+Candidate-only whole-claim comparison and simple data display. Detail: [CR-20261116-006](entries/2026/2026-11/CR-20261116-006-semantic-projection.md).
+
+- [CR-20261116-010 external module notes](entries/2026/2026-11/CR-20261116-010-external-module-notes.md) — applied candidate; TAS-10.
+
+- [CR-20261116-011 current-source restoration](entries/2026/2026-11/CR-20261116-011-current-source-restoration.md) — applied candidate; TAS-11 and tracked distribution repair.
+
+- [CR-20261116-013 - Final review repairs](entries/2026/2026-11/CR-20261116-013-final-review-repairs.md) — applied; public behavior and independent client evidence remain separate.
+
+- [CR-20261116-014 - Final visible duplicate retention](entries/2026/2026-11/CR-20261116-014-projection-retention.md) — applied candidate; exact visible endpoint required.
+
+- [CR-20261116-015 - Local companion link delivery](entries/2026/2026-11/CR-20261116-015-companion-links.md) — applied candidate; exact source-bound return, client evidence separate.
+
+- [CR-20261116-016 - Technical note object identity](entries/2026/2026-11/CR-20261116-016-technical-notes.md) — applied candidate; exact source paths and object identity retained.
+
+- [CR-20261117-017 - Agent notes lifecycle and display](entries/2026/2026-11/CR-20261117-017-notes-lifecycle.md) — applied candidate; independent review pending.
+
+- CR-20261117-017 R2 — independent-review repair: shared case-marker protocol and intent annotations; validation and retained limitations in the linked detail above.
+
+- CR-20261117-017 R2 validation: 328 tests / eight stages passed; lifecycle 6/6; validator retains exactly three inherited synthetic findings. Applied candidate pending independent closure.
+
+- [CR-20261117-102 - Module common preconditions](entries/2026/2026-11/CR-20261117-102-common-preconditions.md) — applied candidate; TCO-02 / #136.
+
+- [CR-20261117-105 - Goal/preparation ownership](entries/2026/2026-11/CR-20261117-105-goal-preparation.md) — applied candidate; TCO-05, independent forward-test pending.
+
+| 2026-11-17 | CR-20261117-103 | Common postconditions | applied | [Detail](entries/2026/2026-11/CR-20261117-103-common-postconditions.md) |
+
+### CR-20261117-104 - Scope lifecycle
+
+- Section changed: common operation scope lifecycle.
+- Before: subset and changed member invalidation could hide valid operations.
+- After: explicit reviewed module scope, actual parent checks and local per-item membership.
+- Why: #138 full acceptance criteria.
+- Impact: render, save and restoration; no business execution.
+- Validation: public lifecycle tests and repository checks; candidate status.
+- Detail record: [CR-20261117-104](entries/2026/2026-11/CR-20261117-104-scope-lifecycle.md).
+
+- CR-20261117-106: [Feedback loop](entries/2026/2026-11/CR-20261117-106-feedback-loop.md) — applied candidate; #140.
+
+| 2026-11-17 | CR-20261117-109 | Complete data consumer impact | fixed | applied | [Detail](entries/2026/2026-11/CR-20261117-109-data-consumer-impact.md) |
+
+| 2026-11-17 | CR-20261117-110 | Chat scope provenance | fixed | applied | [Detail](entries/2026/2026-11/CR-20261117-110-chat-scope-provenance.md) |
+
+| 2026-11-17 | CR-20261117-111 | Module display ordering | fixed | applied | [Detail](entries/2026/2026-11/CR-20261117-111-module-order.md) |
+
+| 2026-11-17 | CR-20261117-112 | 业务分组反馈身份与空格保真 | fixed | applied | [Detail](entries/2026/2026-11/CR-20261117-112-grouped-feedback.md) |

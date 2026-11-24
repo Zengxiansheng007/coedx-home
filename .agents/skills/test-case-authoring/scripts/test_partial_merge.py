@@ -73,6 +73,8 @@ def transitive_fixture(variant='exclusive_missing', independent=False, nested_st
         scope_decision=dict(include=True, actual_reply='SIMULATED: nested required'))
     if variant == 'excluded':
         edge['scope_decision']['include'] = False
+    from cross_module_references import reference_digest
+    edge.update(source_digest=reference_digest(full, nested), endpoint='enabled')  # Explicit current synthetic source, never inferred at review.
     full['cases'][1]['dependencies'] = [edge]
     if nested_steps:
         full['cases'][1]['special_preconditions'] = [dict(id='nested-step', operation='Prepare complete NESTED',
@@ -102,7 +104,7 @@ def transitive_fixture(variant='exclusive_missing', independent=False, nested_st
     session = summarize(start_grill(result['batch'], []))
     session = apply_summary(session, dict(confirmed=True, actual_reply='SIMULATED: agree supplied rules', summary_id=session['summary']['id']))
     session = review(session, dict(approved=True, actual_reply='SIMULATED: final approve',
-        content_version=session['batch']['content_version'], case_ids=approved_ids))
+        content_version=session['batch']['content_version'], case_ids=approved_ids), source_catalog=full)
     batch = session['batch']
     instruction = dict(kind='merge_instruction', actual_reply='SIMULATED: merge EDIT',
         content_version=batch['content_version'], baseline_version=full['content_version'], case_ids=approved_ids)
@@ -114,20 +116,20 @@ def overlay_fixture(target_valid=False):
     from test_feedback import confirm
     full, batch, instruction = transitive_fixture('valid' if target_valid else 'exclusive_missing',
         independent=True, nested_steps=True)
-    result = confirm(prepare_feedback(batch, 'chat', actual_reply='SIMULATED: revise nested data policy', changes=[
-        dict(collection='data', id='NESTED-DATA', path=['reuse_policy'], value='long_term')]))
+    result = confirm(prepare_feedback(batch, 'chat', source_catalog=full, actual_reply='SIMULATED: revise nested data policy', changes=[
+        dict(collection='data', id='NESTED-DATA', path=['reuse_policy'], value='long_term')]), source_catalog=full)
     batch = review_feedback(result, dict(approved=True, actual_reply='SIMULATED: approve latest whole content',
-        content_version=result['batch']['content_version'], case_ids=['EDIT', 'LINK', 'OTHER']))['batch']
+        content_version=result['batch']['content_version'], case_ids=['OTHER']))['batch']
     return full, batch, dict(instruction, content_version=batch['content_version'])
 
 
 class PartialMergeTests(unittest.TestCase):
-    def test_valid_target_policy_is_used_instead_of_unselected_candidate_policy(self):
+    def test_changed_dependency_requires_review_even_when_target_policy_was_valid(self):
         full, batch, instruction = overlay_fixture(target_valid=True)
         before = copy.deepcopy((full, batch, instruction))
         r = merge_reviewed(full, batch, instruction, target_kind='isolated')
         rows = {row['case_id']: row for row in r['cases']}
-        self.assertEqual(rows['EDIT']['status'], 'applied', rows)
+        self.assertEqual(rows['EDIT']['status'], 'pending', rows)  # Shared data changed; stale dependent approval cannot survive.
         self.assertEqual(rows['OTHER']['status'], 'applied')
         self.assertEqual(rows['LINK']['reason'], 'outside_user_merge_scope')
         self.assertEqual(r['catalog']['data'], full['data'])
@@ -147,8 +149,8 @@ class PartialMergeTests(unittest.TestCase):
         from feedback import prepare_feedback, review_feedback
         from test_feedback import confirm
         full, batch, instruction = transitive_fixture('valid', own_policy=True)
-        result = confirm(prepare_feedback(batch, 'chat', actual_reply='SIMULATED: use reviewed own exclusive data', changes=[
-            dict(collection='data', id='ROOT-DATA', path=['reuse_policy'], value='exclusive')]))
+        result = confirm(prepare_feedback(batch, 'chat', source_catalog=full, actual_reply='SIMULATED: use reviewed own exclusive data', changes=[
+            dict(collection='data', id='ROOT-DATA', path=['reuse_policy'], value='exclusive')]), source_catalog=full)
         batch = review_feedback(result, dict(approved=True, actual_reply='SIMULATED: final approve updated data and case',
             content_version=result['batch']['content_version'], case_ids=['EDIT']))['batch']
         instruction['content_version'] = batch['content_version']

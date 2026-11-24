@@ -45,7 +45,7 @@ class ScopedReviewTests(unittest.TestCase):
         for view in (result['human_view'], result['xmind_markdown']):
             for text in ('Use the account returned by ACCOUNT-1', 'account is active',
                          '角色：editor', '初始状态：signed in', 'Prepare the same account',
-                         '所需状态：active', '业务对象：same account', '有效性：until account disabled',
+                         '所需状态：active', 'same account：Sample notice', '有效性：until account disabled',
                          '复用策略：shared within validity', '失效处理：ask for approval'):
                 self.assertIn(text, view)
             for technical in ('"source"', '"lines"', '"id"', 'INTERNAL-ASSERTION-ONLY', '{', '}'):
@@ -129,7 +129,7 @@ class ScopedReviewTests(unittest.TestCase):
         self.assertNotIn('priority_basis', result['batch']['cases'][0])
         self.assertTrue(any(q['field'] == 'priority_basis' for q in result['batch']['questions']))
         for text in ('特殊前置操作', '特殊后置操作', 'Bind synthetic account',
-                     'Restore synthetic account', 'Same synthetic object', '关联用例（名称待核对）', '待核对'):
+                     'Restore synthetic account', 'Same synthetic object', 'Save a notice', '待核对'):
             self.assertIn(text, result['xmind_markdown'])
         self.assertIn('| 序号 | 操作 | 参数/数据 | 预期结果 |', result['human_view'])
 

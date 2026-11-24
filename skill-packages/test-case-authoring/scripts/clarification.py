@@ -254,8 +254,8 @@ def _patch(batch, update):
 
 
 def _validate_content(batch):
-    from step_reuse import expanded  # Recheck exact dependencies before any approval path.
-    batch = expanded(batch)
+    from restoration import preflight  # Validate independent known cases while preserving blocked originals.
+    batch = preflight(batch)['complete_batch']
     ids = [d['id'] for d in batch['data']]
     if len(ids) != len(set(ids)):
         raise ValueError('Duplicate data identity')
@@ -265,7 +265,7 @@ def _validate_content(batch):
     for case in batch['cases']:
         if not case['title'] or len(case['module_path']) < 5 or not case['steps']:
             raise ValueError('Incomplete candidate case')
-        for group in ('steps', 'common_preconditions', 'special_preconditions', 'special_postconditions'):
+        for group in ('steps', 'common_preconditions', 'special_preconditions', 'special_postconditions', 'common_postconditions'):
             for step in case.get(group, []):
                 if not step['operation'] or any(ref not in ids for ref in step['data_refs']):
                     raise ValueError('Invalid step or data reference')
@@ -350,7 +350,11 @@ def apply_summary(session, confirmation):
             case['supplied_content_confirmation'] = copy.deepcopy(confirmation)
         _apply_rule_decisions(case, decisions, blocked=case['id'] in current['blocked_cases'],
                               supplied=supplied_confirmation)
-        case['data_version'] = batch['data_version']
+        from scoped_review import _references  # Unrelated catalog data must not invalidate a referenced case.
+        refs = _references(case) | _references(old)
+        prior_data = [d for d in before['data'] if d['id'] in refs]
+        current_data = [d for d in batch['data'] if d['id'] in refs]
+        case['data_version'] = _digest(current_data) if prior_data != current_data else old['data_version']
         def semantic(value):
             return {k: v for k, v in value.items() if k not in ('semantic_version', 'review_status', 'final_review', 'review_history', 'merge_status', 'execution_status')}
         changed = semantic(old) != semantic(case)
@@ -369,11 +373,17 @@ def apply_summary(session, confirmation):
     return result
 
 
-def review(session, final_review):
+def review(session, final_review, *, source_catalog=None):
     """Record full-case review of the current version, independently of rules."""
     _credential_guard(final_review)
     batch = session['batch']
     _validate_content(batch)  # Approval never trusts a stale reference snapshot.
+    selected = final_review.get('case_ids', [])
+    from restoration import preflight
+    checked = preflight(batch, source_catalog=source_catalog, require_current_sources=True)
+    blocked = checked['blocked_case_ids']
+    if set(selected) & set(blocked):
+        raise ValueError('Review scope contains unresolved dependencies: ' + '; '.join(b['reason'] for b in checked['blockers'] if b['case_id'] in selected))
     if (not session.get('summary_confirmation') or not session.get('summary') or
             session['summary']['revision'] != session['revision'] or
             session.get('applied_content_version') != batch['content_version']):
@@ -392,12 +402,46 @@ def review(session, final_review):
                 case.setdefault('review_history', []).append(case['final_review'])
             case['final_review'] = copy.deepcopy(final_review)
             case['review_status'] = 'approved'
-    result.update(render_batch(result['batch']))
+    if result['batch'].get('kind') == 'scoped_review_copy' and source_catalog is not None:
+        from scoped_review import render_review_batch  # 已核父源沿本次评审投影保留。
+        result.update(render_review_batch(result['batch'], source_catalog=source_catalog))
+    else:
+        result.update(render_batch(result['batch']))
     result['next_step'] = ('Recommend user-started authoring merge of the reviewed P1/P2 scope; '
                            'after merge recommend separately user-started ui-test. Cases remain unmerged and not run.'
                            if batch['stage'] == 'P1/P2' else
                            'Recommend ui-test for formal scripts and complete verification; user starts it separately. P0 remains unmerged.')
     return result
+
+
+def _display_metadata(session, method, payload):  # 保存显示评估，不补造业务答复或执行请求。
+    if session.get('feedback_pending'):  # 未完成反馈仍绑定原候选版本。
+        raise ValueError('Finish current feedback before assessing display metadata')
+    result = copy.deepcopy(session)  # 问题、历史、汇总和已有业务评审保持。
+    previous = result['batch']['content_version']  # 仅延续已实际确认的业务版本绑定。
+    updated = method(result['batch'], **copy.deepcopy(payload))  # 复用来源绑定的公开纯 API。
+    if updated.get('kind') == 'scoped_review_copy' and payload.get('source_catalog') is not None:
+        from scoped_review import render_review_batch  # 原父源仍由调用方提供准确材料。
+        rendered = render_review_batch(updated, source_catalog=payload['source_catalog'])
+    else:
+        rendered = render_batch(updated)
+    result.update(rendered)  # 所有视图从同一新元数据版本派生。
+    if result.get('applied_content_version') == previous:  # 未确认状态不会因元数据更新升级。
+        result['applied_content_version'] = updated['content_version']
+    if result.get('feedback_result'):  # 已应用的反馈保留当前投影，后续评审不回退元数据。
+        result['feedback_result'].update(rendered)
+        result['feedback_result']['review_session'] = copy.deepcopy({k: v for k, v in result.items() if k not in ('feedback_result', 'qa_record')})
+    return result  # actions 与原评审原话/版本均不改写。
+
+
+def assess_review_projection(session, assessment):  # 唯一问答运行时的显示评估薄适配。
+    from review_projection import assess_review_projection as assess  # 延迟加载避免导入环。
+    return _display_metadata(session, assess, assessment)  # 原参数直接进入同一公开校验。
+
+
+def review_preparation_scope(session, assessment):  # 真实适用答复仍保存在同一事件账本。
+    from preparation_scope import review_preparation_scope as assess  # 复用完整集合、例外和生命周期门。
+    return _display_metadata(session, assess, assessment)  # 不把范围显示评审当成整例业务确认。
 
 
 def record_actions(session, actions):

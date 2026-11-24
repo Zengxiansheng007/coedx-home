@@ -6,6 +6,7 @@ from pathlib import Path
 import sys
 
 from authoring import _credential_guard, _digest
+from cross_module_references import reference_digest, resolve_case_reference  # Current-source whole-case binding.
 from scoped_review import build_scoped_review, render_review_batch, GROUPS
 
 
@@ -37,9 +38,9 @@ def review_dependencies(catalog, batch_id, current_case_ids, proposals,
         if not identity or identity in identities or p['current_case_id'] not in candidates or not p.get('basis'):
             raise ValueError('Unique proposal, current case and impact basis required')
         identities.add(identity)
-        if p.get('direction') not in ('pre', 'post'):
-            raise ValueError('Dependency direction must be pre or post')
-        if any(key in p for key in ('step_ids', 'step_range', 'steps')):
+        if p.get('direction') not in ('pre', 'post', 'operation'):
+            raise ValueError('Dependency direction must be pre, post or operation')
+        if any(key in p for key in ('step_ids', 'step_range', 'steps', 'skip_steps')):
             raise ValueError('Partial independent case references are not supported')
         decision = p.get('decision', {})
         if type(decision.get('include')) is not bool or not decision.get('actual_reply', '').strip():
@@ -57,11 +58,43 @@ def review_dependencies(catalog, batch_id, current_case_ids, proposals,
             continue
         if p.get('module_path') != target['module_path']:
             raise ValueError('Reference identity and module path must match')
-        if (p.get('complete_case') is not True or p.get('final_state_matches') is not True
-                or not p.get('applicability_basis')):
-            findings.append(dict(proposal=p, status='propose_add_or_split', routes=P0_FLOW,
-                next_step='user_review_new_or_split_complete_P0'))
-            blockers.append(identity + ':complete_applicable_case_required')
+        if p.get('alternative_case_id'):  # Select another independent whole case, never a slice.
+            target = indexed.get(p['alternative_case_id'])
+            if target is None:
+                findings.append(dict(proposal=p, status='source_clarification_required'))
+                blockers.append(identity + ':source_clarification_required')
+                continue
+            p.update(case_id=target['id'], module_path=target['module_path'],
+                     final_state_matches=target.get('endpoint') == p.get('required_state'))
+        if target['id'] == p['current_case_id']:
+            raise ValueError('Independent case cannot reference itself')
+        known_endpoint = target.get('endpoint')  # A supplied endpoint overrides a contradictory label.
+        matches = known_endpoint == p.get('required_state') if known_endpoint else (None if p['direction'] == 'operation' else p.get('final_state_matches'))
+        if matches is not True or p.get('complete_case') is not True or not p.get('applicability_basis'):
+            inline = p.get('inline_operations')  # These are independently authored required operations, not extracted ranges.
+            if inline and matches is not None and p.get('inline_endpoint') == p.get('required_state') and p.get('inline_basis'):
+                if any(not p.get(k) for k in ('purpose', 'required_state', 'inputs', 'outputs', 'object_binding', 'data_refs')):
+                    raise ValueError('Inline operations require complete business conditions')
+                if not isinstance(p['object_binding'], dict) or any(ref not in p['data_refs'] or ref not in data for ref in p['object_binding'].values()):
+                    raise ValueError('Inline operations require same-object data bindings')
+                if len({s['id'] for s in inline}) != len(inline) or any(s['id'] in {v['id'] for v in candidates[p['current_case_id']]['steps']} for s in inline):
+                    raise ValueError('Inline operation identities must be unique in the current case')
+                if p['direction'] != 'operation' or any(not s.get(k) for s in inline for k in ('id', 'operation', 'expected', 'verification')):
+                    raise ValueError('Inline operations require complete actions and explicit operation placement')
+                if any(ref not in data for s in inline for ref in s.get('data_refs', [])):
+                    raise ValueError('Inline operation data must exist')
+                current = candidates[p['current_case_id']]
+                position = p.get('position')
+                if type(position) is not int or not 0 <= position <= len(current['steps']):
+                    raise ValueError('Inline position must locate an insertion boundary')
+                inline = copy.deepcopy(inline)
+                inline[0]['reference_context'] = {key: p[key] for key in ('purpose', 'required_state', 'inputs', 'outputs', 'object_binding') if key in p}  # Keep business bindings with expanded operations.
+                current['steps'][position:position] = inline  # Preserve every necessary action, check and order.
+                findings.append(dict(proposal=p, status='included_inline_operations'))
+                continue
+            status = 'endpoint_clarification_required' if matches is None else 'alternative_or_inline_required'
+            findings.append(dict(proposal=p, status=status, next_step='clarify_endpoint_or_choose_complete_alternative_or_author_needed_operations'))
+            blockers.append(identity + ':' + status)
             continue
         missing = [key for key in ('purpose', 'required_state', 'inputs', 'outputs', 'object_binding', 'data_refs')
                    if not p.get(key)]
@@ -76,11 +109,14 @@ def review_dependencies(catalog, batch_id, current_case_ids, proposals,
             raise ValueError('Same business object must bind existing referenced data')
         # An incomplete independently maintained target returns to the common P0
         # route; no extracted subset is substituted for that record.
-        if (target.get('priority') != 'P0' or not target.get('steps')
+        from restoration import preflight  # Apply the same current-source reconstruction as delivery.
+        target_check = preflight(dict(full, cases=[target]), source_catalog=full, require_current_sources=True)
+        restored_target = target_check['complete_batch']['cases'][0] if not target_check['blockers'] else {}
+        if (not restored_target.get('steps')
                 or not target.get('title') or not target.get('semantic_version')
                 or not target.get('data_version') or any(not target.get('context', {}).get(k) for k in ('role', 'initial_state')) or any(
                 not s.get('operation') or not s.get('expected') or not s.get('verification')
-                for group in GROUPS for s in target.get(group, []))):
+                for group in GROUPS for s in restored_target.get(group, []))):
             findings.append(dict(proposal=p, status='missing_P0', routes=P0_FLOW,
                 next_step='convert_clarify_review_user_ui_test_validate_merge'))
             blockers.append(identity + ':missing_P0')
@@ -119,14 +155,22 @@ def review_dependencies(catalog, batch_id, current_case_ids, proposals,
                 findings.append(dict(proposal_id=identity, data_ref=ref, status='data_decision_required', missing=absent))
         edge = {key: p[key] for key in ('case_id', 'module_path', 'direction', 'purpose',
                 'required_state', 'inputs', 'outputs', 'object_binding', 'data_refs', 'basis')}
-        edge.update(complete_case=True, scope_decision=decision,
+        edge.update(complete_case=True, source_digest=reference_digest(full, target), endpoint=target.get('endpoint', p['required_state']), scope_decision=decision,
                     validation_role='functional_target' if target['id'] in (approved_validation_scope or []) else 'preparation_only')
         if asset:
             edge['script_asset'] = asset
         current = candidates[p['current_case_id']]
-        current.setdefault('dependencies', []).append(edge)
-        group = 'special_preconditions' if p['direction'] == 'pre' else 'special_postconditions'
-        current.setdefault(group, []).append(dict(id=identity,
+        current['dependencies'] = [e for e in current.get('dependencies', []) if e.get('reference_id') != identity]  # Updating one edge retains unrelated dependencies.
+        edge['reference_id'] = identity
+        current['dependencies'].append(edge)
+        for existing_group in GROUPS:
+            if existing_group in current:
+                current[existing_group] = [s for s in current[existing_group] if s.get('id') != identity]  # Replace, do not duplicate on resume.
+        group = 'steps' if p['direction'] == 'operation' else ('special_preconditions' if p['direction'] == 'pre' else 'special_postconditions')  # Preserve explicitly requested placement.
+        position = p.get('position', len(current.get(group, [])))  # Operation references retain actual order.
+        if type(position) is not int or not 0 <= position <= len(current.get(group, [])):
+            raise ValueError('Reference position must locate an existing insertion boundary')
+        current.setdefault(group, []).insert(position, dict(id=identity,
             operation='完整引用 ' + target['id'] + ' / ' + ' / '.join(target['module_path']) + '；' + p['purpose'],
             data_refs=refs, dependency=edge,
             expected=[{'text': p['required_state'], 'source': 'inference'}],
@@ -166,10 +210,13 @@ def main():
     args = parser.parse_args()
     try:
         read = lambda p: json.loads(Path(p).read_text(encoding='utf-8-sig'))
-        result = review_dependencies(read(args.catalog), **read(args.request))
+        catalog = read(args.catalog)  # Keep the actual source available until materialization.
+        result = review_dependencies(catalog, **read(args.request))
         output = Path(args.output_dir)
         output.mkdir(parents=True, exist_ok=False)
-        for filename, content in [('candidate.json', result['batch']), ('dependency-review.json',
+        from module_handoff import write_artifacts  # Persist the same module documents across sibling batches.
+        write_artifacts(result, output, source_catalog=catalog)
+        for filename, content in [('dependency-review.json',
                 {k:v for k,v in result.items() if k not in ('batch', 'human_view', 'xmind_markdown', 'review_notes')})]:
             (output / filename).write_text(json.dumps(content, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
         for filename, key in [('xmind.md', 'xmind_markdown'), ('review-notes.md', 'review_notes')]:  # Chat views have no persistent artifact.

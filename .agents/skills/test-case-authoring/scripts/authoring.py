@@ -63,17 +63,27 @@ def _validate(draft, sources, input_kind='recording'):
             raise ValueError('Invalid source range')
         if not 1 <= span[0] <= span[1] <= len(sources[source].splitlines()):
             raise ValueError('Invalid source range')
-    def walk(value):
+    def walk(value):  # 仅在已声明的来源对象集合内核来源，不进入实际业务 value。
         if isinstance(value, dict):
             if 'source' in value:
                 check_source(value)
                 value['basis'] = {'recording': 'recording_observation', 'handwritten': 'material_statement', 'prd': 'material_statement', 'inference': 'ai_inference'}[value['source']]
-            for child in list(value.values()):
-                walk(child)
+            # 声明 claim 只核自身来源，未知业务子条件不继承来源类型。
         elif isinstance(value, list):
             for child in value:
                 walk(child)
-    walk(draft)
+    for claims in draft.get('context', {}).values():
+        walk(claims)  # context 的声明 claim 必须有真实来源范围。
+    for item in draft.get('data', []):
+        check_source(item)  # data 根的来源仍严格检查。
+        item['basis'] = {'recording': 'recording_observation', 'handwritten': 'material_statement', 'prd': 'material_statement', 'inference': 'ai_inference'}[item['source']]
+    for group in ('steps', 'common_preconditions', 'special_preconditions', 'special_postconditions', 'common_postconditions'):
+        for step in draft.get(group, []):
+            check_source(step)  # 步骤根与声明 claim 的坏范围仍拒绝。
+            step['basis'] = {'recording': 'recording_observation', 'handwritten': 'material_statement', 'prd': 'material_statement', 'inference': 'ai_inference'}[step['source']]
+            for field in ('expected', 'verification', 'technical_handoff'):
+                walk(step.get(field, []))  # 不把未知扩展条件中的同名键当来源。
+    walk(draft.get('technical_handoff', []))  # 技术交接本身的声明来源继续核对。
     covered = set()
     for item in draft.get(input_kind + '_coverage', []):
         check_source(dict(item, source=input_kind))
@@ -92,7 +102,7 @@ def _validate(draft, sources, input_kind='recording'):
     for claims in draft['context'].values():
         for claim in claims:
             check_source(claim)
-    for group in ('steps', 'common_preconditions'):
+    for group in ('steps', 'common_preconditions', 'special_preconditions', 'special_postconditions', 'common_postconditions'):
         for step in draft.get(group, []):
             check_source(step)
             if not step.get('operation'):
@@ -188,7 +198,7 @@ def render_batch(batch):
         from scoped_review import render_review_batch
         return render_review_batch(batch)
     human, tree = _views(batch)
-    return {'batch': copy.deepcopy(batch), 'human_view': human, 'xmind_markdown': tree}
+    return {'artifact_status': 'planned', 'batch': copy.deepcopy(batch), 'human_view': human, 'xmind_markdown': tree}
 
 
 def build_batch(recording, interpretation, prd=None):
@@ -218,6 +228,9 @@ def _build_batch(text, interpretation, prd, input_kind):
             'merge_status': 'not_merged', 'execution_status': 'not_run',
             'context': draft['context'], 'steps': draft['steps'],
             'common_preconditions': draft.get('common_preconditions', [])}
+    for key in ('common_postconditions', 'common_postconditions_note', 'special_preconditions', 'special_postconditions'):  # Optional source obligations survive generation without inventing absence.
+        if key in draft:
+            case[key] = draft[key]
     if 'common_preconditions_note' in draft:
         case['common_preconditions_note'] = draft['common_preconditions_note']
     if 'technical_handoff' in draft:  # Retain execution constraints outside business steps and data.
@@ -236,8 +249,8 @@ def _build_batch(text, interpretation, prd, input_kind):
             questions.append({'field': field, 'reason': 'AI 推断，待用户确认', 'case_id': case['id'], 'evidence': claims})
     for field, claims in case['context'].items():
         inspect(claims, field)
-    for group in ('steps', 'common_preconditions'):
-        for i, step in enumerate(case[group]):
+    for group in ('steps', 'common_preconditions', 'special_preconditions', 'special_postconditions', 'common_postconditions'):
+        for i, step in enumerate(case.get(group, [])):
             step.setdefault('id', f'{case["id"]}/{group}/{i + 1}')
             for field in ('expected', 'verification'):
                 inspect(step[field], f'{group}/{i}/{field}')
@@ -258,7 +271,7 @@ def _build_batch(text, interpretation, prd, input_kind):
     batch['content_version'] = _digest(batch)
     human, tree = _views(batch)
     _credential_guard([batch, human, tree])
-    return {'batch': batch, 'human_view': human, 'xmind_markdown': tree}
+    return {'artifact_status': 'planned', 'batch': batch, 'human_view': human, 'xmind_markdown': tree}
 
 
 def main():
@@ -278,7 +291,8 @@ def main():
         result = converter(text, interpretation, prd)
         output = Path(args.output_dir)
         output.mkdir(parents=True, exist_ok=False)
-        (output / 'candidate.json').write_text(json.dumps(result['batch'], ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+        from module_handoff import write_artifacts  # Persist the same module documents across sibling batches.
+        write_artifacts(result, output)  # The shared writer owns candidate bytes and companion links.
         (output / 'xmind.md').write_text(result['xmind_markdown'], encoding='utf-8')
     except (ValueError, KeyError, TypeError, AttributeError, OSError):
         print('Candidate conversion rejected: check input contract, credential references and new output directory.', file=sys.stderr)

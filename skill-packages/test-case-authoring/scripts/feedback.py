@@ -4,7 +4,8 @@ import html
 
 from authoring import _credential_guard, _digest, _cell
 from clarification import start_grill, summarize, review, _validate_content, _apply_rule_decisions
-from scoped_review import _render, _references, _business_lines, GROUPS, TECHNICAL_FIELDS
+from scoped_review import _render, _references, GROUPS, TECHNICAL_FIELDS
+from review_expression import field_role, path_role  # 与展示共享准确框架/实际业务值职责。
 
 
 PROTECTED = TECHNICAL_FIELDS | frozenset(('step_reference', 'module_path', 'data_refs', 'credential_ref',
@@ -13,15 +14,16 @@ PROTECTED = TECHNICAL_FIELDS | frozenset(('step_reference', 'module_path', 'data
     'feedback_rule_history', 'supplied_content_confirmation'))
 
 
-def _leaves(value, path=()):
+def _leaves(value, path=(), *, data=False, role=None):  # 仅准确声明的实际输入/产出解除框架键保护。
+    role = role if path else 'data' if data else 'case'  # 每次从准确 owner 根开始解释类型。
     if isinstance(value, dict):
         for key, child in value.items():
-            if key not in PROTECTED:
-                yield from _leaves(child, (*path, key))
+            if role == 'literal' or key not in PROTECTED:  # 真正引用、来源和身份仍不可作为业务叶修改。
+                yield from _leaves(child, (*path, key), data=data, role=field_role(role, key))  # 字面边界贯穿全部后代。
     elif isinstance(value, list):
         for index, child in enumerate(value):
-            yield from _leaves(child, (*path, index))
-    elif isinstance(value, str):
+            yield from _leaves(child, (*path, index), data=data, role=role)  # 列表索引保持原角色。
+    elif isinstance(value, (str, int, float, bool)):  # Bind scalar types, including compact data values.
         yield path
 
 
@@ -53,17 +55,19 @@ def _initial(batch):
     return result
 
 
-def _markdown_changes(batch, markdown, case_bindings=None):
-    try:  # Prefer today's clean projection without weakening its identity checks.
-        return _markdown_layout_changes(batch, markdown, case_bindings)  # Exact current layout.
-    except ValueError as current_error:  # An old exported artifact may have a different trusted layout.
-        try:  # Retry only the known historical renderer against the same immutable baseline.
-            return _markdown_layout_changes(batch, markdown, case_bindings, legacy=True)  # Same scalar/protected-field checks.
-        except ValueError:  # Neither supported layout establishes an unambiguous return.
-            raise current_error from None  # Preserve the original fail-closed public diagnostic.
+def _markdown_changes(batch, markdown, case_bindings=None, companion_base=None, source_catalog=None):  # Explicit export origin binds materialized links.
+    errors = []  # Each supported layout binds the same immutable semantic baseline.
+    layouts = ((False, False, False), (False, True, False), (False, False, True), (False, True, True), (True, True, True))  # 已知旧生成布局，非任意兼容。
+    for legacy, data_legacy, common_legacy, trailing_legacy, metadata_legacy in [(*layout, trailing, metadata) for metadata in (False, True) for trailing in (False, True) for layout in layouts]:  # 仅枚举本地曾发布的准确旧 metadata 布局。
+        try:
+            return _markdown_layout_changes(batch, markdown, case_bindings, legacy=legacy,
+                data_legacy=data_legacy, common_legacy=common_legacy, companion_base=companion_base, source_catalog=source_catalog, trailing_legacy=trailing_legacy, metadata_legacy=metadata_legacy)  # 原始身份、digest 和来源门保持。
+        except ValueError as error:
+            errors.append(error)
+    raise errors[0] from None  # Unknown layouts stay pending clarification.
 
 
-def _markdown_layout_changes(batch, markdown, case_bindings=None, *, legacy=False):  # Layout choice never changes semantic authority.
+def _markdown_layout_changes(batch, markdown, case_bindings=None, *, legacy=False, data_legacy=False, companion_base=None, common_legacy=False, source_catalog=None, trailing_legacy=False, metadata_legacy=False):  # 旧 metadata 只控制准确预期布局。
     """Read scalar edits of the generated hierarchy; reject structural ambiguity.
 
     Probe the actual renderer to bind each visible leaf to its existing business
@@ -77,48 +81,69 @@ def _markdown_layout_changes(batch, markdown, case_bindings=None, *, legacy=Fals
         initial = copy.deepcopy(batch)
         initial['cases'] = [c for c in initial['cases'] if c.get('feedback_disposition') != 'excluded_this_round']
     from aggregation import expand_feedback  # Restore source bindings before scalar interpretation.
-    flat = _render(initial, flat=True, _legacy_feedback=legacy)['xmind_markdown']  # Bind offsets to one complete known layout.
+    metadata_bindings = {}  # 渲染器按准确用例根字段提供瞬时源行身份。
+    flat = _render(initial, flat=True, reference_batch=source_catalog, _legacy_feedback=legacy, _data_legacy=data_legacy, _metadata_legacy=metadata_legacy, _metadata_bindings=metadata_bindings)['xmind_markdown']  # 同一布局用于初始投影和标量探针。
     original = flat.splitlines()
+    if companion_base is not None and len(incoming) >= 3:  # Only the exact generated local entrance is canonicalized.
+        from module_handoff import entrance
+        if incoming[2] == original[2].partition('配套资料：')[0] + entrance(initial, base_path=companion_base):
+            incoming[2] = original[2]
+            markdown = '\n'.join(incoming) + '\n'
     if incoming[:3] != original[:3]:
         raise ValueError('Markdown header/version must match initial display')
-    def normalize_review_metadata(cid, lines):
-        # A final review changes projection-only metadata at the SAME semantic
-        # version. Accept its earlier pending view without treating omitted
-        # review prose as a business deletion. Only exact trusted metadata is
-        # optional; unknown/edited lines still fail ordinary structure checks.
-        case = next(c for c in batch['cases'] if c['id'] == cid)
-        approval = case.get('final_review', {})
-        if (case.get('review_status') != 'approved' or approval.get('approved') is not True or
-                approval.get('content_version') != batch['content_version']):
-            return lines
-        prefix = '  ' * (len(case['module_path']) + 1) + '- '
-        trusted = {prefix + _cell(line) for key in ('final_review', 'review_history')
-                   if key in case for line in _business_lines({key: case[key]}, batch=batch)}  # Resolve only typed reference metadata.
-        pending_line = prefix + '最终评审：pending'
-        approved_line = prefix + '最终评审：approved'
-        return [line.replace('最终评审：pending', '最终评审：approved') if line.strip() == '- 最终评审：pending' else line for line in lines if line not in trusted]  # Same trusted status may now appear in generated module instructions.
+    def trusted_review(cid):  # 只有准确同版实际通过才兼容其更早 pending 视图。
+        case = next(c for c in batch['cases'] if c['id'] == cid)  # owner 由已有稳定身份给定。
+        approval = case.get('final_review', {})  # 不读取业务字符串或嵌套同名字段。
+        return (case.get('review_status') == 'approved' and approval.get('approved') is True and
+                approval.get('content_version') == batch['content_version'])  # 漂移或缺少真实通过均不归一化。
 
-    from aggregation import feedback_topics  # Validate raw identity evidence before trusted metadata normalization.
-    raw_topics = feedback_topics('\n'.join(incoming))  # Retain raw returned digests as the identity-evidence baseline.
-    for case in initial['cases']:  # Normalize trusted review-only changes before structural matching.
-        incoming = normalize_review_metadata(case['id'], incoming)  # Remove only trusted projection metadata from the return.
-        original = normalize_review_metadata(case['id'], original)  # Apply the same normalization to the baseline comparison.
-    if case_bindings:  # Translate only explicitly supplied identity evidence.
-        normalized_bindings = copy.deepcopy(case_bindings)  # Preserve the caller's original raw-return bindings.
-        normalized_topics = feedback_topics('\n'.join(incoming))  # Compute digests after trusted metadata normalization.
-        for cid, binding in normalized_bindings.items():  # Resolve each clarified case independently.
-            raw = [t for t in raw_topics if t['returned_digest'] == binding.get('returned_digest')]  # Evidence must first match the unnormalized return.
-            if len(raw) != 1:  # Missing or duplicate raw topics cannot establish identity.
-                raise ValueError('Identity evidence does not uniquely bind the raw return')  # Require clarification instead of guessing an owner.
-            if any(t['returned_digest'] == binding['returned_digest'] for t in normalized_topics):  # Unchanged subtrees retain their exact digest.
-                continue  # Most returns require no projection-only normalization.
-            topics = [t for t in normalized_topics if t['path'] == raw[0]['path'] and t['title'] == raw[0]['title']]  # Locate the same topic after review-only metadata removal.
-            if len(topics) != 1:  # Translation must preserve an unambiguous topic location.
-                raise ValueError('Trusted metadata normalization is ambiguous; clarify')  # Stop when normalization cannot uniquely preserve identity.
-            binding['returned_digest'] = topics[0]['returned_digest']  # Same raw topic, only trusted review metadata differs.
-        case_bindings = normalized_bindings  # Use normalized digests only for the following structural match.
-    incoming = expand_feedback(initial, '\n'.join(original), '\n'.join(incoming), case_bindings, handoff=not legacy).splitlines()  # Historical baseline stays exact; current instructions remain protected.
+    def normalize_case(cid, node, template):  # 用准确源行字段对齐控制位置，不按全树文字消费业务叶。
+        if not trusted_review(cid):  # 未审稿保留原先严格结构核对。
+            return node  # 没有可信同版元数据豁免。
+        wanted, actual = template['children'], node['children']  # 只处理该准确用例直属节点。
+        roles = [next((metadata_bindings[origin][1] for origin in child['origins']
+                       if metadata_bindings.get(origin, (None,))[0] == cid), None) for child in wanted]  # 嵌套业务叶无控制身份。
+        if not any(roles):  # 新布局已外置审计；同文业务叶不参与归一化。
+            return node  # 原始业务节点和偏移完整保留。
+        from functools import lru_cache  # 可选历史行对齐只缓存本次准确用例。
+        from aggregation import _shape  # 与后续结构比较使用同一树形契约。
+        @lru_cache(None)
+        def align(source, returned):  # 控制行可缺省，业务节点必须各自消耗一个实际节点。
+            if source == len(wanted):  # 结束时任何额外节点仍是非法结构。
+                return ((),) if returned == len(actual) else ()  # 不吞掉未知插入或业务行。
+            role = roles[source]  # 由渲染器的实际源字段决定职责。
+            choices = []  # 至多保留两个不同业务形状，明确报告歧义。
+            if role in ('final_review', 'review_history'):  # 早于当前最终评审的原稿可能没有这些可信行。
+                choices.extend(align(source + 1, returned))  # 只跳过已知源控制行。
+            if returned < len(actual):  # 所有被消耗节点都来自原始返回。
+                current = actual[returned]  # 子节点结构不借文本豁免。
+                allowed = current['text'] == wanted[source]['text']  # 审计正文仍须逐字可信。
+                if role == 'review_status':  # 仅这个准确直属源字段可接受更早状态。
+                    allowed = current['text'] in ('最终评审：pending', '最终评审：approved')  # 业务同文不触发该分支。
+                if not role or (not current['children'] and allowed):  # 业务节点由后续映射核对编辑，控制行只能是准确叶。
+                    for tail in align(source + 1, returned + 1):  # 保留顺序及完整源 owner。
+                        choices.append(((returned,) + tail) if not role else tail)  # 只去掉已绑定控制节点。
+            unique = {}  # 同文重复但业务结果完全相同可复用；不同结果必须澄清。
+            for indexes in choices:  # 不按标题或字段名字猜测用户编辑。
+                shape = repr([_shape(actual[index]) for index in indexes])  # 业务子树完整参与判断。
+                unique.setdefault(shape, indexes)  # 仅合并业务意义完全相同的对齐。
+                if len(unique) > 1:  # 禁止指数枚举，也不任选一个业务编辑解释。
+                    break  # 两个不同业务解释已经足以判定歧义。
+            return tuple(unique.values())  # 缓存只在本次调用存活。
+        choices = align(0, 0)  # 原始摘要验证由外层先完成。
+        if len(choices) != 1:  # 缺失或多解均保守停止，不能吞掉真实编辑。
+            raise ValueError('Review metadata owner is ambiguous; clarify the actual business edit')  # 明确回到澄清。
+        return dict(node, children=[actual[index] for index in choices[0]])  # 业务叶与原始偏移不变。
 
+    if case_bindings:  # 保留原先的全局原始摘要唯一性检查，不因局部树归一化而放宽身份。
+        from aggregation import feedback_topics  # 读取未归一化的实际返回。
+        raw_topics = feedback_topics('\n'.join(incoming))  # 不重写用户绑定的digest。
+        if any(sum(topic['returned_digest'] == binding.get('returned_digest') for topic in raw_topics) != 1 for binding in case_bindings.values()):
+            raise ValueError('Identity evidence does not uniquely bind the raw return')  # 同摘要多处出现仍需业务澄清。
+    incoming = expand_feedback(initial, '\n'.join(original), '\n'.join(incoming), case_bindings,
+        handoff=not legacy, common_legacy=common_legacy, source_catalog=source_catalog, _normalize_case=normalize_case, _trailing_legacy=trailing_legacy).splitlines()  # 原始digest先验证；归一化只作用于对应的用例子树。
+
+    source_starts = {}  # 原始 flat 块起点不随回传删除或保留范围移动。
     def blocks(lines):
         headers = []
         for index, line in enumerate(lines[3:], 3):
@@ -135,24 +160,24 @@ def _markdown_layout_changes(batch, markdown, case_bindings=None, *, legacy=Fals
             if cid in result:
                 raise ValueError('Duplicate Markdown identity')
             end = headers[pos + 1][0] if pos + 1 < len(headers) else len(lines)
-            result[cid] = normalize_review_metadata(cid, lines[start:end])
+            source_starts.setdefault(cid, start)  # 首次读取准确原始布局，后续回传与探针复用本owner相对偏移。
+            offsets = {origin + 3 - source_starts[cid] for origin, owner in metadata_bindings.items() if owner[0] == cid} if trusted_review(cid) else set()  # 整例删除不移动其他owner的源身份。
+            result[cid] = [line for offset, line in enumerate(lines[start:end]) if offset not in offsets]  # 按准确源偏移移除控制行，保留同文业务叶。
         return result
     before, after = blocks(original), blocks(incoming)
     changes, missing = [], list(before.keys() - after.keys())
     all_bindings = {}
-    from step_reuse import expanded  # Probe inherited visible business leaves without exposing source metadata.
+    from restoration import feedback_projection as expanded  # Probe inherited visible business leaves without exposing source metadata.
     for collection in ('cases', 'data'):
         for index, item in enumerate(expanded(initial)[collection]):
-            for path in _leaves(item):
-                if 'step_reference' in path:
-                    continue  # Derived source labels and version bindings are never editable scalars.
+            for path in _leaves(item, data=collection == 'data'):  # data 根身份受保护，真实 value 内业务 id 可定位。
                 probe = copy.deepcopy(initial)
                 marker = 'TCAFEEDBACKLEAFMARKER'
                 if collection == 'cases':
                     from local_step_feedback import materialize  # Probe copy alone may contain an inline step.
                     materialize(probe, probe[collection][index], path)
                 _set(probe[collection][index], path, marker)
-                rendered = blocks(_render(probe, flat=True, reference_batch=initial, _legacy_feedback=legacy, _expression_baseline=initial)['xmind_markdown'].splitlines())  # Bind duplicate visibility to the original source, not the probe marker.
+                rendered = blocks(_render(probe, flat=True, reference_batch=source_catalog or initial, _legacy_feedback=legacy, _expression_baseline=initial, _data_legacy=data_legacy, _metadata_legacy=metadata_legacy)['xmind_markdown'].splitlines())  # 探针使用同一准确新旧布局。
                 for cid, lines in rendered.items():
                     for line_index, line in enumerate(lines):
                         if marker in line:
@@ -161,37 +186,32 @@ def _markdown_layout_changes(batch, markdown, case_bindings=None, *, legacy=Fals
                             prefix, suffix = line.split(marker)
                             all_bindings.setdefault((cid, line_index), []).append(
                                 (collection, item['id'], list(path), prefix, suffix))
-    seen = {}
+    from data_projection import decode_line  # Compound fields retain their own source paths.
+    seen, decoded = {}, {}
     for cid, lines in after.items():
         if len(lines) != len(before[cid]):
             raise ValueError('Structural Markdown edit needs explicit chat interpretation')
         for index, (old, new) in enumerate(zip(before[cid], lines)):
-            if old == new:
-                continue
             bindings = all_bindings.get((cid, index), [])
-            if len(bindings) != 1:
+            if old != new and not bindings:
                 raise ValueError('Unmapped Markdown edit')
-            collection, identity, path, prefix, suffix = bindings[0]
-            if not new.startswith(prefix) or (suffix and not new.endswith(suffix)):
-                raise ValueError('Markdown structure or labels changed')
-            value = new[len(prefix):len(new)-len(suffix) if suffix else None]
-            value = html.unescape(value.replace('<br>', '\n'))
-            key = (collection, identity, tuple(path))
-            if key in seen and seen[key] != value:
-                raise ValueError('Repeated shared data edits disagree')
-            seen[key] = value
-    # Every repeated projection must agree, including occurrences left unchanged.
-    for key, value in seen.items():
-        for (cid, index), bindings in all_bindings.items():
-            if cid not in after:
+            if not bindings:
                 continue
-            for col, identity, path, prefix, suffix in bindings:
-                if (col, identity, tuple(path)) == key:
-                    line = after[cid][index]
-                    actual = html.unescape(line[len(prefix):len(line)-len(suffix) if suffix else None].replace('<br>', '\n'))
-                    if actual != value:
-                        raise ValueError('Repeated shared data edits disagree')
-        changes.append({'collection': key[0], 'id': key[1], 'path': list(key[2]), 'value': value})
+            values = decode_line(old, new, bindings)  # Read unchanged occurrences too, to detect inconsistent shared edits.
+            decoded[(cid, index)] = values
+            originals = decode_line(old, old, bindings)
+            for key, value in values.items():
+                if value == originals[key]:
+                    continue
+                if key in seen and seen[key] != value:
+                    raise ValueError('Repeated shared data edits disagree')
+                seen[key] = value
+    for key, value in seen.items():
+        if any(key in values and values[key] != value for values in decoded.values()):
+            raise ValueError('Repeated shared data edits disagree')
+        original_value = _get(next(item for item in expanded(initial)[key[0]] if item['id'] == key[1]), key[2])
+        from data_projection import typed_value  # Parse only against the exact source type.
+        changes.append({'collection': key[0], 'id': key[1], 'path': list(key[2]), 'value': typed_value(value, original_value, display_encoded=not (legacy or metadata_legacy) and key[0] == 'data' and key[2] == ('value',))})  # 仅当前 data.value 的明确可见表示解码。
     return changes, missing
 
 
@@ -204,9 +224,20 @@ def _question(qid, cid, field, reason, checks):
             'example': 'SIMULATED: use the revised expected result; keep product check if provisional'}
 
 
+def _data_owners(batch, data_ids, source_catalog):
+    if not data_ids:
+        return {}  # Local edits and unchanged legacy returns do not depend on hidden data ownership.
+    from preparation_scope import scope_context
+    context, unavailable = scope_context(batch, source_catalog, require_parent=True)
+    if unavailable:
+        raise ValueError('Actual complete parent required for shared-data impact')
+    return {identity: [c['id'] for c in context['cases'] if identity in _references(c)]
+        for identity in data_ids}  # All groups and current reference bindings, independent of operation exceptions.
+
+
 def prepare_feedback(batch, channel, *, actual_reply, changes=None, markdown=None,
                      removed_case_ids=None, deletion_decisions=None, source_version=None, case_bindings=None,
-                     clear_changes=False, questions=None, shared_change=None):  # Shared impact uses the same review boundary.
+                     clear_changes=False, questions=None, shared_change=None, companion_base=None, source_catalog=None):  # Shared impact uses the same review boundary.
     """Locate proposed changes against first display and later accepted content."""
     _credential_guard([batch, actual_reply, changes, markdown, deletion_decisions, case_bindings])  # Binding replies follow the same credential boundary.
     if not actual_reply or channel not in ('chat', 'markdown'):
@@ -225,21 +256,25 @@ def prepare_feedback(batch, channel, *, actual_reply, changes=None, markdown=Non
     if channel == 'markdown':
         if changes or removed_case_ids or markdown is None:
             raise ValueError('Read Markdown itself, not a substituted interpretation')
-        changes, removed_case_ids = _markdown_changes(batch, markdown, case_bindings)
+        changes, removed_case_ids = _markdown_changes(batch, markdown, case_bindings, companion_base, source_catalog)
         current_source = markdown.splitlines()[1] == '- 版本：' + batch['content_version']
     normalized, affected = [], set()
     for change in changes or []:
         collection, identity, path = change['collection'], change['id'], change['path']
-        if collection not in ('cases', 'data') or not path or any(p in PROTECTED for p in path if isinstance(p, str)):
+        if collection not in ('cases', 'data') or not path:  # 具体可编辑字段由同一 typed 叶枚举核对，不再次按路径键全树拦截。
             raise ValueError('Identity, reference and workflow changes need a new scoped baseline')
-        from step_reuse import expanded  # Read inherited business fields through the existing resolver.
+        from restoration import feedback_projection as expanded  # Read inherited business fields through the existing resolver.
         base = next((v for v in expanded(initial)[collection] if v['id'] == identity), None)
         current = next((v for v in expanded(batch)[collection] if v['id'] == identity), None)
-        if base is None or current is None or tuple(path) not in set(_leaves(base)):
+        if base is None or current is None or tuple(path) not in set(_leaves(base, data=collection == 'data')):
             raise ValueError('Unknown displayed business field')
         old, accepted, new = _get(base, path), _get(current, path), change['value']
-        if not isinstance(new, str) or not new.strip():
-            raise ValueError('Nonempty business text required')
+        if type(new) is not type(accepted) or (isinstance(new, str) and not new.strip() and not (collection == 'data' and path == ['value'])):  # Empty literal input is meaningful; names and prose still require text.
+            raise ValueError('Business scalar must retain its source type and valid text')
+        if type(new) is float:
+            import math
+            if not math.isfinite(new):
+                raise ValueError('Finite business scalar required')
         if collection == 'cases' and len(path) == 3 and path[0] in GROUPS and path[2] == 'operation' and new.strip() == accepted.strip():  # Outer display whitespace does not alter business action.
             continue  # Keep valid references and approvals for a formatting-only return.
         if current_source and channel == 'chat' and change.get('before') != accepted:
@@ -251,6 +286,33 @@ def prepare_feedback(batch, channel, *, actual_reply, changes=None, markdown=Non
         normalized.append(dict(change, before=old, accepted=accepted))
         affected.update([identity] if collection == 'cases' else
                         [c['id'] for c in batch['cases'] if identity in _references(c)])
+    scope_impact = []  # A partial display cannot silently turn a shared edit into a local one.
+    if normalized:  # Shared data has full impact in chat and file returns alike.
+        from preparation_scope import operation_scopes
+        changed_data = {c['id'] for c in normalized if c['collection'] == 'data'}
+        data_owners = _data_owners(batch, changed_data, source_catalog)
+        scopes, _ = operation_scopes(initial, source_catalog)
+        touched = set()
+        def record_impact(identity, owners):
+            owners = sorted(set(owners))  # Operation exceptions and independent data consumers supply distinct ownership sets.
+            if identity not in touched:
+                touched.add(identity)
+                scope_impact.append(dict(scope_id=identity, affected_case_ids=owners,
+                    unshown_case_ids=sorted(set(owners) - {c['id'] for c in batch['cases']})))
+                affected.update(owners)  # The same proposal binding and application guard cover every shared impact.
+        for change in normalized:
+            if change['collection'] == 'data':
+                record_impact('data:' + change['id'], data_owners[change['id']])  # All groups and reference bindings, independent of common exclusions.
+                continue
+            if channel != 'markdown' or len(change['path']) < 3:  # Explicit case chat edits retain their local scope.
+                continue
+            group, index = change['path'][:2]
+            if group not in ('common_preconditions', 'common_postconditions'):
+                continue
+            case = next(c for c in initial['cases'] if c['id'] == change['id'])
+            for scope in scopes.get(change['id'], []):
+                if scope['direction'] == ('pre' if group == 'common_preconditions' else 'post') and case[group][index]['id'] in scope['step_ids_by_case'][case['id']] and scope['id'] not in touched:
+                    record_impact(scope['id'], set(scope['applicable_case_ids']) - set(scope['exception_case_ids']))  # Exclusions apply only to this operation.
     unique = {(c['collection'], c['id'], tuple(c['path'])) for c in normalized}
     if len(unique) != len(normalized):
         raise ValueError('Duplicate feedback field')
@@ -272,7 +334,7 @@ def prepare_feedback(batch, channel, *, actual_reply, changes=None, markdown=Non
             q['recommendation'] = 'Restore until maintenance intent is explicit'
             q['example'] = 'SIMULATED: exclude this round; keep the existing record active'
             questions.append(q)
-    proposal_digest = _digest({'changes': normalized, 'deletions': deletions})
+    proposal_digest = _digest({'changes': normalized, 'deletions': deletions, **({'shared_scope_impact': scope_impact} if scope_impact else {})})
     if shared_plan:
         proposal_digest = _digest({'changes': normalized, 'deletions': deletions, 'shared_change': shared_plan})
         affected.update(shared_ids)
@@ -316,23 +378,33 @@ def prepare_feedback(batch, channel, *, actual_reply, changes=None, markdown=Non
         affected.update(q['case_id'] for q in supplied_questions if q.get('stale') or not q.get('history'))  # Reopened dependencies also need review.
     return {'batch': copy.deepcopy(batch), 'channel': channel, 'actual_reply': actual_reply,
             'base_version': batch['content_version'], 'changes': normalized, 'deletions': deletions, 'shared_change': shared_plan,
-            'affected_case_ids': sorted(affected), 'proposal_digest': proposal_digest,
+            'affected_case_ids': sorted(affected), 'proposal_digest': proposal_digest, 'shared_scope_impact': scope_impact,
             'grill': start_grill(batch, questions), 'case_bindings': copy.deepcopy(case_bindings or {}), 'binding_digest': binding_digest}  # Preserve actual identity clarification with the proposal.
 
 
-def _views(batch):
+def _views(batch, source_catalog=None):
     displayed = copy.deepcopy(batch)
     displayed['cases'] = [c for c in displayed['cases'] if c.get('feedback_disposition') != 'excluded_this_round']
-    return _render(displayed)
+    return _render(displayed, reference_batch=source_catalog)
 
 
-def apply_feedback(pending, confirmation, deletion_decisions=None):
+def apply_feedback(pending, confirmation, deletion_decisions=None, *, source_catalog=None):
     """Apply one explicitly agreed summary atomically; all effects stay candidate-side."""
     _credential_guard([pending, confirmation, deletion_decisions])
+    if any(item['unshown_case_ids'] for item in pending.get('shared_scope_impact', [])):
+        raise ValueError('Shared definition affects unshown cases; expand the review scope before applying')  # Never partially apply a global definition.
+    owners = _data_owners(pending['batch'], {c['id'] for c in pending['changes'] if c['collection'] == 'data'}, source_catalog)
+    for consumers in owners.values():
+        if set(consumers) - {c['id'] for c in pending['batch']['cases']}:
+            raise ValueError('Shared data affects unshown cases; expand the review scope before applying')  # Older prepared proposals also recheck actual ownership.
+        if set(consumers) - set(pending['affected_case_ids']):
+            raise ValueError('Shared-data impact changed; prepare feedback again')  # Never silently broaden the agreed proposal.
     current = summarize(pending['grill'])['summary']
     if pending.get('binding_digest') != _digest(pending.get('case_bindings', {})):
         raise ValueError('Identity clarification changed after presentation')
     proposal = {'changes': pending['changes'], 'deletions': pending['deletions']}
+    if pending.get('shared_scope_impact'):
+        proposal['shared_scope_impact'] = pending['shared_scope_impact']  # Impact belongs to the exact proposal.
     if pending.get('shared_change'):
         proposal['shared_change'] = pending['shared_change']
     if pending.get('product_resolution'):
@@ -377,8 +449,10 @@ def apply_feedback(pending, confirmation, deletion_decisions=None):
         for consumer in data_consumers:
             refresh(batch, consumer)  # Bind complete revised steps without rewriting source snapshots.
         parent = _get(target, change['path'][:-1])
-        if isinstance(parent, dict) and 'source' in parent:
-            parent['source'] = 'user_decision'
+        if change['collection'] == 'data' and 'source' in target:
+            target['source'] = 'user_decision'  # 只更新 data 根溯源，不篡改实际 value.source。
+        elif change['collection'] == 'cases' and path_role(change['path'][:-1]) in ('step', 'claim') and isinstance(parent, dict) and 'source' in parent:  # 仅准确框架步骤或声明 claim 更新来源。
+            parent['source'] = 'user_decision'  # literal 输入/产出的 source 完整保持真实业务值。
         if change['collection'] == 'cases':
             refresh(batch, target)  # Bind the revised order and endpoint before validation.
     from clarification import _patch  # Use the same validated business update seam as normal clarification.
@@ -439,7 +513,7 @@ def apply_feedback(pending, confirmation, deletion_decisions=None):
         if pending.get('shared_change') and case['id'] == pending['shared_change']['replacement']['case_id'] and case['id'] not in blocked:
             case['semantic_version'] = pending['shared_change']['replacement']['semantic_version']  # Source and reviewed definition share the same declared version.
     for check in batch.get('coverage', []):
-        from step_reuse import expanded  # Feedback summaries share the exact review resolver.
+        from restoration import feedback_projection as expanded  # Feedback summaries share the exact review resolver.
         linked = [c for c in expanded(batch)['cases'] if c['id'] in check.get('case_ids', [])]
         if not any(c['id'] in affected for c in linked):
             continue
@@ -461,7 +535,7 @@ def apply_feedback(pending, confirmation, deletion_decisions=None):
     batch['questions'] = [copy.deepcopy(q) for q in pending['grill']['questions']
                           if pending.get('persisted_feedback') or q['id'].startswith('existing-')]  # Same-task feedback retains the complete stable graph.
     batch['content_version'] = _digest({k: v for k, v in batch.items() if k != 'content_version'})
-    result = _views(batch)
+    result = _views(batch, source_catalog)
     result['batch'] = batch
     result['changes'] = copy.deepcopy(pending['changes'])
     result['review_notes'] = 'Candidate feedback only; final review required. Formal source synchronization and execution remain pending.\n' + str(batch.get('coverage', []))
@@ -472,16 +546,16 @@ def apply_feedback(pending, confirmation, deletion_decisions=None):
     return result
 
 
-def review_feedback(result, final_review):
+def review_feedback(result, final_review, *, source_catalog=None):
     """Use the existing batch final-review gate for the complete revised content."""
     if result['batch'] != result['review_session']['batch']:
         raise ValueError('Revised content changed after summary application')
     selected = final_review.get('case_ids', [])
     if any(c.get('feedback_disposition') == 'excluded_this_round' for c in result['batch']['cases'] if c['id'] in selected):
         raise ValueError('Excluded content is outside this round review')
-    session = review(result['review_session'], final_review)
+    session = review(result['review_session'], final_review, source_catalog=source_catalog)
     updated = copy.deepcopy(result)
-    updated.update(_views(session['batch']))
+    updated.update(_views(session['batch'], source_catalog))
     updated['batch'] = session['batch']
     updated['review_session'] = session
     updated['next_step'] = 'Candidate review recorded. Formal mapping remains pending; user starts execution or merge separately.'

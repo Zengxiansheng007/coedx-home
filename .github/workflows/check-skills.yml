@@ -22,6 +22,12 @@ jobs:
           python-version: '3.13'
       - run: python -m pip install -r requirements-checks.txt
       - run: python -B tools/checks.py --output-dir .scratch/ci-verification
+      - run: python -m pip install -r skills/ui-test/requirements.lock
+      - name: Check UI-Test case authoring and publication
+        working-directory: skills/ui-test
+        run: >-
+          python -B -m pytest -q -p no:cacheprovider
+          tests --junitxml=../../.scratch/ci-verification/ui-test-authoring.xml
       - uses: actions/upload-artifact@v4
         if: always()
         with:

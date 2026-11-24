@@ -1,0 +1,825 @@
+{
+  "schema_version": 1,
+  "id": "synthetic-extension",
+  "stage": "P1/P2",
+  "kind": "scoped_review_copy",
+  "sources": [
+    {
+      "kind": "existing_catalog",
+      "ref": "synthetic://catalog",
+      "sha256": "76bfc065576bc4a8ac226ef11e922902b2ff501f4355d4578fcc6aa42cd6bedc"
+    }
+  ],
+  "initial_copy_baseline": {
+    "catalog_version": "synthetic-full-v1",
+    "catalog_digest": "76bfc065576bc4a8ac226ef11e922902b2ff501f4355d4578fcc6aa42cd6bedc",
+    "source_ref": "synthetic://catalog",
+    "cases": [
+      {
+        "id": "LOW",
+        "title": "模拟下界",
+        "priority": "P1",
+        "module_path": [
+          "Example",
+          "Workspace",
+          "Web",
+          "Notes",
+          "Save"
+        ],
+        "priority_basis": "SIMULATED: high impact, corruption risk, rare use",
+        "maintenance_action": "add",
+        "review_status": "pending",
+        "rule_status": "unconfirmed",
+        "merge_status": "not_merged",
+        "execution_status": "not_run",
+        "context": {
+          "role": [
+            {
+              "text": "editor",
+              "source": "recording",
+              "lines": [
+                1,
+                1
+              ],
+              "basis": "recording_observation"
+            }
+          ],
+          "initial_state": [
+            {
+              "text": "signed in",
+              "source": "recording",
+              "lines": [
+                1,
+                1
+              ],
+              "basis": "recording_observation"
+            }
+          ]
+        },
+        "steps": [
+          {
+            "id": "DEMO-P0-001/steps/1",
+            "step_reference": {
+              "definition_digest": "c1aa25c132b7ca5d0ab1844fe63ec0f27cb4c739a9feb1ff51b2082095f01e82",
+              "case_id": "EDIT",
+              "group": "steps",
+              "step_id": "DEMO-P0-001/steps/1",
+              "semantic_version": "01aaf7b97a23f253614ea82a9e8ca72621e328abffda1a41cd3d4f2fe152881f",
+              "data_refs": [
+                "title"
+              ],
+              "data_binding_digest": "594ecc94b3503cf6dad542b429b20034d27933c5000376eac2ee512fd5a6dbb2",
+              "context_digest": "afd2d73413fae1b6d8fe7f643d0b0a53da378bcb252c27124064e461cd380920",
+              "assessment": {
+                "group": "steps",
+                "step_id": "DEMO-P0-001/steps/1",
+                "p0_case_id": "EDIT",
+                "p0_step_id": "DEMO-P0-001/steps/1",
+                "applicability": "SIMULATED: identical editor role, saved note and fixed input",
+                "endpoint": "SIMULATED: target sequence is complete and stops at its last assertion",
+                "source_basis": "synthetic://complete-design",
+                "comparison": {
+                  "operation": "SIMULATED: identical supplied business condition; independently checked against source",
+                  "data": "SIMULATED: identical supplied business condition; independently checked against source",
+                  "expected": "SIMULATED: identical supplied business condition; independently checked against source",
+                  "verification": "SIMULATED: identical supplied business condition; independently checked against source"
+                }
+              }
+            }
+          },
+          {
+            "operation": "Save the notice",
+            "data_refs": [],
+            "source": "recording",
+            "lines": [
+              3,
+              3
+            ],
+            "expected": [
+              {
+                "text": "Saved message is visible",
+                "source": "recording",
+                "lines": [
+                  4,
+                  4
+                ],
+                "basis": "recording_observation"
+              }
+            ],
+            "verification": [
+              {
+                "text": "Read the visible saved message",
+                "source": "recording",
+                "lines": [
+                  4,
+                  4
+                ],
+                "basis": "recording_observation"
+              }
+            ],
+            "basis": "recording_observation",
+            "id": "DEMO-P0-001/steps/2"
+          }
+        ],
+        "common_preconditions": [],
+        "semantic_version": "19d0010d8eeb2c8b0be12ff2244e3738bf1636133369c4de98fa57c514ec0ddf",
+        "data_version": "594ecc94b3503cf6dad542b429b20034d27933c5000376eac2ee512fd5a6dbb2",
+        "priority_factors": {
+          "importance": "high",
+          "risk": "corruption",
+          "frequency": "rare"
+        },
+        "data_preparation": "SIMULATED: use isolated prepared note",
+        "reuse_target_digest": "e7562755e9a690e0eefaf8c74bd3fbabdac2423d7566ebdaea4c96edd83d16d7"
+      },
+      {
+        "id": "HIGH",
+        "title": "模拟上界",
+        "priority": "P1",
+        "module_path": [
+          "Example",
+          "Workspace",
+          "Web",
+          "Notes",
+          "Save"
+        ],
+        "priority_basis": "SIMULATED: high impact, corruption risk, rare use",
+        "maintenance_action": "add",
+        "review_status": "pending",
+        "rule_status": "unconfirmed",
+        "merge_status": "not_merged",
+        "execution_status": "not_run",
+        "context": {
+          "role": [
+            {
+              "text": "editor",
+              "source": "recording",
+              "lines": [
+                1,
+                1
+              ],
+              "basis": "recording_observation"
+            }
+          ],
+          "initial_state": [
+            {
+              "text": "signed in",
+              "source": "recording",
+              "lines": [
+                1,
+                1
+              ],
+              "basis": "recording_observation"
+            }
+          ]
+        },
+        "steps": [
+          {
+            "operation": "Enter notice title",
+            "data_refs": [
+              "title"
+            ],
+            "source": "recording",
+            "lines": [
+              2,
+              2
+            ],
+            "expected": [
+              {
+                "text": "SIMULATED: action completed",
+                "source": "inference"
+              }
+            ],
+            "verification": [
+              {
+                "text": "SIMULATED: action completed",
+                "source": "inference"
+              }
+            ],
+            "basis": "recording_observation",
+            "id": "DEMO-P0-001/steps/1"
+          },
+          {
+            "operation": "Save the notice",
+            "data_refs": [],
+            "source": "recording",
+            "lines": [
+              3,
+              3
+            ],
+            "expected": [
+              {
+                "text": "Saved message is visible",
+                "source": "recording",
+                "lines": [
+                  4,
+                  4
+                ],
+                "basis": "recording_observation"
+              }
+            ],
+            "verification": [
+              {
+                "text": "Read the visible saved message",
+                "source": "recording",
+                "lines": [
+                  4,
+                  4
+                ],
+                "basis": "recording_observation"
+              }
+            ],
+            "basis": "recording_observation",
+            "id": "DEMO-P0-001/steps/2"
+          }
+        ],
+        "common_preconditions": [],
+        "semantic_version": "45bdda057113a601ae35e37d2b2c8846ebb4d34f9aa9ccd689c85762a68604e8",
+        "data_version": "594ecc94b3503cf6dad542b429b20034d27933c5000376eac2ee512fd5a6dbb2",
+        "priority_factors": {
+          "importance": "high",
+          "risk": "corruption",
+          "frequency": "rare"
+        },
+        "data_preparation": "SIMULATED: use isolated prepared note"
+      }
+    ],
+    "data": [
+      {
+        "id": "title",
+        "value": "Sample notice",
+        "source": "recording",
+        "lines": [
+          2,
+          2
+        ],
+        "basis": "recording_observation",
+        "object_ref": "synthetic note",
+        "validity": "during isolated run",
+        "reuse_policy": "shared while valid",
+        "invalidation_action": "ask user"
+      }
+    ],
+    "selection": [
+      {
+        "case_id": "LOW",
+        "action": "add",
+        "reason": "P1/P2 design expansion"
+      },
+      {
+        "case_id": "HIGH",
+        "action": "add",
+        "reason": "P1/P2 design expansion"
+      }
+    ],
+    "catalog_cases": [],
+    "catalog_data": [],
+    "not_displayed_case_ids": [
+      "EDIT",
+      "LINK",
+      "OTHER"
+    ],
+    "copy_version": "79c682f0e5e5195a2e352ae3deefed946c4081321df619ca6176eeba3dfa380d",
+    "step_definitions": [
+      {
+        "case_id": "EDIT",
+        "title": "Save a notice",
+        "group": "steps",
+        "step_id": "DEMO-P0-001/steps/1",
+        "semantic_version": "01aaf7b97a23f253614ea82a9e8ca72621e328abffda1a41cd3d4f2fe152881f",
+        "priority": "P0",
+        "step_number": 1,
+        "step": {
+          "operation": "Enter notice title",
+          "data_refs": [
+            "title"
+          ],
+          "source": "recording",
+          "lines": [
+            2,
+            2
+          ],
+          "expected": [
+            {
+              "text": "SIMULATED: action completed",
+              "source": "inference"
+            }
+          ],
+          "verification": [
+            {
+              "text": "SIMULATED: action completed",
+              "source": "inference"
+            }
+          ],
+          "basis": "recording_observation",
+          "id": "DEMO-P0-001/steps/1"
+        },
+        "data": [
+          {
+            "id": "title",
+            "value": "Sample notice",
+            "source": "recording",
+            "lines": [
+              2,
+              2
+            ],
+            "basis": "recording_observation",
+            "object_ref": "synthetic note",
+            "validity": "during isolated run",
+            "reuse_policy": "shared while valid",
+            "invalidation_action": "ask user"
+          }
+        ]
+      }
+    ]
+  },
+  "selection": [
+    {
+      "case_id": "LOW",
+      "action": "add",
+      "reason": "P1/P2 design expansion"
+    },
+    {
+      "case_id": "HIGH",
+      "action": "add",
+      "reason": "P1/P2 design expansion"
+    }
+  ],
+  "approved_validation_scope": [],
+  "cases": [
+    {
+      "id": "LOW",
+      "title": "模拟下界",
+      "priority": "P1",
+      "module_path": [
+        "Example",
+        "Workspace",
+        "Web",
+        "Notes",
+        "Save"
+      ],
+      "priority_basis": "SIMULATED: high impact, corruption risk, rare use",
+      "maintenance_action": "add",
+      "review_status": "pending",
+      "rule_status": "unconfirmed",
+      "merge_status": "not_merged",
+      "execution_status": "not_run",
+      "context": {
+        "role": [
+          {
+            "text": "editor",
+            "source": "recording",
+            "lines": [
+              1,
+              1
+            ],
+            "basis": "recording_observation"
+          }
+        ],
+        "initial_state": [
+          {
+            "text": "signed in",
+            "source": "recording",
+            "lines": [
+              1,
+              1
+            ],
+            "basis": "recording_observation"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "id": "DEMO-P0-001/steps/1",
+          "step_reference": {
+            "definition_digest": "c1aa25c132b7ca5d0ab1844fe63ec0f27cb4c739a9feb1ff51b2082095f01e82",
+            "case_id": "EDIT",
+            "group": "steps",
+            "step_id": "DEMO-P0-001/steps/1",
+            "semantic_version": "01aaf7b97a23f253614ea82a9e8ca72621e328abffda1a41cd3d4f2fe152881f",
+            "data_refs": [
+              "title"
+            ],
+            "data_binding_digest": "594ecc94b3503cf6dad542b429b20034d27933c5000376eac2ee512fd5a6dbb2",
+            "context_digest": "afd2d73413fae1b6d8fe7f643d0b0a53da378bcb252c27124064e461cd380920",
+            "assessment": {
+              "group": "steps",
+              "step_id": "DEMO-P0-001/steps/1",
+              "p0_case_id": "EDIT",
+              "p0_step_id": "DEMO-P0-001/steps/1",
+              "applicability": "SIMULATED: identical editor role, saved note and fixed input",
+              "endpoint": "SIMULATED: target sequence is complete and stops at its last assertion",
+              "source_basis": "synthetic://complete-design",
+              "comparison": {
+                "operation": "SIMULATED: identical supplied business condition; independently checked against source",
+                "data": "SIMULATED: identical supplied business condition; independently checked against source",
+                "expected": "SIMULATED: identical supplied business condition; independently checked against source",
+                "verification": "SIMULATED: identical supplied business condition; independently checked against source"
+              }
+            }
+          }
+        },
+        {
+          "operation": "Save the notice",
+          "data_refs": [],
+          "source": "recording",
+          "lines": [
+            3,
+            3
+          ],
+          "expected": [
+            {
+              "text": "Saved message is visible",
+              "source": "recording",
+              "lines": [
+                4,
+                4
+              ],
+              "basis": "recording_observation"
+            }
+          ],
+          "verification": [
+            {
+              "text": "Read the visible saved message",
+              "source": "recording",
+              "lines": [
+                4,
+                4
+              ],
+              "basis": "recording_observation"
+            }
+          ],
+          "basis": "recording_observation",
+          "id": "DEMO-P0-001/steps/2"
+        }
+      ],
+      "common_preconditions": [],
+      "semantic_version": "19d0010d8eeb2c8b0be12ff2244e3738bf1636133369c4de98fa57c514ec0ddf",
+      "data_version": "594ecc94b3503cf6dad542b429b20034d27933c5000376eac2ee512fd5a6dbb2",
+      "priority_factors": {
+        "importance": "high",
+        "risk": "corruption",
+        "frequency": "rare"
+      },
+      "data_preparation": "SIMULATED: use isolated prepared note",
+      "reuse_target_digest": "e7562755e9a690e0eefaf8c74bd3fbabdac2423d7566ebdaea4c96edd83d16d7"
+    },
+    {
+      "id": "HIGH",
+      "title": "模拟上界",
+      "priority": "P1",
+      "module_path": [
+        "Example",
+        "Workspace",
+        "Web",
+        "Notes",
+        "Save"
+      ],
+      "priority_basis": "SIMULATED: high impact, corruption risk, rare use",
+      "maintenance_action": "add",
+      "review_status": "pending",
+      "rule_status": "unconfirmed",
+      "merge_status": "not_merged",
+      "execution_status": "not_run",
+      "context": {
+        "role": [
+          {
+            "text": "editor",
+            "source": "recording",
+            "lines": [
+              1,
+              1
+            ],
+            "basis": "recording_observation"
+          }
+        ],
+        "initial_state": [
+          {
+            "text": "signed in",
+            "source": "recording",
+            "lines": [
+              1,
+              1
+            ],
+            "basis": "recording_observation"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "operation": "Enter notice title",
+          "data_refs": [
+            "title"
+          ],
+          "source": "recording",
+          "lines": [
+            2,
+            2
+          ],
+          "expected": [
+            {
+              "text": "SIMULATED: action completed",
+              "source": "inference"
+            }
+          ],
+          "verification": [
+            {
+              "text": "SIMULATED: action completed",
+              "source": "inference"
+            }
+          ],
+          "basis": "recording_observation",
+          "id": "DEMO-P0-001/steps/1"
+        },
+        {
+          "operation": "Save the notice",
+          "data_refs": [],
+          "source": "recording",
+          "lines": [
+            3,
+            3
+          ],
+          "expected": [
+            {
+              "text": "Saved message is visible",
+              "source": "recording",
+              "lines": [
+                4,
+                4
+              ],
+              "basis": "recording_observation"
+            }
+          ],
+          "verification": [
+            {
+              "text": "Read the visible saved message",
+              "source": "recording",
+              "lines": [
+                4,
+                4
+              ],
+              "basis": "recording_observation"
+            }
+          ],
+          "basis": "recording_observation",
+          "id": "DEMO-P0-001/steps/2"
+        }
+      ],
+      "common_preconditions": [],
+      "semantic_version": "45bdda057113a601ae35e37d2b2c8846ebb4d34f9aa9ccd689c85762a68604e8",
+      "data_version": "594ecc94b3503cf6dad542b429b20034d27933c5000376eac2ee512fd5a6dbb2",
+      "priority_factors": {
+        "importance": "high",
+        "risk": "corruption",
+        "frequency": "rare"
+      },
+      "data_preparation": "SIMULATED: use isolated prepared note"
+    }
+  ],
+  "data": [
+    {
+      "id": "title",
+      "value": "Sample notice",
+      "source": "recording",
+      "lines": [
+        2,
+        2
+      ],
+      "basis": "recording_observation",
+      "object_ref": "synthetic note",
+      "validity": "during isolated run",
+      "reuse_policy": "shared while valid",
+      "invalidation_action": "ask user"
+    }
+  ],
+  "questions": [
+    {
+      "case_id": "LOW",
+      "field": "priority",
+      "reason": "Confirm P1/P2 priority proposal using importance, risk and frequency",
+      "suggested_target_paths": [
+        [
+          "cases",
+          0,
+          "priority"
+        ],
+        [
+          "cases",
+          0,
+          "priority_basis"
+        ]
+      ]
+    },
+    {
+      "case_id": "HIGH",
+      "field": "priority",
+      "reason": "Confirm P1/P2 priority proposal using importance, risk and frequency",
+      "suggested_target_paths": [
+        [
+          "cases",
+          1,
+          "priority"
+        ],
+        [
+          "cases",
+          1,
+          "priority_basis"
+        ]
+      ]
+    }
+  ],
+  "data_version": "594ecc94b3503cf6dad542b429b20034d27933c5000376eac2ee512fd5a6dbb2",
+  "content_version": "fc4d3b0b157fcff2b8e0202187370c964bd4749a9c2df586fee755b40407a525",
+  "step_definitions": [
+    {
+      "case_id": "EDIT",
+      "title": "Save a notice",
+      "group": "steps",
+      "step_id": "DEMO-P0-001/steps/1",
+      "semantic_version": "01aaf7b97a23f253614ea82a9e8ca72621e328abffda1a41cd3d4f2fe152881f",
+      "priority": "P0",
+      "step_number": 1,
+      "step": {
+        "operation": "Enter notice title",
+        "data_refs": [
+          "title"
+        ],
+        "source": "recording",
+        "lines": [
+          2,
+          2
+        ],
+        "expected": [
+          {
+            "text": "SIMULATED: action completed",
+            "source": "inference"
+          }
+        ],
+        "verification": [
+          {
+            "text": "SIMULATED: action completed",
+            "source": "inference"
+          }
+        ],
+        "basis": "recording_observation",
+        "id": "DEMO-P0-001/steps/1"
+      },
+      "data": [
+        {
+          "id": "title",
+          "value": "Sample notice",
+          "source": "recording",
+          "lines": [
+            2,
+            2
+          ],
+          "basis": "recording_observation",
+          "object_ref": "synthetic note",
+          "validity": "during isolated run",
+          "reuse_policy": "shared while valid",
+          "invalidation_action": "ask user"
+        }
+      ]
+    }
+  ],
+  "extension_design": {
+    "batch_id": "synthetic-extension",
+    "manual_points": [
+      {
+        "id": "M1",
+        "basis": "synthetic://manual#1",
+        "checks": [
+          {
+            "id": "LOW-CHECK",
+            "description": "lower bound",
+            "aspects": [
+              "save",
+              "display"
+            ],
+            "boundary_group": "length",
+            "input": "lower"
+          },
+          {
+            "id": "HIGH-CHECK",
+            "description": "upper bound",
+            "aspects": [
+              "save"
+            ],
+            "boundary_group": "length",
+            "input": "upper"
+          },
+          {
+            "id": "GAP",
+            "description": "permission",
+            "aspects": [
+              "deny"
+            ]
+          }
+        ]
+      }
+    ],
+    "coverage": [
+      {
+        "check_id": "LOW-CHECK",
+        "links": [
+          {
+            "case_id": "LOW",
+            "aspects": [
+              "save"
+            ]
+          }
+        ],
+        "pending": "SIMULATED: display path unknown"
+      },
+      {
+        "check_id": "HIGH-CHECK",
+        "links": [
+          {
+            "case_id": "HIGH",
+            "aspects": [
+              "save"
+            ]
+          }
+        ]
+      },
+      {
+        "check_id": "GAP",
+        "links": [],
+        "pending": "SIMULATED: permission behavior unknown"
+      }
+    ],
+    "ui_gaps": [],
+    "ai_suggestions": [],
+    "uncovered_combinations": [
+      "SIMULATED: role x bounds not selected"
+    ]
+  },
+  "extension_entry": {
+    "baseline_id": "7706d1e29b415dc7c9900fb62177f857d0a2258db8618772ab885eb5d94093a7",
+    "round_id": "synthetic-round",
+    "evidence_nature": "simulated",
+    "cases": [
+      {
+        "case_id": "EDIT",
+        "module_path": [
+          "Example",
+          "Workspace",
+          "Web",
+          "Notes",
+          "Save"
+        ],
+        "priority": "P0",
+        "rule_status": "formal",
+        "review_status": "approved",
+        "merge_status": "not_merged",
+        "execution_status": "passed",
+        "reason": "Matching necessary evidence contents supplied",
+        "semantic_version": "01aaf7b97a23f253614ea82a9e8ca72621e328abffda1a41cd3d4f2fe152881f",
+        "data_version": "2bfcdd81847a8eeb950ac177b5f3ea056c217bd5e235122bf345c3fb7f50b063",
+        "tested_version": "synthetic-app-v1",
+        "report_ref": "synthetic://EDIT",
+        "provisional_conditions": []
+      },
+      {
+        "case_id": "LINK",
+        "module_path": [
+          "Example",
+          "Workspace",
+          "Web",
+          "Accounts",
+          "Save"
+        ],
+        "priority": "P0",
+        "rule_status": "formal",
+        "review_status": "approved",
+        "merge_status": "not_merged",
+        "execution_status": "passed",
+        "reason": "Matching necessary evidence contents supplied",
+        "semantic_version": "01aaf7b97a23f253614ea82a9e8ca72621e328abffda1a41cd3d4f2fe152881f",
+        "data_version": "2bfcdd81847a8eeb950ac177b5f3ea056c217bd5e235122bf345c3fb7f50b063",
+        "tested_version": "synthetic-app-v1",
+        "report_ref": "synthetic://LINK",
+        "provisional_conditions": []
+      }
+    ],
+    "gaps": [],
+    "decisions": {
+      "manual_start": {
+        "actual_reply": "SIMULATED: start P1/P2",
+        "baseline_id": "7706d1e29b415dc7c9900fb62177f857d0a2258db8618772ab885eb5d94093a7"
+      },
+      "tested_version": "synthetic-app-v1",
+      "gap_review": {
+        "completed": true,
+        "basis": [
+          "synthetic://manual-points"
+        ],
+        "summary": "SIMULATED: checked all supplied points"
+      }
+    },
+    "blockers": [],
+    "can_extend": true,
+    "next_step": "author_P1_P2",
+    "formal_integration": "pending_joint_validation"
+  }
+}

@@ -1,6 +1,8 @@
 # Chat and returned hierarchy Markdown feedback v1
 
 Read when existing scoped-review content receives chat or edited Markdown.
+Use host-resolved test-grill-me for shared interaction and the [stage adapter](stage-adapter.md)
+for separate summary confirmation, continuation and actual draft review.
 For live conversations use `qa_record.advance_record` on the existing task MD;
 `scripts/feedback.py` remains the pure computation and regression interface. The input is the current
 `scoped_review_copy` batch from [scoped review](scoped-review-contract.md), with
@@ -22,8 +24,21 @@ Ambiguous or partial changes use `questions` with stable IDs, full Chinese
 question/options/recommendation/reason/boundary/example/evidence, `answer_parts`
 for object/condition/behavior gaps, and explicit `depends_on`. Include existing
 questions unchanged; add only the relevant new questions. Candidate answer
-`target_paths` must belong to that question's case; shared-data edits use explicit
-`changes`, which account for all selected consumers. New scope stays a suggestion.
+`target_paths` for new, changed, reopened or actually answered feedback questions must
+belong to that question's case; shared-data edits use explicit `changes`, which
+account for all selected consumers. An unchanged completed and summary-applied question may retain
+cross-case targets only at declared case `technical_handoff` or typed
+case/step/claim provenance positions. These historical targets stay read-only
+and are not applied again. Eligibility comes from exact same-QA history and
+shared field roles, never the question's `field` text. Unknown structures and
+source/technical_handoff keys under actual input/output or data.value remain
+business fields. New replies or appended questions during feedback use the
+normal case ownership guard; changed cross-case technical facts return to
+normal clarification with explicit scope. History, IDs and prior answer payloads
+remain intact. Unnumbered or empty-ID generated candidate doubts remain valid
+inputs but cannot establish an applied historical identity; they are neither
+renumbered nor granted the read-only exception. Checkpoint/resume replay this same boundary; source/version and
+hidden-consumer guards still apply. New scope stays a suggestion.
 
 For a changed old condition, pass `reopen_question_ids` naming those premises.
 The adapter reopens only them and their declared dependencies; old actual words,
@@ -36,7 +51,8 @@ never mutate the returned projection or silently overwrite the proposal on disk.
 
 After all relevant replies, call persisted `summarize`; display its decisions,
 the pending before/current/proposed values, conditions and affected scope. Only
-the actual summary agreement goes to `apply_feedback`. Then render and present
+after actual summary agreement AND explicit continuation, pass that agreement to
+`apply_feedback`. Confirm-only is recorded as a note and waits. Then render and present
 the complete revised affected cases and use `review_feedback` for their distinct
 current-version approval. Pending feedback rejects ordinary `apply_summary` or
 `review` as a shortcut. No step starts execution or merges the catalog.
@@ -61,6 +77,7 @@ pending = prepare_feedback(batch, 'markdown', actual_reply=file_reply,
 pending['grill'] = respond(pending['grill'], replies)
 pending['grill'] = summarize(pending['grill'])
 # Show its summary PLUS pending changes/deletions, affected cases and coverage.
+# Only after explicit continuation; confirm-only is a sole-MD note and waits.
 result = apply_feedback(pending, agreement)
 # Later, a separate final approval of full cases at result['batch']['content_version']:
 result = review_feedback(result, final_approval)
@@ -75,7 +92,12 @@ Synthetic evaluations label all replies SIMULATED. No external model is needed.
 Chat changes identify `collection: cases|data`, stable `id`, and a leaf `path`
 within that record. Existing nonempty business string leaves are supported.
 Identity, module paths, reference lists, credentials and workflow fields cannot
-be patched as business answers. Structural edits require a fresh scoped candidate
+be patched as business answers. Declared actual value/input/inputs/output/outputs
+subtrees retain literal business keys through rendering, Markdown/chat mapping
+and application, including nested source, id and step_reference. Applying a
+sibling edit preserves those keys; only actual framework step/claim provenance
+is updated to user_decision. Credential, raw-return identity and version guards
+remain unchanged. Structural edits require a fresh scoped candidate
 or explicit interpretation at the existing authoring boundary, retaining history.
 
 Returned Markdown is the generated `xmind_markdown` hierarchy from the initial
@@ -113,8 +135,11 @@ Initial values and earlier accepted proposals remain in their existing history;
 the revised field still needs summary agreement and a new final review.
 Final review may add workflow prose without changing the semantic version. A
 pre-approval displayed file remains eligible: the reader ignores only exact
-trusted same-version final-review/history prose and normalizes its pending versus
-approved display status. It never imports those fields as decisions. Altered or
+trusted same-version final-review/history prose at the exact case-root source
+field positions and normalizes pending versus approved only for the displayed
+review_status field. The renderer supplies transient owner/field line bindings;
+business text with identical wording remains editable. Ambiguous control/business
+alignment returns to clarification. It never imports those fields as decisions. Altered or
 unknown metadata, business structure and conflicting semantics remain rejected;
 the immutable initial baseline and current accepted decisions stay authoritative.
 
@@ -123,7 +148,7 @@ ID to `{action: exclude|deactivate|restore, actual_reply: ...}`. Only IDs in the
 initial display are eligible; absent unshown IDs never become deletion proposals.
 Clear decisions are reused from the batch. Ambiguous deletion uses the existing
 grill, with three options; record `deletion_action` in its actual answer. Summary
-agreement then applies that answer. Do not supply an unagreed action only at apply.
+agreement plus explicit continuation then applies that answer. Do not supply an unagreed action only at apply.
 Excluded cases stay recorded as `feedback_disposition: excluded_this_round` and
 are absent from the regenerated review view. Deactivation retains complete content
 and history with `maintenance_action: deactivate`; restore retains the current
@@ -169,3 +194,37 @@ their separate integration and approval.
 ## Review repair boundary
 
 Before applying feedback, combine explicit proposals and current answer-derived writes. Unequal writes to the same path or overlapping parent/child paths require focused clarification; equal values deduplicate. A refused application preserves recorded answers and candidate content. New discoveries use append_questions on the same MD. Retain coverage from the prior phase as stale, reread sources and record_coverage before the new summary.
+
+## Named scalar data returns
+
+The combined object/value line retains two original field bindings. A single-field
+edit is anchored by the unchanged counterpart; changing both requires a uniquely
+identifiable display separator. ASCII colons within configuration references are
+part of the value. Additional full-width colons with no unique boundary return
+to focused chat interpretation; never guess which original field changed.
+All repeated projections must agree, including unchanged occurrences. Each
+proposal still enters the existing summary and exact-version review workflow.
+
+Pre-TCO exports with separate object/value leaves are read using their exact
+pre-TCO projection over the retained baseline. This fallback is separate from the
+older audit-row layout. Preserve returned files and old candidates; no bulk
+migration is needed. Unchanged returns create no business differences.
+
+An explicitly empty string in the original data value field is a valid negative
+input and may be proposed through feedback. Object names and other business prose
+still require nonempty text. Typed scalar replacement keeps the existing explicit
+interpretation boundary rather than guessing numeric or boolean types from text.
+
+## Common-operation and typed-data returns
+
+Pass the actual complete source_catalog to prepare_feedback, apply_feedback and review_feedback for partial copies; native prepare_xmind_feedback and --source-catalog use the same binding. Persisted apply/review payloads accept source_catalog. Parent version/digest remain initial_copy_baseline authority; never replace them with visible subset membership.
+
+Shared Markdown definition or linked-data edits expose shared_scope_impact and the complete affected_case_ids, excluding actual exceptions. Unshown owners are listed explicitly and application stops until a newly authorized expanded review contains the complete impact. Never mutate hidden parent records or apply only the visible occurrence while claiming a shared definition change. A local chat edit remains explicitly case-scoped. Changed operation/data bindings need fresh applicability review; independent valid items continue.
+
+Scalar feedback retains exact source types: strings remain strings, booleans use True/False, integers reject fractional text, floats must be finite. Malformed/ambiguous values require clarification. Every shared source ordinal is retained while the action is edited. Old emitted layouts use original semantics; conflicts with later accepted changes remain pending.
+
+Recovered files retain candidate identity, answers, questions, source/data bindings, original baseline and Agent-note/local-link lifecycle. These local interface checks do not establish actual client or business acceptance.
+
+### Complete data-consumer impact
+
+Shared data edits use actual consumers across every step group and current reference binding in the exact complete parent, independently of each common operation's exclusions. A hidden exception may still consume the same data in its own test. Partial copies without an exact parent keep dependent data edits pending; unchanged returns and independent local edits retain their existing behavior. Preparation reports data impact using a data-prefixed scope identity; application recomputes ownership, including older prepared proposals, and rejects unshown consumers until an authorized expanded review includes them. No parent snapshot becomes candidate authority.

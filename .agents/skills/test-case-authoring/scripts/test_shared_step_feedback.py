@@ -10,6 +10,19 @@ from authoring import _digest
 
 
 class SharedFeedbackTests(unittest.TestCase):
+    def test_shared_operation_outer_whitespace_preserves_business_review(self):
+        batch = build_extension(*shared_design(), mode='simulation')['batch']
+        old = batch['step_definitions'][0]
+        new = copy.deepcopy(old)
+        new['step']['operation'] = '  ' + old['step']['operation'] + '  '  # Same formatting rule as local feedback.
+        request = dict(explicit_request='SIMULATED: adjust P0 spacing only', definition_digest=_digest(old), replacement=new)
+        pending = prepare_feedback(batch, 'chat', actual_reply=request['explicit_request'], shared_change=request)
+        self.assertTrue(pending['shared_change']['formatting_only'])
+        self.assertEqual(pending['affected_case_ids'], [])
+        updated = confirm(pending)['batch']
+        self.assertEqual(expanded(updated)['cases'][0]['steps'][0]['operation'].strip(), old['step']['operation'])
+        self.assertEqual(updated['cases'][0]['review_status'], batch['cases'][0]['review_status'])
+
     def test_three_review_cycles_keep_flat_lossless_history(self):
         args = shared_design()  # Exercise public extension and confirmed feedback.
         batch = build_extension(*args, mode='simulation')['batch']
@@ -49,8 +62,9 @@ class SharedFeedbackTests(unittest.TestCase):
             self.assertTrue(any('测试步骤 1（' in line and instruction in line for line in owner))
             self.assertTrue(any('测试步骤 1：' in line and '修改须重新核对' in line for line in owner))
         rendered = _render(batch)
-        self.assertIn(instruction, str(rendered['human_view']))
-        self.assertIn(instruction, rendered['xmind_markdown'])
+        self.assertNotIn(instruction, str(rendered['human_view']))
+        self.assertIn('配套资料：', rendered['human_view'])
+        self.assertNotIn(instruction, rendered['xmind_markdown'])
         self.assertEqual(batch, frozen)  # Projection never rewrites compact candidates.
 
     def test_changed_data_is_version_bound(self):

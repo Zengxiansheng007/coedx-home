@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://codex.local/ui-test/schemas/run-result.schema.v2.json",
+  "type": "object",
+  "required": ["schema_version", "run_id", "case_id", "branch_id", "priority", "scope", "overall_status", "release_status", "step_results", "evidence_refs", "conflicts", "findings", "write_state", "submit_count", "retained_test_data", "cleanup_status", "business_cleanup_attempted", "run_result_hash"],
+  "additionalProperties": true,
+  "properties": {
+    "schema_version": {"const": "ui-test.run-result.v2"},
+    "overall_status": {"enum": ["passed", "degraded", "failed", "blocked", "unknown"]},
+    "step_results": {"type": "array"},
+    "evidence_refs": {"type": "array", "items": {"type": "string"}},
+    "conflicts": {"type": "array"},
+    "findings": {"type": "array", "items": {"type": "string"}},
+    "release_status": {"const": "in_sync"},
+    "submit_count": {"type": "integer", "minimum": 0},
+    "action_results": {"type":"array","items":{"type":"object","additionalProperties":false,
+      "required":["action_id","source_step_id","actor_ref","module_id","action_key","binding_hash","entity_id","write_state","submit_count","evidence_refs"],
+      "properties":{
+        "action_id":{"type":"string","minLength":1},"source_step_id":{"type":"string","minLength":1},
+        "actor_ref":{"type":"string","minLength":1},"module_id":{"type":"string","minLength":1},
+        "action_key":{"type":"string","pattern":"^sha256:[0-9a-f]{64}$"},
+        "binding_hash":{"type":"string","pattern":"^sha256:[0-9a-f]{64}$"},
+        "entity_id":{"type":["string","null"],"minLength":1},
+        "write_state":{"enum":["not_attempted","write_outcome_unknown","write_succeeded_verified"]},
+        "submit_count":{"type":"integer","minimum":0,"maximum":1},
+        "evidence_refs":{"type":"array","items":{"type":"string","minLength":1},"uniqueItems":true}
+      }}},
+    "retained_test_data": {"type": "array"},
+    "cleanup_status": {"enum": ["not_applicable", "not_planned_this_release"]},
+    "business_cleanup_attempted": {"const": false},
+    "run_result_hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+  },
+  "allOf":[
+    {"if":{"not":{"required":["action_results"]}},"then":{"properties":{"submit_count":{"maximum":1}}}},
+    {"if":{"required":["action_results"]},"then":{
+      "properties":{"retained_test_data":{"items":{"type":"object","additionalProperties":false,
+        "required":["action_key","entity_id","write_state","evidence_refs","cleanup_status"],
+        "properties":{
+          "action_key":{"type":"string","pattern":"^sha256:[0-9a-f]{64}$"},
+          "entity_id":{"type":["string","null"],"minLength":1},
+          "write_state":{"enum":["write_outcome_unknown","write_succeeded_verified"]},
+          "evidence_refs":{"type":"array","items":{"type":"string","minLength":1},"uniqueItems":true},
+          "cleanup_status":{"const":"not_planned_this_release"}
+        }}}},
+      "if":{"required":["submit_count"],"properties":{"submit_count":{"minimum":1}}},
+      "then":{"properties":{"cleanup_status":{"const":"not_planned_this_release"},"retained_test_data":{"minItems":1}}},
+      "else":{"properties":{"cleanup_status":{"const":"not_applicable"},"retained_test_data":{"maxItems":0}}}
+    }}
+  ]
+}
