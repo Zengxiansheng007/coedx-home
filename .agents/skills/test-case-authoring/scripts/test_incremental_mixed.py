@@ -51,7 +51,7 @@ class IncrementalMixedTests(unittest.TestCase):
             view = result['xmind_markdown']
             related = view.partition('「关联查看」P1 来源详情')[2].split('资料与 Agent 交接说明')[0]
             self.assertIn('用例编号：CONTEXT', related)
-            self.assertIn('[查看关联用例详情](' + detail.as_uri() + ')', related)
+            self.assertIn('[查看关联用例详情](' + detail.resolve().as_uri() + ')', related)  # Match the resolved path casing used in the exported link.
             self.assertNotIn('操作 1', related)
 
     def test_distinct_pre_scopes_and_shared_post_scope_keep_exact_owners(self):
