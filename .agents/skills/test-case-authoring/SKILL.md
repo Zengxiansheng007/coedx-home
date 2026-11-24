@@ -21,6 +21,11 @@ target steps and explicit four-part applicability/endpoint assessments; use the
 shared resolver before review. Missing or stale references return to clarification.
 
 Before any delivery or regenerated review, read [chat delivery](references/chat-delivery.md).
+For a new incremental scope, use the `incremental-v1` layout in the
+[scoped review request](references/scoped-review-contract.md). Restore the saved
+layout when continuing a review and use the matching file location on return.
+Set `design.review_layout` to `incremental-v1` when creating a new P1/P2
+extension. Preserve the layout of a previously saved extension.
 Deliver the same-version XMind scope copy. For an explicitly needed selection of
 1–9 complete cases, call `presentation.render_chat` and show its returned text
 directly in chat. Keep candidate/Q&A records; human-view tables have no file artifact.
@@ -35,6 +40,10 @@ Users never maintain IDs or subtree hashes. Both views use one candidate version
 The converter handles one independent P0 input at a time. Batch clarification
 accepts one or more candidate cases. Native XMind returns enter the same feedback
 review gate. Formal integration is a separate capability.
+
+When UI-Test provides a validated request for an approved formal publication,
+read [formal Human View handoff](references/formal-human-view.md).
+Render the selected case and return the exact artifact to UI-Test.
 
 Before generating batch or scoped XMind review trees, read the
 [aggregation contract](references/aggregation-contract.md). Verify complete path

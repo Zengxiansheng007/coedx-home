@@ -345,3 +345,11 @@ def _markdown_label(node: dict[str, Any]) -> str: return f"{node['priority']}-{n
 def _safe_filename(value: str) -> str:
     cleaned = re.sub(r"[<>:\"/\\|?*\x00-\x1f]", "_", value).strip(" .")
     return cleaned or "product"
+def export_product_case_maps(active_branches, output_directory, *, navigation, display_registry,
+                             business_groups=None, dependency_details=None):
+    """Create the active total and module maps at the product output boundary."""
+    from .product_case_maps import export_active_maps
+
+    return export_active_maps(active_branches, output_directory, navigation=navigation,
+                              display_registry=display_registry, business_groups=business_groups,
+                              dependency_details=dependency_details)

@@ -2,6 +2,7 @@
 import copy
 import json
 import hashlib
+import incremental_review
 from presentation import case_name  # Resolve generated applicability identities only.
 from review_expression import title  # Grade is presentation, not stored Chinese name.
 
@@ -77,6 +78,7 @@ def projection(batch, markdown, *, handoff=True, common_legacy=False, source_cat
             source = source['children'][0]  # Flat source has exactly one path branch per case.
         source['case_id'] = case['id']
         path = tuple(case['module_path'])  # Parents without direct cases never reach this branch.
+        target['module_path'] = path  # 配套资料按完整模块路径定位。
         scope_target = target  # Module fallback or the explicitly reviewed ancestor.
         for level, part in enumerate(business_path(case)):  # Group only inside the existing module owner.
             node = next((n for n in target['children'] if n.get('directory') == ('business', level, part)), None)
@@ -161,8 +163,10 @@ def projection(batch, markdown, *, handoff=True, common_legacy=False, source_cat
     return lines[:3], merged
 
 
-def aggregate(batch, markdown, source_catalog=None, *, display_case_ids=None):  # Preserve complete scope context for selected chat output.
+def aggregate(batch, markdown, source_catalog=None, *, display_case_ids=None, companion_base=None):  # 保留完整范围及资料交付位置。
     header, root = projection(batch, markdown, source_catalog=source_catalog, display_case_ids=display_case_ids)  # Shared display contract.
+    if batch.get('review_layout') == incremental_review.LAYOUT:
+        header, root = incremental_review.project(batch, root, companion_base=companion_base)  # 新版共用准确的业务源行。
     lines = list(header)
     def visit(node, depth):
         lines.append('  ' * depth + '- ' + node['text'])
@@ -184,17 +188,21 @@ def feedback_topics(markdown):
         for child in node['children']:
             result.append(dict(title=child['text'], path=path, returned_digest=_fingerprint(child)))  # No inferred source identity.
             visit(child, path + [child['text']])
-    visit(_parse(markdown.splitlines()[3:]), [])
+    start = 1 if incremental_review.is_incremental(markdown) else 3  # 新版摘要属于正文主支。
+    visit(_parse(markdown.splitlines()[start:]), [])
     return result
 
 
-def expand_feedback(batch, flat_markdown, incoming, case_bindings=None, *, handoff=True, common_legacy=False, source_catalog=None, _normalize_case=None, _trailing_legacy=False):  # 归一化仅由可信反馈适配器提供。
+def expand_feedback(batch, flat_markdown, incoming, case_bindings=None, *, handoff=True, common_legacy=False, source_catalog=None, _normalize_case=None, _trailing_legacy=False, companion_base=None):  # 交付位置约束材料链接的回传。
     """Expand edits through exact baseline bindings before existing feedback review."""
     header, expected = projection(batch, flat_markdown, handoff=handoff, common_legacy=common_legacy, source_catalog=source_catalog, _trailing_legacy=_trailing_legacy)  # 历史布局仍绑定同版候选及完整原始源偏移。
     lines = incoming.splitlines()
-    if lines[:3] != header:
+    incremental = batch.get('review_layout') == incremental_review.LAYOUT and incremental_review.is_incremental(incoming)  # 只对已登记的新稿启用新版解释。
+    if incremental:
+        header, expected = incremental_review.project(batch, expected, companion_base=companion_base)
+    if lines[:len(header)] != header:
         raise ValueError('Markdown header/version must match initial display')
-    actual = _parse(lines[3:])
+    actual = _parse(lines[len(header):])
     def legacy(node, path):  # Historic generated IDs remain explicit source identity within the exact baseline path.
         for case in batch['cases']:
             if path == case['module_path'] + business_path(case) and node['text'].startswith(case['id'] + ' '):
@@ -232,7 +240,11 @@ def expand_feedback(batch, flat_markdown, incoming, case_bindings=None, *, hando
                     except ValueError:  # 不给不相关用例的控制行套用当前owner身份。
                         return None  # 无法对齐的候选不能借机被接受。
                 expected_shape = normalized_shape(child)  # 准确源模板只计算一次。
-                matches = [n for n in remaining if (_fingerprint(n) == binding.get('returned_digest') if binding else n.get('legacy_case_id') == child['case_id'] or (not n.get('legacy_case_id') and expected_shape is not None and normalized_shape(n) == expected_shape))]  # 显式绑定仍先核对原始返回摘要。
+                if incremental and not binding:
+                    identity = '用例编号：' + child['case_id']  # 同名用例按直属稳定编号找回原记录。
+                    matches = [n for n in remaining if n['children'] and n['children'][0]['text'] == identity]
+                else:
+                    matches = [n for n in remaining if (_fingerprint(n) == binding.get('returned_digest') if binding else n.get('legacy_case_id') == child['case_id'] or (not n.get('legacy_case_id') and expected_shape is not None and normalized_shape(n) == expected_shape))]  # 显式绑定仍先核对原始返回摘要。
                 if len(matches) > 1:
                     raise ValueError('Ambiguous identical cases; clarify the business distinction')
                 found = matches[0] if matches else None
@@ -266,9 +278,9 @@ def expand_feedback(batch, flat_markdown, incoming, case_bindings=None, *, hando
                 for origin in child['origins']:
                     old = output[origin + 3]
                     prefix = child['case_id'] + ' ' if child.get('case_id') else ''  # Restore internal identity for the existing scalar mapper.
-                    text = found['text']  # Strip only the trusted grade on title feedback.
+                    text = incremental_review.restore_text(child, found['text'])  # 先去掉新版的呈现前缀。
                     import re
-                    ordinal = re.match(r'步骤 \d+：', child['text'])  # Each origin keeps its source position.
+                    ordinal = re.match(r'步骤 \d+：', child.get('presentation_prefix', (child['text'],))[0])  # 各源行保留自己的步骤位置。
                     if ordinal:
                         if not text.startswith(ordinal.group()):
                             raise ValueError('Step ordinal edit needs explicit interpretation')

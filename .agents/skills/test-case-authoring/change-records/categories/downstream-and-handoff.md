@@ -1,5 +1,21 @@
 # downstream-and-handoff Change Ledger
 
+## CR-20261119-145
+
+| Date | Change ID | Section | Change Type | Summary | Status |
+| --- | --- | --- | --- | --- | --- |
+| 2026-11-19 | CR-20261119-145 | 原生回传 | changed | 基于版本的文件定位和问答记录恢复 | applied |
+
+[变更详情](../entries/2026/2026-11/CR-20261119-145-native-feedback.md)
+
+## CR-20261119-143
+
+| Date | Change ID | Section | Change Type | Summary | Status |
+| --- | --- | --- | --- | --- | --- |
+| 2026-11-19 | CR-20261119-143 | 反馈定位 | added | 版本化布局、稳定编号及明确的回传边界 | applied |
+
+[变更详情](../entries/2026/2026-11/CR-20261119-143-incremental-review.md)
+
 ## CR-20261117-113 - QA 与业务投影生命周期
 
 | Date | Change ID | Section | Change Type | Summary | Status |
@@ -253,3 +269,25 @@ Track source semantics and technical handoff changes in this category.
 - Impact：canonical与镜像；无全局安装、真实业务执行、旧trial修改或发布。
 - Validation：RED-01/02/03/04保留；targeted-02共25项通过；93项通过后补整例省略偏移修复，最终受影响25项通过；175文件同字节、87 Python语法通过，三继承扫描无新增；见detail与外部证据。
 - Detail record：[CR-20261117-115](../entries/2026/2026-11/CR-20261117-115-typed-feedback-source-roles.md)。
+## CR-20261119-144
+
+| Date | Change ID | Section | Change Type | Summary | Status |
+| --- | --- | --- | --- | --- | --- |
+| 2026-11-19 | CR-20261119-144 | Mixed incremental review and isolated merge | changed | Show the five treatment types, place materials under the appropriate modules, and keep blank inputs and shared applicability readable | applied |
+
+[Detail](../entries/2026/2026-11/CR-20261119-144-mixed-review.md)
+## CR-20261119-149 Write formal Human View from validated input
+
+| Date | Change ID | Section | Change Type | Summary | Status |
+| --- | --- | --- | --- | --- | --- |
+| 2026-11-19 | CR-20261119-149 | Write formal Human View from validated input | changed | Local implementation and regression | applied |
+
+[Detail](../entries/2026/2026-11/CR-20261119-149-formal-human-view.md)
+
+## CR-20261119-153
+
+| Date | Change ID | Section | Change Type | Summary | Status |
+| --- | --- | --- | --- | --- | --- |
+| 2026-11-19 | CR-20261119-153 | Use the incremental layout from the standard extension entry | changed | Integrated contract verification | applied |
+
+[Detail](../entries/2026/2026-11/CR-20261119-153-integration-review-layout.md)

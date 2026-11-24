@@ -359,7 +359,8 @@ def _check_prepared(prepared):
 
 
 def compile_prepared_branch(prepared: dict[str,Any], *, config: dict[str,Any], selection: dict[str,Any],
-                            dependency_assets: dict[str,Any],page_module_registry: dict[str,Any]) -> dict[str,Any]:
+                            dependency_assets: dict[str,Any],page_module_registry: dict[str,Any],
+                            formal_human_view: bool = False) -> dict[str,Any]:
     """Use the sole compiler and planner. Compilation never grants execution."""
     _check_prepared(prepared)
     source=prepared['source_case']; data=copy.deepcopy(prepared['test_data'])
@@ -374,9 +375,11 @@ def compile_prepared_branch(prepared: dict[str,Any], *, config: dict[str,Any], s
     data['test_data_hash']=canonical_hash(data)
     credentials={r.split(':',1)[1] for r in data['runtime_refs'] if r.startswith('credential:')}
     sequences={r.split(':',1)[1] for r in data['runtime_refs'] if r.startswith('sequence:')}
+    from .human_view_handoff import TCA_RENDERER_VERSION
+    renderer = {'renderer_version': TCA_RENDERER_VERSION} if formal_human_view else {}  # 已选正式流程加载编写端交接。
     compiled=compile_case_v2(source_case=source,test_data=data,dependency_assets=dependency_assets,
         config_fingerprint=canonical_hash(config),runtime_values=prepared['runtime_values'],
-        credential_keys=credentials,sequence_keys=sequences,page_module_registry=page_module_registry)
+        credential_keys=credentials,sequence_keys=sequences,page_module_registry=page_module_registry,**renderer)
     plans={role:plan_asset_path(config,role,selection) for role in ('source_case','human_view','playwright_test','case_manifest')}
     compiled['path_plans']=plans
     compiled['preparation_record']=copy.deepcopy(prepared)

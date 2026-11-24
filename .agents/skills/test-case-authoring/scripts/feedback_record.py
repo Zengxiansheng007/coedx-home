@@ -1,5 +1,6 @@
 """Thin feedback transition adapter for the existing sole Markdown record."""
 import copy  # Isolate disposable projections.
+import re
 import clarification as flow  # Preserve partial-answer and dependency behavior.
 from feedback import prepare_feedback, apply_feedback, review_feedback  # Existing candidate-only workflow.
 from review_expression import field_role, PROVENANCE_FIELDS  # 与业务投影共用准确类型边界。
@@ -41,6 +42,16 @@ def transition(state, action, payload):  # Called only through the record's expl
         reopened = set(arguments.pop('reopen_question_ids', []))  # Explicitly identified changed premises only.
         if not arguments.pop('source_ref', None):  # Actual feedback provenance is mandatory.
             raise ValueError('Feedback source required')  # Never infer a user's reply.
+        native = arguments.pop('native_return', None)  # 回放使用已保存的规范稿与原件摘要。
+        if native is not None and (arguments.get('channel') != 'markdown'
+                or not isinstance(native, dict)
+                or set(native) != {'filename', 'sha256', 'size_bytes'}
+                or not isinstance(native['filename'], str) or not native['filename']
+                or not isinstance(native['sha256'], str)
+                or re.fullmatch('[0-9a-f]{64}', native['sha256']) is None
+                or type(native['size_bytes']) is not int or native['size_bytes'] <= 0
+                or arguments.get('source_version') != state['batch']['content_version']):
+            raise ValueError('Native feedback snapshot needs its original identity and current version')
         batch = copy.deepcopy(state['batch'])  # Current replayed version is authoritative.
         batch['questions'] = copy.deepcopy(state['questions'])  # Carry stable answers and dependencies into review.
         arguments.setdefault('questions', copy.deepcopy(state['questions']))  # Unchanged rules retain their original signatures.
@@ -62,6 +73,8 @@ def transition(state, action, payload):  # Called only through the record's expl
             if not all(question.get(key) for key in ('evidence', 'boundary', 'example_kind')):  # Feedback follows normal persisted question completeness.
                 raise ValueError('Feedback question needs evidence, boundary and example kind')  # No abbreviated follow-up cards.
         pending = prepare_feedback(batch, **arguments)  # All field/scope/version checks stay at the public seam.
+        if native is not None:
+            pending.update(channel='xmind', returned_source=native)
         pending['persisted_feedback'] = True  # Retain this task's full stable graph after application.
         pending['decision_question_ids'] = [q['id'] for q in pending['grill']['questions'] if not flow._answered(q)]  # Changes only, not old unrelated decisions.
         result = copy.deepcopy(pending['grill'])  # Continue normal respond and summarize on this session.

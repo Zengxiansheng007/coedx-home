@@ -348,3 +348,18 @@ final-inspection.json under the local task evidence root, outside this repositor
 - Impact: candidate only; hidden parent protected.
 - Validation: public red/green and final repository checks, external tco-06 evidence.
 - Detail record: [CR-20261117-106](../entries/2026/2026-11/CR-20261117-106-feedback-loop.md).
+## CR-20261119-149 Write formal Human View from validated input
+
+| Date | Change ID | Section | Change Type | Summary | Status |
+| --- | --- | --- | --- | --- | --- |
+| 2026-11-19 | CR-20261119-149 | Write formal Human View from validated input | changed | Local implementation and regression | applied |
+
+[Detail](../entries/2026/2026-11/CR-20261119-149-formal-human-view.md)
+
+## CR-20261119-153
+
+| Date | Change ID | Section | Change Type | Summary | Status |
+| --- | --- | --- | --- | --- | --- |
+| 2026-11-19 | CR-20261119-153 | Use the incremental layout from the standard extension entry | changed | Integrated contract verification | applied |
+
+[Detail](../entries/2026/2026-11/CR-20261119-153-integration-review-layout.md)

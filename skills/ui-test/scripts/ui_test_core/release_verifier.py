@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 from pathlib import Path
+from hashlib import sha256
 from typing import Any, Mapping
 
 from .case_contracts import canonical_hash, validate_document
+from .human_view_handoff import HUMAN_VIEW_JOURNAL, TCA_RENDERER_VERSION
 from .path_utils import io_path
 from .strict_json import load_strict_json
 
@@ -79,6 +81,16 @@ def verify_release(
     schema_issues = validate_document(manifest, "case-manifest-v2.schema.json")
     if schema_issues:
         issues.append(_issue("E_RELEASE_MANIFEST_SCHEMA", "manifest.json"))
+    if isinstance(manifest, dict) and manifest.get("renderer_version") == TCA_RENDERER_VERSION:
+        view = release / "human.md"
+        digest = manifest.get("human_view_sha256")
+        try:
+            bound = (_is_contained(view, release) and view.is_file()
+                     and "sha256:" + sha256(view.read_bytes()).hexdigest() == digest)
+        except OSError:
+            bound = False  # 仍返回可定位的发布阻塞。
+        if not bound:
+            issues.append(_issue("E_RELEASE_HUMAN_VIEW_BYTES", "human.md"))
     artifacts = manifest.get("artifacts", {}) if isinstance(manifest, dict) else {}
     expected_names = set(artifacts) | {"manifest.json"}
     actual_names = {path.relative_to(release).as_posix() for path in release.rglob("*") if path.is_file()}
@@ -111,6 +123,8 @@ def verify_release(
     else:
         issues.append(_issue("E_RELEASE_RECEIPT_MISSING", "compile-receipt.json"))
     if active_pointer is not None:
+        if release.parent.name == "releases" and (release.parent.parent / HUMAN_VIEW_JOURNAL).exists():
+            issues.append(_issue("E_RELEASE_HUMAN_VIEW_ACTIVATION_PENDING", "active.json"))
         if validate_document(dict(active_pointer), "active-pointer-v2.schema.json"):
             issues.append(_issue("E_ACTIVE_POINTER_SCHEMA", "active.json"))
         elif any(active_pointer.get(field) != manifest.get(field) for field in ("case_id", "branch_id", "build_fingerprint")):

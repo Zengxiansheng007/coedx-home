@@ -44,6 +44,13 @@ def expansion():
 
 
 class ExtensionTests(unittest.TestCase):
+    def test_explicit_incremental_layout_survives_the_extension_entry(self):
+        arguments = list(expansion())
+        arguments[-1]['review_layout'] = 'incremental-v1'
+        result = build_extension(*arguments, mode='simulation')
+        self.assertEqual(result['batch']['review_layout'], 'incremental-v1')
+        self.assertIn('\n- 评审范围\n', result['xmind_markdown'])
+        self.assertIn('用例编号：LOW', result['xmind_markdown'])
     def test_partial_check_never_marks_whole_manual_point_complete(self):
         args = expansion()
         before = copy.deepcopy(args)

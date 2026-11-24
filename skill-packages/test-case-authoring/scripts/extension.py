@@ -153,7 +153,8 @@ def build_extension(catalog, baseline, reports, entry_request, design, mode='pro
             case.pop(field, None)
     selections = design.get('selection') or [{'case_id': c['id'], 'action': 'add', 'reason': 'P1/P2 design expansion'} for c in candidates]
     result = build_scoped_review(catalog, design['batch_id'], selections, candidates=candidates,
-                                 candidate_data=design['candidate_data'])
+                                 candidate_data=design['candidate_data'],
+                                 review_layout=design.get('review_layout'))  # 保存的旧阶段继续使用其原始布局。
     batch = result['batch']
     from step_reuse import select_reuse  # Selection follows complete source-design validation.
     reused, definitions = select_reuse(catalog, candidates, design['candidate_data'])

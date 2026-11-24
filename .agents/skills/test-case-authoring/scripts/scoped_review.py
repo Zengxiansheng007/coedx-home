@@ -8,6 +8,7 @@ import sys
 from authoring import _credential_guard, _digest, _cell
 from data_projection import data_lines  # Shared lossless object/value projection.
 from review_expression import title, independent_checks, business_value, field_role  # 来源类型与实际业务字面值分开投影。
+from incremental_review import LAYOUT
 
 
 GROUPS = ('common_preconditions', 'special_preconditions', 'steps', 'special_postconditions', 'common_postconditions')
@@ -101,7 +102,9 @@ def _rule_lines(case, batch, *, original_case=None):  # 原始决定只负责身
     return lines  # Source dictionaries remain untouched.
 
 
-def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, _expression_baseline=None, _data_legacy=False, _skip_preflight=False, _display_case_ids=None, _metadata_legacy=False, _metadata_bindings=None):  # 瞬时源行绑定只供反馈使用；固定旧 metadata 布局仅用于准确历史回传。
+def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, _expression_baseline=None, _data_legacy=False, _skip_preflight=False, _display_case_ids=None, _metadata_legacy=False, _metadata_bindings=None, companion_base=None):  # 资料路径只影响交付显示，源行仍为反馈保留。
+    if batch.get('review_layout') == LAYOUT and not _legacy_feedback:
+        batch = json.loads(json.dumps(batch, ensure_ascii=False, sort_keys=True))  # 问答保存按键排序；首次出稿和探针使用相同顺序。
     metadata_legacy = _legacy_feedback or _metadata_legacy  # 不改变历史业务身份、原始值或版本。
     if _expression_baseline is not None:
         from restoration import preflight
@@ -115,7 +118,7 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
         if check['blockers']:
             visible_ids = set(check['ready_case_ids']) | {b['case_id'] for b in check['blockers'] if b.get('scope_only')}  # Keep unaffected operations and unresolved source actions visible.
             visible_ids = [cid for cid in (_display_case_ids if _display_case_ids is not None else [c['id'] for c in batch['cases']]) if cid in visible_ids]  # Keep caller order and omit blocked references.
-            result = _render(batch, flat=flat, reference_batch=reference_batch, _legacy_feedback=_legacy_feedback, _data_legacy=_data_legacy, _skip_preflight=True, _display_case_ids=visible_ids, _metadata_legacy=_metadata_legacy, _metadata_bindings=_metadata_bindings)  # 旧布局选择不改变实际范围。
+            result = _render(batch, flat=flat, reference_batch=reference_batch, _legacy_feedback=_legacy_feedback, _data_legacy=_data_legacy, _skip_preflight=True, _display_case_ids=visible_ids, _metadata_legacy=_metadata_legacy, _metadata_bindings=_metadata_bindings, companion_base=companion_base)  # 同一交付位置仍绑定缩小后的可见范围。
             result.update({k: v for k, v in check.items() if k != 'complete_batch'})
             result['batch'] = copy.deepcopy(batch)  # Unshown never means deleted.
             return result
@@ -204,7 +207,7 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
                     human.append(f'| {i} | {_cell(step["operation"])} | 整步引用：{_cell(label)}；{_cell("；".join(current_data))} | 见引用步骤 |')
                     continue  # Shared data, expectation and assertion remain maintained in P0.
                 values = [line for ref in step.get('data_refs', [])
-                          for line in data_lines(data[ref], lambda value: _business_lines(value, batch=reference_batch or batch, _legacy=metadata_legacy), legacy=_legacy_feedback or _data_legacy, metadata_legacy=metadata_legacy)] or ['无']  # 旧稿兼容仅切换准确历史布局。
+                          for line in data_lines(data[ref], lambda value: _business_lines(value, batch=reference_batch or batch, _legacy=metadata_legacy), legacy=_legacy_feedback or _data_legacy, metadata_legacy=metadata_legacy, incremental=batch.get('review_layout') == LAYOUT)] or ['无']  # 只有新版显示明确空输入。
                 extensions = {k: v for k, v in step.items()
                               if k not in ('id', 'operation', 'data_refs', 'expected', 'verification', *(() if metadata_legacy else (*TECHNICAL_FIELDS, 'source_ref')))}
                 business_conditions = _business_lines(extensions, batch=reference_batch or batch, _legacy=metadata_legacy)  # 旧 metadata 逐字复原而非忽略新增字段。
@@ -308,13 +311,13 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
         common_prose(projected, [])
         human = preparation
     return {'artifact_status': 'planned', 'ready_case_ids': [c['id'] for c in batch['cases']], 'blocked_case_ids': [], 'blockers': [], 'clarifications': [], 'batch': copy.deepcopy(batch), 'human_view': '\n'.join(human) + '\n',
-            'xmind_markdown': markdown if flat else aggregate(batch, markdown, source_catalog=reference_batch, display_case_ids=_display_case_ids)}  # Same requested scope in both projections.
+            'xmind_markdown': markdown if flat else aggregate(batch, markdown, source_catalog=reference_batch, display_case_ids=_display_case_ids, companion_base=companion_base)}  # 两个投影共享请求范围。
 
 
-def render_review_batch(batch, *, source_catalog=None):
+def render_review_batch(batch, *, source_catalog=None, companion_base=None):
     """Re-render a scoped candidate after clarification without losing groups."""
     _credential_guard(batch)
-    return _render(batch, reference_batch=source_catalog)
+    return _render(batch, reference_batch=source_catalog, companion_base=companion_base)  # 已交付稿复用真实资料位置。
 
 
 def _differences(before, after, path=''):
@@ -347,9 +350,13 @@ def _references(case):
 
 
 def build_scoped_review(catalog, batch_id, selection, approved_validation_scope=None,
-                        candidates=None, candidate_data=None):
+                        candidates=None, candidate_data=None, *, review_layout=None, hypothetical=False):
     """Select complete catalog records without granting change or execution approval."""
     _credential_guard([catalog, selection, candidates, candidate_data])
+    if review_layout not in (None, LAYOUT):
+        raise ValueError('Unknown review layout')
+    if type(hypothetical) is not bool or (hypothetical and review_layout != LAYOUT):
+        raise ValueError('Hypothetical display requires the incremental layout')
     if catalog.get('kind') != 'authoring_full_catalog' or catalog.get('schema_version') != 1:
         raise ValueError('Expected authoring_full_catalog v1, not a candidate or formal asset')
     if not catalog.get('source_ref') or not catalog.get('content_version') or not batch_id:
@@ -368,6 +375,14 @@ def build_scoped_review(catalog, batch_id, selection, approved_validation_scope=
     for item in selection:
         case_id = item['case_id']
         action = item['action']
+        if review_layout == LAYOUT and 'detail_ref' in item:
+            detail = Path(item['detail_ref'])
+            if action != 'related' or not detail.is_absolute() or detail.suffix.lower() != '.md' or not detail.is_file():
+                raise ValueError('Reference-only relationship needs its existing absolute detail Markdown')
+        if review_layout == LAYOUT and item.get('replacement_case_id'):
+            replacement = item['replacement_case_id']
+            if action != 'deactivate' or replacement == case_id or replacement not in indexed.keys() | proposed.keys():
+                raise ValueError('Replacement must identify an existing reviewed-scope case')
         if case_id in selected_ids or action not in ('add', 'modify', 'reuse', 'deactivate', 'related') or not item.get('reason'):
             raise ValueError('Invalid selection')
         if action == 'add':
@@ -447,6 +462,10 @@ def build_scoped_review(catalog, batch_id, selection, approved_validation_scope=
              'sources': [{'kind': 'existing_catalog', 'ref': full['source_ref'], 'sha256': _digest(full)}],
              'initial_copy_baseline': baseline, 'selection': copy.deepcopy(selection),
              'approved_validation_scope': scope, 'cases': selected, 'data': data, 'questions': questions}
+    if review_layout:
+        batch['review_layout'] = review_layout  # 随候选版本一起保存，恢复时选回同一布局。
+    if hypothetical:
+        batch['hypothetical'] = True  # 本轮版式演示的声明随候选保存。
     if full.get('preparation_scopes'):
         batch['preparation_scopes'] = copy.deepcopy(full['preparation_scopes'])  # Selection never broadens approved membership.
         baseline['preparation_scopes'] = copy.deepcopy(full['preparation_scopes'])  # Preserve review evidence for restoration.

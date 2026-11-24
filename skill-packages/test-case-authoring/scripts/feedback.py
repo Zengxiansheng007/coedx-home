@@ -1,6 +1,7 @@
 """Baseline-bound feedback into shared authoring content, never formal assets."""
 import copy
 import html
+import incremental_review
 
 from authoring import _credential_guard, _digest, _cell
 from clarification import start_grill, summarize, review, _validate_content, _apply_rule_decisions
@@ -56,6 +57,13 @@ def _initial(batch):
 
 
 def _markdown_changes(batch, markdown, case_bindings=None, companion_base=None, source_catalog=None):  # Explicit export origin binds materialized links.
+    if incremental_review.is_incremental(markdown):
+        if batch.get('review_layout') != incremental_review.LAYOUT:
+            raise ValueError('Incremental review layout does not match the saved candidate')
+        if incremental_review.version_of(markdown) != batch['content_version']:
+            raise ValueError('Submit feedback on the current review version: ' + batch['content_version'])
+        return _markdown_layout_changes(batch, markdown, case_bindings, companion_base=companion_base,
+                                        source_catalog=source_catalog)
     errors = []  # Each supported layout binds the same immutable semantic baseline.
     layouts = ((False, False, False), (False, True, False), (False, False, True), (False, True, True), (True, True, True))  # 已知旧生成布局，非任意兼容。
     for legacy, data_legacy, common_legacy, trailing_legacy, metadata_legacy in [(*layout, trailing, metadata) for metadata in (False, True) for trailing in (False, True) for layout in layouts]:  # 仅枚举本地曾发布的准确旧 metadata 布局。
@@ -77,19 +85,22 @@ def _markdown_layout_changes(batch, markdown, case_bindings=None, *, legacy=Fals
     incoming = markdown.splitlines()
     # Later review files still map through the immutable initial semantic
     # baseline in prepare_feedback, while their layout includes accepted history.
-    if len(incoming) > 1 and incoming[1] == '- 版本：' + batch['content_version']:
+    incremental = incremental_review.is_incremental(markdown)
+    current = incremental_review.version_of(markdown) == batch['content_version'] if incremental else (
+        len(incoming) > 1 and incoming[1] == '- 版本：' + batch['content_version'])
+    if current:
         initial = copy.deepcopy(batch)
         initial['cases'] = [c for c in initial['cases'] if c.get('feedback_disposition') != 'excluded_this_round']
     from aggregation import expand_feedback  # Restore source bindings before scalar interpretation.
     metadata_bindings = {}  # 渲染器按准确用例根字段提供瞬时源行身份。
     flat = _render(initial, flat=True, reference_batch=source_catalog, _legacy_feedback=legacy, _data_legacy=data_legacy, _metadata_legacy=metadata_legacy, _metadata_bindings=metadata_bindings)['xmind_markdown']  # 同一布局用于初始投影和标量探针。
     original = flat.splitlines()
-    if companion_base is not None and len(incoming) >= 3:  # Only the exact generated local entrance is canonicalized.
+    if not incremental and companion_base is not None and len(incoming) >= 3:  # 旧稿只归一化真实生成的入口。
         from module_handoff import entrance
         if incoming[2] == original[2].partition('配套资料：')[0] + entrance(initial, base_path=companion_base):
             incoming[2] = original[2]
             markdown = '\n'.join(incoming) + '\n'
-    if incoming[:3] != original[:3]:
+    if not incremental and incoming[:3] != original[:3]:
         raise ValueError('Markdown header/version must match initial display')
     def trusted_review(cid):  # 只有准确同版实际通过才兼容其更早 pending 视图。
         case = next(c for c in batch['cases'] if c['id'] == cid)  # owner 由已有稳定身份给定。
@@ -141,7 +152,7 @@ def _markdown_layout_changes(batch, markdown, case_bindings=None, *, legacy=Fals
         if any(sum(topic['returned_digest'] == binding.get('returned_digest') for topic in raw_topics) != 1 for binding in case_bindings.values()):
             raise ValueError('Identity evidence does not uniquely bind the raw return')  # 同摘要多处出现仍需业务澄清。
     incoming = expand_feedback(initial, '\n'.join(original), '\n'.join(incoming), case_bindings,
-        handoff=not legacy, common_legacy=common_legacy, source_catalog=source_catalog, _normalize_case=normalize_case, _trailing_legacy=trailing_legacy).splitlines()  # 原始digest先验证；归一化只作用于对应的用例子树。
+        handoff=not legacy, common_legacy=common_legacy, source_catalog=source_catalog, _normalize_case=normalize_case, _trailing_legacy=trailing_legacy, companion_base=companion_base).splitlines()  # 原始摘要与资料位置先验证。
 
     source_starts = {}  # 原始 flat 块起点不随回传删除或保留范围移动。
     def blocks(lines):
@@ -211,7 +222,7 @@ def _markdown_layout_changes(batch, markdown, case_bindings=None, *, legacy=Fals
             raise ValueError('Repeated shared data edits disagree')
         original_value = _get(next(item for item in expanded(initial)[key[0]] if item['id'] == key[1]), key[2])
         from data_projection import typed_value  # Parse only against the exact source type.
-        changes.append({'collection': key[0], 'id': key[1], 'path': list(key[2]), 'value': typed_value(value, original_value, display_encoded=not (legacy or metadata_legacy) and key[0] == 'data' and key[2] == ('value',))})  # 仅当前 data.value 的明确可见表示解码。
+        changes.append({'collection': key[0], 'id': key[1], 'path': list(key[2]), 'value': typed_value(value, original_value, display_encoded=not (legacy or metadata_legacy) and key[0] == 'data' and key[2] == ('value',), incremental=incremental)})  # 仅新版确切数据值能解码留空。
     return changes, missing
 
 
@@ -257,7 +268,9 @@ def prepare_feedback(batch, channel, *, actual_reply, changes=None, markdown=Non
         if changes or removed_case_ids or markdown is None:
             raise ValueError('Read Markdown itself, not a substituted interpretation')
         changes, removed_case_ids = _markdown_changes(batch, markdown, case_bindings, companion_base, source_catalog)
-        current_source = markdown.splitlines()[1] == '- 版本：' + batch['content_version']
+        current_source = (incremental_review.version_of(markdown) == batch['content_version']
+                          if incremental_review.is_incremental(markdown)
+                          else markdown.splitlines()[1] == '- 版本：' + batch['content_version'])
     normalized, affected = [], set()
     for change in changes or []:
         collection, identity, path = change['collection'], change['id'], change['path']
@@ -526,6 +539,8 @@ def apply_feedback(pending, confirmation, deletion_decisions=None, *, source_cat
         'summary': current, 'confirmation': confirmation, 'changes': pending['changes'], 'deletions': pending['deletions']})
     if pending.get('returned_source'):
         batch['feedback_history'][-1]['returned_source'] = copy.deepcopy(pending['returned_source'])
+    if batch.get('review_layout') == incremental_review.LAYOUT:
+        batch['feedback_history'][-1]['source_version'] = pending['base_version']  # 任一渠道保存的旧稿版本均可回查。
     if pending.get('shared_change'):
         batch['feedback_history'][-1]['shared_change'] = copy.deepcopy(pending['shared_change'])
     if pending.get('case_bindings'):  # Empty optional metadata must not change historical semantic versions.
