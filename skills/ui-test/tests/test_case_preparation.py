@@ -64,6 +64,27 @@ def test_export_provenance_content_is_bound_to_original_preparation():
         export_xmind(compiled)
 
 
+def test_prepared_branch_produces_the_formal_authoring_handoff(tmp_path):
+    from scripts.ui_test_core.case_preparation import compile_prepared_branch, prepare_branch
+    from scripts.ui_test_core.case_sync import apply_sync_plan, dry_run
+    from scripts.ui_test_core.human_view_handoff import bind_formal_human_view
+    from tests.test_formal_human_view import render_tca
+
+    source = material()
+    prepared = prepare_branch(**{key: source[key] for key in ('source_case', 'test_data', 'recording', 'origins')})
+    compiled = compile_prepared_branch(
+        prepared, formal_human_view=True,
+        **{key: source[key] for key in ('config', 'selection', 'dependency_assets', 'page_module_registry')},
+    )
+    assert 'human.md' not in compiled['outputs']
+    authored = render_tca(compiled['human_view_request'])
+    bound = bind_formal_human_view(compiled, authored)
+    assert 'human.md' in bound['provenance']['artifacts']
+    output = tmp_path / 'formal-copy'
+    assert apply_sync_plan(dry_run(bound, output), lambda: bound, output)['status'] == 'applied'
+    assert (output / 'views/human.md').read_bytes() == authored['markdown'].encode('utf-8')
+
+
 def test_xmind_requires_verified_release_and_serializes_only_aggregate(tmp_path):
     from scripts.ui_test_core.case_preparation import prepare_branch,compile_prepared_branch,export_xmind
     from scripts.ui_test_core.case_sync import create_sync_plan,apply_sync_plan

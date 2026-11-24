@@ -9,6 +9,7 @@ import re
 from typing import Any, Mapping
 
 from .case_contracts import canonical_hash, validate_document
+from .human_view_handoff import TCA_RENDERER_VERSION, make_human_view_request
 from .test_data_contracts import resolve_json_pointer, resolve_parameter_manifest
 
 
@@ -310,10 +311,15 @@ def compile_case_v2(
         "case-ir.json": case_ir,
         "resolved-ir.json": resolved_ir,
         "case-parameter-manifest.json": parameter_manifest,
-        "human.md": _render_human(source_case, resolved_steps, metadata),
         "midscene.json": {"metadata": metadata, "steps": copy.deepcopy(resolved_steps)},
         "playwright-test.py": _render_playwright(source_case, parameter_manifest, resolved_steps, metadata),
     }
+    tca_request = None
+    if renderer_version == TCA_RENDERER_VERSION:
+        tca_request = make_human_view_request(
+            identity, build_fingerprint, source_case['display_name'], resolved_steps, parameter_manifest)
+    else:
+        outputs['human.md'] = _render_human(source_case, resolved_steps, metadata)  # 既有版本仍按旧来源兼容。
     receipt = {
         "schema_version": "ui-test.compile-receipt.v2",
         **identity,
@@ -349,4 +355,5 @@ def compile_case_v2(
         "resolved_ir": resolved_ir,
         "outputs": outputs,
         "manifest": manifest,
+        **({'human_view_request': tca_request} if tca_request is not None else {}),
     }

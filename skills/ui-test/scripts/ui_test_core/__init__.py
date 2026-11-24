@@ -36,6 +36,7 @@ __all__ = [
     "AggregateError",
     "render_product_aggregate",
     "render_product_aggregate_v2",
+    "export_product_case_maps",
     "RuntimeValueError",
     "CredentialIndexError",
     "load_runtime_value_index",
@@ -56,4 +57,4 @@ __all__ = [
     "initialize_runtime_sequence",
 ]
 
-from .product_aggregate import AggregateError, render_product_aggregate, render_product_aggregate_v2
+from .product_aggregate import AggregateError, export_product_case_maps, render_product_aggregate, render_product_aggregate_v2

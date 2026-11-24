@@ -58,6 +58,14 @@ python -B scripts/scoped_review.py --catalog full.json --request scope.json --ou
 
 `scope.json` uses these public `build_scoped_review` arguments:
 
+For an incremental review, pass `"review_layout": "incremental-v1"` in the
+request. The saved candidate binds that layout and its full content version.
+The Markdown starts with 「评审范围」 and the complete business hierarchy.
+Each displayed case carries its stable ID, with actions directly beneath it.
+Adjacent common operations with the same applicability and direction share
+one list. Pass the original delivery directory as `companion_base` to bind
+companion links on Markdown return.
+
 ```json
 {
   "batch_id": "synthetic-review-1",
@@ -120,3 +128,7 @@ notes; show a particular case's human-view when discussion requires it.
 For explicit, version-bound semantic partition of existing metadata and repeated governance, follow [source-assessed display](source-assessed-display.md). Original case/data values remain authoritative; no field-name deletion policy applies.
 
 For common operation inheritance, a partial selection requires its actual complete source_catalog at rendering, artifact saving and restoration. The initial_copy_baseline version/digest binds that source; omitted cases remain unmodified. Missing or stale parents leave common scope obligations pending locally. A fresh complete bounded authoring input is distinct from selection from an older full catalog; do not manufacture approval or grouping for the latter. See aggregation-contract.md for scope_kind="module" and per-item re-review.
+
+### Mixed incremental review and isolated merge
+
+Use `hypothetical: true` for a clearly labeled sample. For a related case that only needs source lookup, supply its existing absolute Markdown `detail_ref`. For a proposed deactivation, supply a stable `replacement_case_id` or record the coverage impact.

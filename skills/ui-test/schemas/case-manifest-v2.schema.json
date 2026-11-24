@@ -19,6 +19,7 @@
     "config_fingerprint": {"$ref": "#/$defs/hash"},
     "generator_version": {"type": "string"},
     "renderer_version": {"type": "string"},
+    "human_view_sha256": {"$ref": "#/$defs/hash"},
     "artifacts": {
       "type": "object",
       "minProperties": 1,

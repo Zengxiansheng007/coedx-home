@@ -75,3 +75,15 @@ write_artifacts(result, output, source_catalog=source_catalog)  # Supply current
 pending = prepare_xmind_feedback(batch, returned_file, actual_reply=actual_reply,
     case_bindings=case_bindings, companion_base=output)  # Source export directory, not return directory.
 ```
+### Incremental review input
+
+For an `incremental-v1` return, compare the full version in 「评审范围」.
+The saved layout determines the topic and companion-link bindings.
+A superseded version reports the current version and its verified Markdown
+path when present. Retain unsupported or ambiguous return files.
+
+Use `xmind_feedback.py --record QA.md` to start from the existing task record.
+Supply the returned file, actual reply, original delivery directory and any
+required parent scope. The record preserves the file digest and normalized
+return. Reopening it resumes the existing summary and review. The same
+original bytes cannot append a duplicate event.

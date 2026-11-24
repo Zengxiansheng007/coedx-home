@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import json
+import base64
+from hashlib import sha256
 import os
+import re
 import shutil
 import tempfile
 import uuid
@@ -12,6 +15,7 @@ from typing import Any, Callable
 
 from .case_contracts import canonical_hash, validate_document
 from .file_lock import exclusive_file_lock
+from .human_view_handoff import HUMAN_VIEW_JOURNAL, TCA_RENDERER_VERSION, required_view_digest
 from .path_utils import canonical_display_path, io_path
 from .release_verifier import verify_release
 from .strict_json import load_strict_json
@@ -29,21 +33,48 @@ def _active_build(target: Path) -> str | None:
     return document.get("build_fingerprint") if isinstance(document, dict) else None
 
 
+def _active_identity_matches(root, case_id, branch_id):
+    path = root / "active.json"
+    if not path.is_file():
+        return True
+    document = load_strict_json(path)
+    return isinstance(document, dict) and (document.get("case_id"), document.get("branch_id")) == (case_id, branch_id)
+
+
 def _serialize(content: Any) -> str:
     return content if isinstance(content, str) else json.dumps(content, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
 
-def _atomic_json(path: Path, document: dict[str, Any]) -> None:
+def _atomic_bytes(path: Path, data: bytes) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_name(f".{path.name}.{uuid.uuid4().hex}.tmp")
+    try:
+        with temporary.open("wb") as stream:
+            stream.write(data)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, path)
+        if path.read_bytes() != data:
+            raise CaseSyncError("E_SYNC_READBACK_FAILED")
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def _atomic_json(path: Path, document: dict[str, Any]) -> None:
     payload = json.dumps(document, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
-    with temporary.open("w", encoding="utf-8", newline="\n") as stream:
-        stream.write(payload)
-        stream.flush()
-        os.fsync(stream.fileno())
-    os.replace(temporary, path)
+    _atomic_bytes(path, payload.encode("utf-8"))
     if load_strict_json(path) != document:
         raise CaseSyncError("E_SYNC_READBACK_FAILED")
+
+
+def _requires_tca(root, active_build, digest):
+    if digest or not active_build or re.fullmatch(r"sha256:[0-9a-f]{64}", active_build) is None:
+        return False
+    current = root / "releases" / active_build.removeprefix("sha256:") / "manifest.json"
+    if not current.is_file():
+        return False  # 既有兼容路径仍由当前发布验证器处理缺失记录。
+    manifest = load_strict_json(current)
+    return manifest.get("renderer_version") == TCA_RENDERER_VERSION
 
 
 def create_sync_plan(compiled: dict[str, Any], target: str | Path, *, operation_id: str | None = None) -> dict[str, Any]:
@@ -61,6 +92,16 @@ def create_sync_plan(compiled: dict[str, Any], target: str | Path, *, operation_
         "build_fingerprint": compiled["manifest"]["build_fingerprint"],
         "artifact_names": sorted([*compiled["outputs"], "manifest.json"]),
     }
+    try:
+        view_digest = required_view_digest(compiled)
+    except ValueError as error:
+        raise CaseSyncError(str(error)) from error
+    if view_digest is not None:
+        plan["human_view_sha256"] = view_digest  # 发布计划绑定正式成品实际字节。
+    if _requires_tca(root, plan["expected_active_build"], view_digest):
+        raise CaseSyncError("E_SYNC_HUMAN_VIEW_TAKEOVER_REQUIRED:" + plan["case_id"])
+    if not _active_identity_matches(root, plan["case_id"], plan["branch_id"]):
+        raise CaseSyncError("E_SYNC_BRANCH_IDENTITY:" + plan["case_id"])
     plan["plan_hash"] = canonical_hash(plan)
     if validate_document(plan, "compile-plan-v2.schema.json"):
         raise CaseSyncError("E_SYNC_PLAN_SCHEMA_INVALID")
@@ -102,8 +143,16 @@ def _validate_plan(plan: dict[str, Any], display_root: Path, root: Path) -> dict
 def _load_bound_compiled(plan: dict[str, Any], input_loader: Callable[[], dict[str, Any]]) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
     """Re-read compilation inputs so a stale plan cannot publish a candidate."""
     compiled = input_loader()
-    if canonical_hash(compiled["identity"]) != plan["input_identity_hash"] or compiled["manifest"]["build_fingerprint"] != plan["build_fingerprint"]:
+    if (canonical_hash(compiled["identity"]) != plan["input_identity_hash"]
+            or any(compiled["manifest"].get(field) != plan[field] for field in ("case_id", "branch_id", "build_fingerprint"))):
         return None, _result(plan, "plan_stale", None, no_op=False, issues=["E_SYNC_INPUT_CHANGED"])
+    try:
+        digest = required_view_digest(compiled)
+    except ValueError:
+        digest = ""
+    if digest != plan.get("human_view_sha256"):
+        return None, _result(plan, "plan_stale", None, no_op=False,
+                             issues=["E_SYNC_HUMAN_VIEW_CHANGED:" + plan["case_id"]])
     return compiled, None
 
 
@@ -112,7 +161,8 @@ def _ensure_release(plan: dict[str, Any], compiled: dict[str, Any], root: Path, 
     release = root / "releases" / plan["build_fingerprint"].removeprefix("sha256:")
     if release.exists():
         state = verify_release(release, current_identity=compiled["identity"])
-        if state["release_integrity"] != "valid" or state["input_sync"] != "in_sync":
+        if (state["release_integrity"] != "valid" or state["input_sync"] != "in_sync"
+                or not _matches_archived_view(plan, release)):
             return None, ["E_SYNC_EXISTING_RELEASE_INVALID"]
         return release, []
     staging_parent = root / "_staging"
@@ -123,7 +173,7 @@ def _ensure_release(plan: dict[str, Any], compiled: dict[str, Any], root: Path, 
         for index, (name, content) in enumerate(sorted(files.items()), 1):
             destination = staging / name
             destination.parent.mkdir(parents=True, exist_ok=True)
-            destination.write_text(_serialize(content), encoding="utf-8", newline="\n")
+            destination.write_bytes(_serialize(content).encode("utf-8"))
             if fail_after_artifacts is not None and index >= fail_after_artifacts:
                 raise CaseSyncError("E_SYNC_INJECTED_GENERATION_FAILURE")
         state = verify_release(staging, current_identity=compiled["identity"])
@@ -137,6 +187,102 @@ def _ensure_release(plan: dict[str, Any], compiled: dict[str, Any], root: Path, 
             # 仅清理本 operation 的唯一 staging，不触碰其他发布或历史资产。
             shutil.rmtree(staging)
         return None, [str(exc).split(":", 1)[0]]
+
+
+def _matches_view(path, digest):
+    try:
+        return path.is_file() and "sha256:" + sha256(path.read_bytes()).hexdigest() == digest
+    except OSError:
+        return False
+
+
+def _matches_archived_view(plan, release):
+    digest = plan.get("human_view_sha256")
+    return digest is None or _matches_view(release / "human.md", digest)
+
+
+def _active_noop(plan, root, active_build):
+    digest = plan.get("human_view_sha256")
+    if digest:
+        release = root / "releases" / active_build.removeprefix("sha256:")
+        active_pointer = load_strict_json(root / 'active.json')
+        state = verify_release(release, active_pointer=active_pointer)
+        if (state['release_integrity'] != 'valid' or not _matches_archived_view(plan, release)
+                or not _matches_view(root / "views" / "human.md", digest)):
+            return _result(plan, "validation_failed", active_build, no_op=False,
+                           issues=["E_SYNC_ACTIVE_HUMAN_VIEW_DRIFT:" + plan["case_id"]])
+    return _result(plan, "in_sync", active_build, no_op=True, issues=[])
+
+
+def _recover_human_handoff(root):
+    """Recover the stable detail and pointer after interruption under the branch lock."""
+    journal = root / HUMAN_VIEW_JOURNAL
+    if not journal.is_file():
+        return False
+    saved = load_strict_json(journal)
+    if saved.get("schema_version") != "ui-test.human-view-activation.v1":
+        raise CaseSyncError("E_SYNC_HUMAN_VIEW_RECOVERY_JOURNAL")
+    active = root / "active.json"
+    view = root / "views" / "human.md"
+    current = _active_build(root)
+    if current == saved["candidate"] and _matches_view(view, saved["digest"]):
+        journal.unlink()  # 两处均已更新时，恢复只补记完成。
+        return True
+    if current not in (saved["previous_build"], saved["candidate"]):
+        raise CaseSyncError("E_SYNC_HUMAN_VIEW_RECOVERY_CONFLICT")
+    for path, key in ((view, "previous_view"), (active, "previous_pointer")):
+        encoded = saved[key]
+        if encoded is None:
+            path.unlink(missing_ok=True)
+        else:
+            data = base64.b64decode(encoded, validate=True)
+            if not path.is_file() or path.read_bytes() != data:
+                _atomic_bytes(path, data)  # 按已保存原字节恢复，释放历史归档保持不可变。
+    journal.unlink()
+    return False
+
+
+def _guard_active_handoff(root, plan):
+    try:
+        _recover_human_handoff(root)
+        if not _active_identity_matches(root, plan["case_id"], plan["branch_id"]):
+            return _result(plan, "blocked", _active_build(root), no_op=False,
+                           issues=["E_SYNC_BRANCH_IDENTITY:" + plan["case_id"]])
+    except (OSError, ValueError, KeyError, TypeError, AttributeError, CaseSyncError):
+        return _result(plan, "blocked", None, no_op=False,
+                       issues=["E_SYNC_HUMAN_VIEW_RECOVERY_REQUIRED:" + plan["case_id"]])
+    return None
+
+
+def _activate_pointer(root, release, pointer, plan):
+    active = root / "active.json"
+    if not plan.get("human_view_sha256"):
+        _atomic_json(active, pointer)
+        return
+    view = root / "views" / "human.md"
+    journal = root / HUMAN_VIEW_JOURNAL
+
+    def snapshot(path):
+        return base64.b64encode(path.read_bytes()).decode("ascii") if path.is_file() else None
+
+    _atomic_json(journal, {
+        "schema_version": "ui-test.human-view-activation.v1",
+        "candidate": plan["build_fingerprint"],
+        "digest": plan["human_view_sha256"],
+        "previous_build": _active_build(root),
+        "previous_pointer": snapshot(active),
+        "previous_view": snapshot(view),
+    })
+    try:
+        _atomic_json(active, pointer)
+        _atomic_bytes(view, (release / "human.md").read_bytes())
+        if not _matches_view(view, plan["human_view_sha256"]):
+            raise CaseSyncError("E_SYNC_ACTIVE_HUMAN_VIEW_READBACK")
+    except (OSError, CaseSyncError):
+        if not _recover_human_handoff(root):
+            raise
+    else:
+        journal.unlink()
 
 
 def prepare_sync_plan(
@@ -155,7 +301,13 @@ def prepare_sync_plan(
     root.mkdir(parents=True, exist_ok=True)
     lock_name = f"{plan['case_id']}--{plan['branch_id']}.lock".replace("/", "_").replace("\\", "_")
     with exclusive_file_lock(root / ".locks" / lock_name):
+        rejected = _guard_active_handoff(root, plan)
+        if rejected:
+            return rejected
         active_build = _active_build(root)
+        if _requires_tca(root, active_build, plan.get("human_view_sha256")):
+            return _result(plan, "blocked", active_build, no_op=False,
+                           issues=["E_SYNC_HUMAN_VIEW_TAKEOVER_REQUIRED:" + plan["case_id"]])
         if active_build != plan.get("expected_active_build"):
             return _result(plan, "concurrent_update", active_build, no_op=False, issues=["E_SYNC_EXPECTED_ACTIVE_MISMATCH"])
         compiled, error = _load_bound_compiled(plan, input_loader)
@@ -164,7 +316,7 @@ def prepare_sync_plan(
             return error
         assert compiled is not None
         if active_build == plan["build_fingerprint"]:
-            return _result(plan, "in_sync", active_build, no_op=True, issues=[])
+            return _active_noop(plan, root, active_build)
         release, issues = _ensure_release(plan, compiled, root, fail_after_artifacts=fail_after_artifacts)
         if issues:
             status = "validation_failed" if issues == ["E_SYNC_EXISTING_RELEASE_INVALID"] else "generation_failed"
@@ -181,9 +333,20 @@ def activate_prepared_sync_plan(plan: dict[str, Any], input_loader: Callable[[],
         return rejected
     lock_name = f"{plan['case_id']}--{plan['branch_id']}.lock".replace("/", "_").replace("\\", "_")
     with exclusive_file_lock(root / ".locks" / lock_name):
+        rejected = _guard_active_handoff(root, plan)
+        if rejected:
+            return rejected
         active_build = _active_build(root)
+        if _requires_tca(root, active_build, plan.get("human_view_sha256")):
+            return _result(plan, "blocked", active_build, no_op=False,
+                           issues=["E_SYNC_HUMAN_VIEW_TAKEOVER_REQUIRED:" + plan["case_id"]])
         if active_build == plan["build_fingerprint"]:
-            return _result(plan, "in_sync", active_build, no_op=True, issues=[])
+            if plan.get("human_view_sha256"):
+                _, error = _load_bound_compiled(plan, input_loader)
+                if error:
+                    error["active_build"] = active_build
+                    return error
+            return _active_noop(plan, root, active_build)
         if active_build != plan.get("expected_active_build"):
             return _result(plan, "concurrent_update", active_build, no_op=False, issues=["E_SYNC_EXPECTED_ACTIVE_MISMATCH"])
         compiled, error = _load_bound_compiled(plan, input_loader)
@@ -195,7 +358,8 @@ def activate_prepared_sync_plan(plan: dict[str, Any], input_loader: Callable[[],
         if not release.is_dir():
             return _result(plan, "blocked", active_build, no_op=False, issues=["E_SYNC_PREPARED_RELEASE_MISSING"])
         state = verify_release(release, current_identity=compiled["identity"])
-        if state["release_integrity"] != "valid" or state["input_sync"] != "in_sync":
+        if (state["release_integrity"] != "valid" or state["input_sync"] != "in_sync"
+                or not _matches_archived_view(plan, release)):
             return _result(plan, "validation_failed", active_build, no_op=False, issues=["E_SYNC_PREPARED_RELEASE_INVALID"])
         pointer = {
             "schema_version": "ui-test.active-pointer.v2",
@@ -204,7 +368,11 @@ def activate_prepared_sync_plan(plan: dict[str, Any], input_loader: Callable[[],
             "build_fingerprint": plan["build_fingerprint"],
             "manifest_ref": f"releases/{plan['build_fingerprint'].removeprefix('sha256:')}/manifest.json",
         }
-        _atomic_json(root / "active.json", pointer)
+        try:
+            _activate_pointer(root, release, pointer, plan)
+        except (OSError, CaseSyncError):
+            return _result(plan, "validation_failed", _active_build(root), no_op=False,
+                           issues=["E_SYNC_ACTIVE_HUMAN_VIEW_WRITE:" + plan["case_id"]])
         if _active_build(root) != plan["build_fingerprint"]:
             return _result(plan, "validation_failed", active_build, no_op=False, issues=["E_SYNC_ACTIVE_READBACK_FAILED"])
         return _result(plan, "applied", plan["build_fingerprint"], no_op=False, issues=[], release_path=release)

@@ -129,17 +129,29 @@ def document_ref(batch, path):
     return next(iter(refs)) if refs else '../agent-notes/' + _filename(path)  # Optional existing owner supports unrelated batch directories.
 
 
-def entrance(batch, *, base_path=None):  # Delivery context is explicit; pure renders remain portable.
-    from urllib.parse import quote
+def companion_links(batch, *, base_path=None, with_filenames=False):
+    import re
+    from pathlib import Path
+    from urllib.parse import quote, unquote, urlsplit
     def link(ref):  # Resolve known local references only; do not rewrite remote source ownership.
-        from pathlib import Path
         if base_path is None or '://' in ref:
             return quote(ref, safe='/:#')
         local, separator, fragment = ref.partition('#')
         return (Path(base_path) / local).resolve().as_uri() + (separator + quote(fragment, safe='') if separator else '')
-    links = ['[Agent说明 ' + ' / '.join(path) + '](' + link(document_ref(batch, path)) + ')' for path in module_notes(batch)]
-    links.extend('[已有技术来源](' + link(ref) + ')' for ref in _source_refs(batch))
-    return '配套资料：' + ('；'.join(links) if links else '无必要技术说明')  # Three-line header remains stable for native feedback.
+    def entry(label, ref):
+        if with_filenames:
+            path = urlsplit(ref).path.replace('\\', '/')
+            filename = Path(unquote(path)).name or ref
+            label += ' · ' + re.sub(r'[\[\]\r\n]', ' ', filename)  # 路径字符避免改变链接标签边界。
+        return '[' + label + '](' + link(ref) + ')'
+    links = [entry('Agent说明 ' + ' / '.join(path), document_ref(batch, path)) for path in module_notes(batch)]
+    links.extend(entry('已有技术来源', ref) for ref in _source_refs(batch))
+    return links
+
+
+def entrance(batch, *, base_path=None, with_filenames=False):  # 保留旧稿首的连接形式。
+    links = companion_links(batch, base_path=base_path, with_filenames=with_filenames)
+    return '配套资料：' + ('；'.join(links) if links else '无必要技术说明')
 
 
 def _case_markers(case_id):
@@ -229,9 +241,15 @@ def write_artifacts(result, output, *, source_catalog=None):
         temporary = target.with_suffix('.tmp')
         temporary.write_text(content, encoding='utf-8')
         temporary.replace(target)  # No per-batch copy or append-only status history.
-    lines = result['xmind_markdown'].splitlines()  # Bind the persisted entrance to this delivery location.
-    lines[2] = lines[2].partition('配套资料：')[0] + entrance(batch, base_path=output)  # Preserve the scoped non-deletion and validation boundary.
-    result['xmind_markdown'] = '\n'.join(lines) + '\n'
+    from incremental_review import LAYOUT
+    if original.get('review_layout') == LAYOUT:
+        from scoped_review import render_review_batch
+        result['xmind_markdown'] = render_review_batch(
+            original, source_catalog=source_catalog, companion_base=output)['xmind_markdown']
+    else:
+        lines = result['xmind_markdown'].splitlines()  # 历史布局的配套入口保持原位置。
+        lines[2] = lines[2].partition('配套资料：')[0] + entrance(batch, base_path=output)
+        result['xmind_markdown'] = '\n'.join(lines) + '\n'
     (output / 'xmind.md').write_text(result['xmind_markdown'], encoding='utf-8')
     for target, content in plans:
         if (target.exists() if content is None else target.read_text(encoding='utf-8') != content):

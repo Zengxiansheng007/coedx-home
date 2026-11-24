@@ -5,8 +5,11 @@ import re  # 固定保留表示的边界，不按任意冒号拆业务值。
 _SPACED = re.compile(r'^“(.*)”（前导空格：([0-9]+)；尾随空格：([0-9]+)）$', re.S)  # 完整表示才有解码语义。
 
 
-def _display_string(value):  # 原始普通空格保留在闭合引号内，中文计数便于人读。
-    if not isinstance(value, str) or (value == value.strip(' ') and not any(char in value for char in '\r\n\t') and not _SPACED.fullmatch(value)):
+def _display_string(value, *, incremental=False):  # 新稿对真正的空输入使用可读标记。
+    if incremental and value == '':
+        return '留空'
+    if not isinstance(value, str) or (value == value.strip(' ') and not any(char in value for char in '\r\n\t')
+            and not _SPACED.fullmatch(value) and not (incremental and value == '留空')):
         return value
     leading, trailing = len(value) - len(value.lstrip(' ')), len(value) - len(value.rstrip(' '))
     return '“' + json.dumps(value, ensure_ascii=False)[1:-1] + '”（前导空格：' + str(leading) + '；尾随空格：' + str(trailing) + '）'  # 原值撞保留表示时再包一层。
@@ -27,11 +30,11 @@ def _decode_string(text):  # 提示从不直接写入真实数据。
     return value  # 精确恢复原始空格，不把引号或计数当作业务输入。
 
 
-def data_lines(record, project, *, legacy=False, metadata_legacy=False):  # 新可选标志仅重现已知旧 metadata 布局。
+def data_lines(record, project, *, legacy=False, metadata_legacy=False, incremental=False):  # 按准确稿件布局编码。
     from scoped_review import TECHNICAL_FIELDS  # Reuse existing provenance classification.
     visible = {key: value for key, value in record.items() if key not in TECHNICAL_FIELDS and (metadata_legacy or key != 'source_ref')}  # 仅 data 根的声明来源定位外置。
     if not metadata_legacy and 'value' in visible:
-        visible['value'] = _display_string(visible['value'])  # 仅临时显示副本，原 record 不变。
+        visible['value'] = _display_string(visible['value'], incremental=incremental)  # 仅临时显示副本。
     if (not legacy and {'object_ref', 'value'} <= set(visible) and set(visible) - {'object_ref', 'value'} <= (set() if metadata_legacy else {'validity', 'reuse_policy', 'invalidation_action'}) and
             isinstance(visible['object_ref'], str) and visible['object_ref'].strip() and
             isinstance(visible['value'], (str, int, float, bool))):  # Extra conditions always keep their own structure.
@@ -84,11 +87,13 @@ def decode_line(old, new, bindings):
     return candidates[0]
 
 
-def typed_value(text, original, *, display_encoded=False):  # 字符串标识只在当前 data.value 显示类型中有协议含义。
+def typed_value(text, original, *, display_encoded=False, incremental=False):  # 字符串标记只适用于准确数据值字段。
     """Decode a bound scalar without changing its authoritative type."""
     import math
     import re
     if type(original) is str:
+        if incremental and display_encoded and text == '留空':
+            return ''
         return _decode_string(text) if display_encoded else text  # 历史稿/真实嵌套字段/用例正文不误解码同形文字。
     if type(original) is bool and text in ('True', 'False'):
         return text == 'True'  # Boolean syntax is exactly the rendered language.

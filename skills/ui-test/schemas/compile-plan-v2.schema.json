@@ -13,6 +13,7 @@
     "expected_active_build": {"type": ["string", "null"], "pattern": "^(sha256:[0-9a-f]{64})?$"},
     "input_identity_hash": {"$ref": "#/$defs/hash"},
     "build_fingerprint": {"$ref": "#/$defs/hash"},
+    "human_view_sha256": {"$ref": "#/$defs/hash"},
     "artifact_names": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
     "plan_hash": {"$ref": "#/$defs/hash"}
   },

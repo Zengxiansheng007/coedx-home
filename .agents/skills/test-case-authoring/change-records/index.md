@@ -1,5 +1,9 @@
 # Change records
 
+- [CR-20261119-145](entries/2026/2026-11/CR-20261119-145-native-feedback.md) 记录原生 XMind 同版回传、旧稿定位与续作，applied candidate。
+
+- [CR-20261119-143](entries/2026/2026-11/CR-20261119-143-incremental-review.md) 记录公告四例增量出稿及单步 Markdown 回传，applied candidate。
+
 - CR-20261118-002：[复核当前来源与收尾保存边界](entries/2026/2026-11/CR-20261118-002-scope-closure-current-sources.md)，同版审批回读来源，两次保存各自核对实际问答和候选，applied candidate。
 
 - CR-20261118-001：[原审批证明与明确范围收尾](entries/2026/2026-11/CR-20261118-001-scope-closure-review-reuse.md)；同 QA 原审批还原证明与有据 scope_bindings，保留原候选/汇总/历史；applied candidate。
@@ -325,3 +329,7 @@ Candidate-only whole-claim comparison and simple data display. Detail: [CR-20261
 | 2026-11-17 | CR-20261117-111 | Module display ordering | fixed | applied | [Detail](entries/2026/2026-11/CR-20261117-111-module-order.md) |
 
 | 2026-11-17 | CR-20261117-112 | 业务分组反馈身份与空格保真 | fixed | applied | [Detail](entries/2026/2026-11/CR-20261117-112-grouped-feedback.md) |
+- [CR-20261119-144](entries/2026/2026-11/CR-20261119-144-mixed-review.md) Mixed incremental review and isolated merge, applied candidate.
+- [CR-20261119-149](entries/2026/2026-11/CR-20261119-149-formal-human-view.md) Write formal Human View from validated input, applied candidate.
+
+- [CR-20261119-153](entries/2026/2026-11/CR-20261119-153-integration-review-layout.md) Use the incremental layout from the standard extension entry. Applied candidate.
