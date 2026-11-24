@@ -3,6 +3,7 @@ import argparse
 import hashlib
 import io
 import json
+import re
 import zipfile
 from pathlib import Path
 
@@ -11,17 +12,17 @@ from feedback import prepare_feedback
 MAX_FILE_BYTES = 16 * 1024 * 1024
 
 
-def inspect_xmind_feedback(returned_file):
+def inspect_xmind_feedback(returned_file, *, batch=None, companion_base=None):
     """Read supported native content for agent-side business clarification."""
     from aggregation import feedback_topics
     path = Path(returned_file)
     if path.stat().st_size > MAX_FILE_BYTES:
         raise ValueError('Native file exceeds supported size')
-    markdown = _markdown(path.read_bytes())  # Reuse the exact supported parser; no guessed topic identities.
+    markdown = _markdown(path.read_bytes(), batch=batch, companion_base=companion_base)  # Reuse the exact supported parser; no guessed topic identities.
     return {'markdown': markdown, 'topics': feedback_topics(markdown)}
 
 
-def _markdown(raw):
+def _markdown(raw, *, batch=None, companion_base=None):  # No returned URI determines its own authority.
     with zipfile.ZipFile(io.BytesIO(raw)) as archive:
         entries = archive.infolist()
         if len(entries) > 200 or sum(e.file_size for e in entries) > 64 * 1024 * 1024:
@@ -35,6 +36,14 @@ def _markdown(raw):
     sheet = sheets[0]
     if any(sheet.get(key) for key in ('relationships', 'summaries', 'boundaries')):
         raise ValueError('Additional sheet annotations need explicit interpretation')
+    expected_header = None
+    if batch is not None:
+        from authoring import render_batch
+        expected_header = render_batch(batch)['xmind_markdown'].splitlines()[:3]  # Exact current generated header, never a caller supplied whitelist.
+    canonical_header = list(expected_header) if expected_header else None  # Preserve canonical feedback semantics.
+    if expected_header and companion_base is not None:
+        from module_handoff import entrance
+        expected_header[2] = expected_header[2].partition('配套资料：')[0] + entrance(batch, base_path=companion_base)  # Reconstruct from trusted batch and explicit origin.
     lines, identities = [], set()
     def visit(topic, depth):
         if depth > 64 or len(lines) >= 50000:
@@ -47,7 +56,13 @@ def _markdown(raw):
             if identity in identities:
                 raise ValueError('Duplicate topic identity')
             identities.add(identity)
-        for key in ('notes', 'labels', 'markers', 'callout', 'summaries', 'boundaries', 'href', 'image', 'equation'):
+        if topic.get('href'):
+            expected = expected_header[2] if expected_header and depth == 1 and len(lines) == 2 else ''
+            links = list(re.finditer(r'\[([^\]]+)\]\(([^)]+)\)', expected))
+            if len(links) != 1 or topic['href'] != links[0][2] or '- ' + title != expected.replace(links[0][0], links[0][1]) or lines[:2] != expected_header[:2]:
+                raise ValueError('Unbound native link needs explicit interpretation')
+            title = canonical_header[2][2:]  # Restore only the exact self-authored header link.
+        for key in ('notes', 'labels', 'markers', 'callout', 'summaries', 'boundaries', 'image', 'equation'):
             if topic.get(key):
                 raise ValueError('Additional topic annotation needs explicit interpretation')
         children = topic.get('children', {})
@@ -60,7 +75,7 @@ def _markdown(raw):
     return '\n'.join(lines) + '\n'
 
 
-def prepare_xmind_feedback(batch, returned_file, *, actual_reply, case_bindings=None):
+def prepare_xmind_feedback(batch, returned_file, *, actual_reply, case_bindings=None, companion_base=None, source_catalog=None):
     """Keep unsupported returns pending; never infer edits from a filename."""
     path = Path(returned_file)
     source = {'filename': path.name}
@@ -69,8 +84,8 @@ def prepare_xmind_feedback(batch, returned_file, *, actual_reply, case_bindings=
             raise ValueError('Native file exceeds supported size')
         raw = path.read_bytes()
         source.update(sha256=hashlib.sha256(raw).hexdigest(), size_bytes=len(raw))
-        markdown = _markdown(raw)
-        pending = prepare_feedback(batch, 'markdown', markdown=markdown, actual_reply=actual_reply, case_bindings=case_bindings)  # Same clarified identity contract as Markdown.
+        markdown = _markdown(raw, batch=batch, companion_base=companion_base)
+        pending = prepare_feedback(batch, 'markdown', markdown=markdown, actual_reply=actual_reply, case_bindings=case_bindings, companion_base=companion_base, source_catalog=source_catalog)  # Same clarified identity contract as Markdown.
     except (OSError, ValueError, KeyError, TypeError, AttributeError, RecursionError,
             zipfile.BadZipFile, RuntimeError, NotImplementedError):
         return {'status': 'pending_verification', 'source': source,
@@ -85,11 +100,14 @@ def main():
     parser.add_argument('--returned-file', required=True)
     parser.add_argument('--reply', required=True)
     parser.add_argument('--output-dir', required=True)
+    parser.add_argument('--companion-base', help='Original xmind.md delivery directory; never infer it from the returned file')  # Explicit source location.
+    parser.add_argument('--source-catalog', help='Actual complete parent catalog for a partial scope')  # Never reconstruct membership from visible cases.
     parser.add_argument('--case-bindings', help='Agent-maintained JSON from actual business identity clarification')
     args = parser.parse_args()
     batch = json.loads(Path(args.batch).read_text(encoding='utf-8-sig'))
     bindings = json.loads(Path(args.case_bindings).read_text(encoding='utf-8-sig')) if args.case_bindings else None
-    result = prepare_xmind_feedback(batch, args.returned_file, actual_reply=args.reply, case_bindings=bindings)
+    source = json.loads(Path(args.source_catalog).read_text(encoding='utf-8-sig')) if args.source_catalog else None
+    result = prepare_xmind_feedback(batch, args.returned_file, actual_reply=args.reply, case_bindings=bindings, companion_base=args.companion_base, source_catalog=source)
     output = Path(args.output_dir)
     output.mkdir(parents=True, exist_ok=False)
     (output / 'feedback.json').write_text(json.dumps(result, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')

@@ -56,3 +56,22 @@ provenance of the operator/evidence. Synthetic archives in unit tests establish
 parser behavior only; they never substitute for client evidence. Keep these
 local development artifacts outside the public package and mark simulated
 business answers explicitly.
+
+For a native imported header whose Markdown link became title plus href, pass the exact current candidate as `inspect_xmind_feedback(file, batch=batch)`; prepare already supplies it. Only the one self-authored link in the third header line is restored when title, href, root heading and version match the current export exactly. Notes, arbitrary/external links, extra links, changed versions and annotations still require explicit interpretation. Synthetic archives are parser evidence only; retain the real failure baseline and recheck the actual client.
+
+## Materialized local companion links
+
+For a file delivered by write_artifacts(result, output), supply the original output directory as companion_base to inspect_xmind_feedback and prepare_xmind_feedback (CLI: --companion-base). Markdown prepare_feedback accepts the same optional argument. Obtain this directory from the known delivery context, never from the returned filename or href. Reconstruct the exact expected entrance from that directory and the bound batch; no arbitrary URI whitelist is accepted. The business candidate and content version do not acquire machine paths.
+
+The native adapter still restores only one exact third-line generated link with matching title, root and version. Extra links, links on business topics, changed href/title/version, annotations and unbound targets remain pending interpretation. Historical portable relative-link returns retain their existing behavior when companion_base is omitted. Native multiple-link interpretation remains unsupported; retain and clarify such files instead of guessing.
+
+Moving only the returned native file keeps the original companion_base. Moving the whole bundle requires materializing again at the new location and binding that new export directory. File existence, user trust prompts, operating-system file association, actual content opening and parser qualification are separate observations. Never bypass a client trust prompt; manual user selection of a local reader may be necessary.
+
+Example public entry sequence (paths are caller-owned local delivery context):
+
+```python
+result = render_batch(batch)  # Original candidate remains authoritative.
+write_artifacts(result, output, source_catalog=source_catalog)  # Supply current sources when required.
+pending = prepare_xmind_feedback(batch, returned_file, actual_reply=actual_reply,
+    case_bindings=case_bindings, companion_base=output)  # Source export directory, not return directory.
+```

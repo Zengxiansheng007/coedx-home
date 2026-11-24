@@ -10,9 +10,11 @@ from p0_evidence import check_extension
 from scoped_review import build_scoped_review, GROUPS, _render
 
 
-def _coverage(batch):
-    from step_reuse import expanded  # Coverage always evaluates complete resolved claims.
-    batch = expanded(batch)  # Invalid definitions fail before completeness can be reported.
+def _coverage(batch, *, source_catalog=None):  # coverage 与其他投影沿用调用方准确完整父源。
+    from restoration import preflight  # Coverage counts only restorable cases; whole P0 entry qualification remains unchanged.
+    checked = preflight(batch, source_catalog=source_catalog)  # 保留缺失、漂移和局部失败的同一还原规则。
+    blocked = {b['case_id']: b['reason'] for b in checked['blockers']}
+    batch = checked['complete_batch']
     design = batch['extension_design']
     cases = {c['id']: c for c in batch['cases']}
     entries = design['coverage']
@@ -34,8 +36,11 @@ def _coverage(batch):
                 raise ValueError('Concrete check and unique required aspects needed')
             row = rows[check['id']]
             links = row.get('links', [])
-            covered, summaries = set(), []
+            covered, summaries, pending_sources = set(), [], []
             for link in links:
+                if link['case_id'] in blocked:
+                    pending_sources.append(blocked[link['case_id']])  # A blocked case cannot count as completed coverage.
+                    continue
                 if link['case_id'] not in cases or not link.get('aspects') or not set(link['aspects']) <= set(check['aspects']):
                     raise ValueError('Coverage needs known complete cases and check aspects')
                 case = cases[link['case_id']]
@@ -53,7 +58,7 @@ def _coverage(batch):
                 status = decision['route']
             else:
                 status = 'complete' if not missing else 'partial' if covered else 'gap'
-            if missing and not decision and not row.get('pending'):
+            if missing and not decision and not row.get('pending') and not pending_sources:
                 raise ValueError('Missing aspects need a concrete pending explanation')
             if check.get('boundary_group') and links:
                 if 'input' not in check or check['input'] is None or len(links) != 1:
@@ -64,7 +69,7 @@ def _coverage(batch):
                 boundaries[key] = check['input']
             results.append({'point_id': point['id'], 'check_id': check['id'], 'description': check['description'],
                             'status': status, 'cases': summaries, 'missing': missing,
-                            'pending': row.get('pending'), 'decision': copy.deepcopy(decision)})
+                            'pending': '; '.join(pending_sources) or row.get('pending'), 'decision': copy.deepcopy(decision)})
             statuses.append(status)
         aggregate = statuses[0] if len(set(statuses)) == 1 else 'partial'
         points.append({'point_id': point['id'], 'basis': point['basis'], 'status': aggregate})
@@ -74,11 +79,11 @@ def _coverage(batch):
             'uncovered_combinations': copy.deepcopy(design['uncovered_combinations'])}
 
 
-def render_extension(batch, case_id=None, *, case_ids=None):  # Preserve existing one-case callers.
+def render_extension(batch, case_id=None, *, case_ids=None, source_catalog=None):  # Preserve original provenance for genuine partial copies.
     """Regenerate scoped review and coverage from the current clarified batch version."""
     _credential_guard(batch)
-    result = _render(batch)
-    coverage = _coverage(batch)
+    result = _render(batch, reference_batch=source_catalog)  # Exact parent, never current candidate substituted as catalog.
+    coverage = _coverage(batch, source_catalog=source_catalog)  # 正文与覆盖采用同一当前来源证据。
     lines = ['# Design coverage (not execution)', 'Version: ' + batch['content_version']]
     for point in coverage['points']:
         lines.append(f"- {point['point_id']}: {point['status']}; basis: {point['basis']}")
@@ -97,7 +102,7 @@ def render_extension(batch, case_id=None, *, case_ids=None):  # Preserve existin
     if case_id is not None and case_ids is not None:  # Avoid two competing selection inputs.
         raise ValueError('Choose one chat selection input')  # Never guess which request wins.
     from presentation import render_chat  # One selection contract for every authoring stage.
-    chat = render_chat(batch, [case_id] if case_id is not None else case_ids)  # Validate exact 1–9 scope.
+    chat = render_chat(batch, [case_id] if case_id is not None else case_ids, source_catalog=source_catalog)  # Same exact parent at both delivery seams.
     result.pop('human_view', None)  # Default delivery is the complete scoped XMind copy.
     if 'human_view' in chat:  # Only a real selection exposes chat text.
         result['human_view'] = chat['human_view']  # Same candidate and complete reference context.
@@ -182,7 +187,7 @@ def build_extension(catalog, baseline, reports, entry_request, design, mode='pro
     batch['initial_copy_baseline']['copy_version'] = _digest({
         key: batch['initial_copy_baseline'][key] for key in ('cases', 'data', 'selection', *(['step_definitions'] if 'step_definitions' in batch else []))})
     batch['content_version'] = _digest({k: v for k, v in batch.items() if k != 'content_version'})
-    rendered = render_extension(batch)
+    rendered = render_extension(batch, source_catalog=catalog)  # 初次生成已有准确父源，同时核对活动 P0 引用。
     rendered.update(changes=result['changes'], review_notes=result['review_notes'])
     rendered['review_notes'] += rendered['coverage_notes']
     return rendered
@@ -199,7 +204,9 @@ def main():
         result = build_extension(**envelope, mode=args.mode)
         output = Path(args.output_dir)
         output.mkdir(parents=True, exist_ok=False)
-        for filename, key in [('candidate.json', 'batch'), ('coverage.json', 'coverage'), ('changes.json', 'changes')]:
+        from module_handoff import write_artifacts  # Persist the same module documents across sibling batches.
+        write_artifacts(result, output, source_catalog=envelope['catalog'])  # Reuse the actual current P0 input.
+        for filename, key in [('coverage.json', 'coverage'), ('changes.json', 'changes')]:
             (output / filename).write_text(json.dumps(result[key], ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
         for filename, key in [('xmind.md', 'xmind_markdown'), ('review-notes.md', 'review_notes')]:
             (output / filename).write_text(result[key], encoding='utf-8')

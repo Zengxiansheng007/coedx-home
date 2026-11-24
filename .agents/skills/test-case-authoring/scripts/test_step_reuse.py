@@ -18,6 +18,28 @@ def reuse_design():
 
 
 class StepReuseTests(unittest.TestCase):
+    def test_nested_business_identity_is_not_erased_as_metadata(self):
+        from p0_evidence import approve_p0_scope
+        from step_reuse import expanded
+        for location in ('step', 'data', 'assertion'):
+            with self.subTest(location=location):
+                args = list(reuse_design())
+                source = args[0]['cases'][0]['steps'][0]
+                target = args[4]['candidates'][0]['steps'][0]
+                if location == 'data':
+                    source = args[0]['data'][0]
+                    args[4]['candidate_data'] = [copy.deepcopy(source)]
+                    target = args[4]['candidate_data'][0]
+                elif location == 'assertion':
+                    source, target = source['verification'][0], target['verification'][0]
+                source['business_object'] = {'id': 'ORDER-A', 'source': 'warehouse-A'}  # Business identities, not trace metadata.
+                target['business_object'] = {'id': 'ORDER-B', 'source': 'warehouse-A'}
+                args[1] = approve_p0_scope(args[0], 'synthetic-round', ['EDIT', 'LINK'], 'SIMULATED: distinct order objects')
+                args[3]['manual_start']['baseline_id'] = args[1]['id']
+                result = build_extension(*args, mode='simulation')
+                self.assertNotIn('step_reference', result['batch']['cases'][0]['steps'][0])
+                self.assertEqual(expanded(result['batch'])['cases'][0]['steps'], args[4]['candidates'][0]['steps'])  # Full target and order survive.
+
     def test_conflicting_current_data_is_not_silently_selected(self):
         args = reuse_design()  # Conflicting authored values must return to source clarification.
         item = copy.deepcopy(args[0]['data'][0])
@@ -52,8 +74,10 @@ class StepReuseTests(unittest.TestCase):
             self.assertNotIn('step_reference', output['batch']['cases'][1]['steps'][0])
         tampered = copy.deepcopy(result['batch'])
         next(item for item in tampered['data'] if item['id'] == 'current-1')['value'] = 'neighbor value'
-        with self.assertRaisesRegex(ValueError, 'binding changed'):
-            render_extension(tampered)
+        blocked = render_extension(tampered)
+        self.assertIn('HIGH', blocked['blocked_case_ids'])
+        self.assertIn('LOW', blocked['ready_case_ids'])
+        self.assertIn('binding changed', str(blocked['blockers']))
         args[4]['candidate_data'][1]['generation_rule'] = 'exactly 20 characters'
         changed = build_extension(*args, mode='simulation')
         self.assertNotIn('step_reference', changed['batch']['cases'][1]['steps'][0])
@@ -74,8 +98,10 @@ class StepReuseTests(unittest.TestCase):
                     batch['cases'][0]['context']['role'] = 'different role'
                 else:
                     batch['data'][0]['validity'] = 'expired'
-                with self.assertRaisesRegex(ValueError, 'step reference'):
-                    render_extension(batch)
+                blocked = render_extension(batch)
+                self.assertIn('LOW', blocked['blocked_case_ids'])
+                self.assertIn('step reference', str(blocked['blockers']))
+                self.assertTrue(any(row['status'] != 'complete' for row in blocked['coverage']['checks']))
 
     def test_public_clarification_review_merge_and_selected_chat(self):
         from clarification import start_grill, respond, summarize, apply_summary, review
@@ -90,7 +116,7 @@ class StepReuseTests(unittest.TestCase):
         session = summarize(respond(session, [dict(question_id=q['id'], decision='formal', actual_reply='SIMULATED: confirm proposed priority', updates=[]) for q in questions]))
         session = apply_summary(session, dict(confirmed=True, actual_reply='SIMULATED: agree summary', summary_id=session['summary']['id']))
         batch = session['batch']
-        session = review(session, dict(approved=True, actual_reply='SIMULATED: reviewed complete source and restored target endpoint', content_version=batch['content_version'], case_ids=['LOW']))
+        session = review(session, dict(approved=True, actual_reply='SIMULATED: reviewed complete source and restored target endpoint', content_version=batch['content_version'], case_ids=['LOW']), source_catalog=args[0])
         batch = session['batch']
         self.assertIn('整步引用', render_chat(batch, ['LOW'])['human_view'])
         result = merge_reviewed(args[0], batch, dict(kind='merge_instruction', actual_reply='SIMULATED: merge only LOW', content_version=batch['content_version'], baseline_version=args[0]['content_version'], case_ids=['LOW']), target_kind='isolated')
@@ -98,8 +124,9 @@ class StepReuseTests(unittest.TestCase):
         self.assertTrue(result['catalog']['step_definitions'])
         changed = copy.deepcopy(batch)
         changed['cases'][0]['steps'].reverse()
-        with self.assertRaisesRegex(ValueError, 'endpoint'):
-            render_extension(changed)
+        blocked = render_extension(changed)
+        self.assertIn('LOW', blocked['blocked_case_ids'])
+        self.assertIn('endpoint', str(blocked['blockers']))
 
     def test_every_different_dimension_remains_complete(self):
         for field in ('operation', 'data', 'expected', 'verification'):
@@ -164,7 +191,7 @@ class StepReuseTests(unittest.TestCase):
         batch['cases'][0]['steps'][0] = {'id': 'broken', 'step_reference': {'definition_digest': 'missing'}}
         session = {'batch': batch}
         with self.assertRaisesRegex(ValueError, 'step reference'):
-            review(session, {})
+            review(session, {'case_ids': [batch['cases'][0]['id']]})  # Check the explicitly requested dependent scope.
 
     def test_authoring_selects_whole_step_and_rechecks_snapshot(self):
         args = expansion()  # Complete source design, never a fabricated reference.
@@ -184,8 +211,9 @@ class StepReuseTests(unittest.TestCase):
         self.assertIn(source['title'], result['xmind_markdown'])
         self.assertTrue(result['batch']['step_definitions'])
         result['batch']['step_definitions'][0]['step']['operation'] = 'corrupted'
-        with self.assertRaisesRegex(ValueError, 'reference'):
-            render_extension(result['batch'])
+        blocked = render_extension(result['batch'])
+        self.assertIn('LOW', blocked['blocked_case_ids'])
+        self.assertIn('reference', str(blocked['blockers']))
 
 
 if __name__ == '__main__':

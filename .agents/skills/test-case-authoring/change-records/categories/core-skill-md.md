@@ -1,5 +1,19 @@
 # core-skill-md Change Ledger
 
+## CR-20261118-001 - 原审批证明与明确范围收尾
+
+| Date | Change ID | Section | Change Type | Summary | Status |
+|---|---|---|---|---|---|
+| 2026-11-18 | CR-20261118-001 | 覆盖与收尾指针 | fixed | 具体用例分支显式绑定范围，旧分支走原关闭入口 | applied |
+
+- Section changed: 原覆盖与范围收尾工作流。
+- Before: 合法旧覆盖缺归属，局部反馈保留旧审批后全批版本门拒绝。
+- After: 显式 case_ids 与原关闭入口指针；规划无具体稿继续保留。
+- Why: REQ-020 / AC-026—028，具体反馈与历史原审批契约。
+- Impact: 仅 canonical 与分发镜像，无全局安装或真实业务写入。
+- Validation: 同树公开回归、镜像/AST/静态及 require-change-records；准确结果见 detail。
+- Detail record: [CR-20261118-001](../entries/2026/2026-11/CR-20261118-001-scope-closure-review-reuse.md)。
+
 - [CR-20261115-006](../entries/2026/2026-11/CR-20261115-006-shared-feedback.md): exact shared-source impact in existing feedback review.
 
 ## Purpose
@@ -10,6 +24,7 @@ Trace rule Q&A changes in core-skill-md.
 
 | Date | Change ID | Section | Change Type | Summary | Status |
 |---|---|---|---|---|---|
+| 2026-11-17 | CR-20261117-114 | 专业生成入口 | fixed | 先解释材料再构建候选及覆盖 | applied |
 | 2026-11-11 | CR-20261111-105 | Rule clarification | changed | Persist complete dialogue | applied |
 | 2026-11-11 | CR-20261111-201 | Source semantics | fixed | Goal-bounded authoring and retained constraints | applied |
 | 2026-11-11 | CR-20261111-106 | Partial answers | fixed | Retain remaining aspects and dependencies | applied |
@@ -17,7 +32,19 @@ Trace rule Q&A changes in core-skill-md.
 | 2026-11-11 | CR-20261111-202 | Aggregation and review repair | fixed | Preserve preparation and answer state | applied |
 | 2026-11-11 | CR-20261111-107 | Report intake | changed | Read before asking; retain full P0 checker | applied |
 
+| 2026-11-17 | CR-20261117-101 | Named scalar data | fixed | Lossless display and feedback | applied |
+
 ## Detailed Records
+
+### CR-20261117-114 - 专业生成入口
+
+- Section changed: 生成、扩展、反馈、恢复及交付入口。
+- Before: 专业规则分散，结构完成容易被当作解释完成。
+- After: 入口直接读取专业生成核对，按来源形成逐例目标与关联后生成。
+- Why: REQ-007/008/009/012/016/017/018/022。
+- Impact: 编写指引；候选schema及执行门槛不变。
+- Validation: 公开结构保留检查与Skill静态检查；独立实际生成语义评审待后续。
+- Detail record: [CR-20261117-114](../entries/2026/2026-11/CR-20261117-114-professional-generation.md)。
 
 ### CR-20261111-105 - Rule Q&A
 
@@ -185,3 +212,139 @@ final-inspection.json under the local task evidence root, outside this repositor
 - Impact: source snapshots and unrelated cases remain unchanged; existing review gates apply.
 - Validation: 162 tests passed; external test-output/rr05/tests.txt; actual client not tested.
 - Detail record: entries/2026/2026-11/CR-20261115-005-local-feedback.md
+
+## CR-20261116-005 - Business hierarchy
+
+- Section changed: core-skill-md.
+- Before: only module hierarchy projected.
+- After: explicit source-assessed groups retain case identity and scoped omissions.
+- Why: TAS-05 AC-008/022/024.
+- Impact: public projections and feedback; no business execution.
+- Validation: 21 targeted public tests passed; final checks in detail/external completion.
+- Detail record: [CR-20261116-005](../entries/2026/2026-11/CR-20261116-005-business-hierarchy.md).
+
+
+### CR-20261116-009 - Ordered whole-case references
+
+- Section changed: dependency authoring
+- Before: P0-only special placement.
+- After: actual ordered whole reference with endpoint and source checks.
+- Why: TAS-09 AC-016/021.
+- Impact: local dependency review, source preserved.
+- Validation: 31 public regression tests passed; actual interaction unverified.
+- Detail record: [CR-20261116-009](../entries/2026/2026-11/CR-20261116-009-whole-case-references.md)
+
+## CR-20261116-003 - Shared stage adapter
+
+| Date | Change ID | Section | Change Type | Summary | Status |
+| --- | --- | --- | --- | --- | --- |
+| 2026-11-16 | CR-20261116-003 | core-skill-md | changed | Shared dialogue and distinct continuation | applied |
+
+- Section changed: TCA stage routing and linked public-entry instructions.
+- Before: duplicated parent dialogue and automatic application after summary agreement.
+- After: host-resolved test-grill-me interaction; confirm-only note waits; explicit continuation applies existing API.
+- Why: TAS-03 and parent AC-001/002/003/004/006/024/025.
+- Impact: existing candidate and sole MD authority; no production API or execution-layer change.
+- Validation: 34 targeted public tests passed; actual changed-route dialogue and client unverified.
+- Detail record: [CR-20261116-003](../entries/2026/2026-11/CR-20261116-003-stage-adapter.md).
+
+
+### CR-20261116-007 - Reviewed preparation scope
+
+- Section changed: preparation applicability and generated scope.
+- Before: automatic semantic extraction.
+- After: reviewed full-group scope and conservative invalidation.
+- Why: TAS-07 AC-011/012/013/021.
+- Impact: source-bound rendering and feedback; no execution.
+- Validation: public regression and synthetic scope checks; candidate only.
+- Detail record: [CR-20261116-007](../entries/2026/2026-11/CR-20261116-007-preparation-scope.md).
+
+### CR-20261116-004 - scoped-recovery-closure
+
+- Section changed: Recovery and scoped closure
+- Before: Upgrade recovery/cleanup gap
+- After: Actual-file recovery, permanent basis before bounded cleanup
+- Why: TAS-04 AC-007/026/027/028
+- Impact: Isolated candidate only; existing authority retained
+- Validation: Public API tests passed; dialogue pending
+- Detail record: [CR-004](../entries/2026/2026-11/CR-20261116-004-scoped-recovery-closure.md)
+
+### CR-20261116-011 - current-source restoration
+
+- Section changed: integrated review/recovery and package distribution.
+- Before: eager whole-catalog failure and partial source restoration.
+- After: case-local blockers, actual-source approval and selective persisted artifacts.
+- Why: TAS-11 AC-019 through AC-022.
+- Impact: preserved candidate identity, whole P0 gate and project-only mirror.
+- Validation: see evidence/tas-11 final report; candidate only.
+- Detail record: [CR-20261116-011](../entries/2026/2026-11/CR-20261116-011-current-source-restoration.md).
+
+### CR-20261116-013 - Final review repairs
+
+- Section changed: applicable candidate scope, display, restoration and native return contracts.
+- Before: ancestor scope and nested references rejected; governance remained in business prose; native generated link rejected.
+- After: explicit source-bound adaptation with conservative failure handling.
+- Why: confirmed final Spec findings and actual client baseline.
+- Impact: package and identical repository mirror only.
+- Validation: public red-green and final checks; actual-client acceptance separate.
+- Detail record: [CR-20261116-013](../entries/2026/2026-11/CR-20261116-013-final-review-repairs.md).
+
+### CR-20261117-102 - Module common preconditions
+
+- Section changed: common preparation definition, projection, feedback and restoration.
+- Before: whole-list group-scoped extraction and per-case common references.
+- After: module-direct definitions, per-item versioned scope, visible pending content and exact feedback origins.
+- Why: #136, AC-030/031/032 preconditions and AC-033 lifecycle.
+- Impact: canonical and mirror only; no execution or new authority.
+- Validation: public TDD, save/read and frozen legacy feedback; see detail.
+- Detail record: [CR-20261117-102](../entries/2026/2026-11/CR-20261117-102-common-preconditions.md).
+
+### CR-20261117-101 - Named scalar data
+
+- Section changed: core-skill-md
+- Before: object/value split; one-leaf feedback.
+- After: named scalar projection with bound compound feedback and legacy compatibility.
+- Why: #135 AC-029 and AC-034 data portion.
+- Impact: original identities and candidate data retained.
+- Validation: eight public tests; external evidence/tco-01/result.md.
+- Detail record: [CR-20261117-101](../entries/2026/2026-11/CR-20261117-101-simple-data.md).
+
+### CR-20261117-105 - Goal/preparation ownership
+
+- Section changed: authoring purpose guidance and preservation tests.
+- Before: mixed preparation could retain an unrelated independent check.
+- After: source/goal/consumer assessment, existing-goal lookup and current-value preservation.
+- Why: TCO-05 / AC-033.
+- Impact: steps-only guidance and public test coverage, no classifier or execution change.
+- Validation: ticket evidence; actual authoring and public tests distinguished.
+- Detail record: [CR-20261117-105](../entries/2026/2026-11/CR-20261117-105-goal-preparation.md).
+
+### CR-20261117-103 - Common postconditions
+
+- Section changed: directional post operation contract and consumers.
+- Before: post fields dropped or unrecognized.
+- After: source-bound module definitions, complete sequence and legacy absence.
+- Why: #137 acceptance.
+- Impact: generation, scope, render, feedback, saved recovery.
+- Validation: public red/green tests and required repository checks in external evidence/tco-03.
+- Detail record: [CR-20261117-103](../entries/2026/2026-11/CR-20261117-103-common-postconditions.md)
+
+### CR-20261117-104 - Scope lifecycle
+
+- Section changed: common operation scope lifecycle.
+- Before: subset and changed member invalidation could hide valid operations.
+- After: explicit reviewed module scope, actual parent checks and local per-item membership.
+- Why: #138 full acceptance criteria.
+- Impact: render, save and restoration; no business execution.
+- Validation: public lifecycle tests and repository checks; candidate status.
+- Detail record: [CR-20261117-104](../entries/2026/2026-11/CR-20261117-104-scope-lifecycle.md).
+
+### CR-20261117-106 - feedback-loop
+
+- Section changed: current feedback and recovery contract.
+- Before: partial probes lost full source; shared ordinals and numeric values rejected edits.
+- After: actual-parent context, full shared impact, typed edits and legacy signature reuse.
+- Why: #140 and confirmed early findings.
+- Impact: candidate only; hidden parent protected.
+- Validation: public red/green and final repository checks, external tco-06 evidence.
+- Detail record: [CR-20261117-106](../entries/2026/2026-11/CR-20261117-106-feedback-loop.md).

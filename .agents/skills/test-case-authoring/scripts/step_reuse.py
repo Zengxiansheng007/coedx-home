@@ -2,26 +2,35 @@
 import copy
 from authoring import _digest
 
-GROUPS = ('common_preconditions', 'special_preconditions', 'steps', 'special_postconditions')
+GROUPS = ('common_preconditions', 'special_preconditions', 'steps', 'special_postconditions', 'common_postconditions')
 TECHNICAL = {'id', 'source', 'lines', 'basis', 'provenance'}
 
 
 def _business(value):
-    if isinstance(value, dict):  # Compare business leaves independently of source addresses.
-        return {key: _business(child) for key, child in value.items() if key not in TECHNICAL}
-    if isinstance(value, list):
-        return [_business(child) for child in value]
-    return value
+    if isinstance(value, dict):  # Only declared record metadata is non-business; nested identities remain significant.
+        return {key: copy.deepcopy(child) for key, child in value.items() if key not in TECHNICAL}
+    return copy.deepcopy(value)  # Unknown business shapes retain every supplied leaf.
 
 
 def signature(step, data, rules_only=False):
     result = _business({key: value for key, value in step.items() if key != 'data_refs'})  # Preserve unknown business conditions.
+    if isinstance(result.get('operation'), str):  # Outer action whitespace is presentation in every authoring and feedback path.
+        result['operation'] = result['operation'].strip()
+    for field in ('expected', 'verification'):  # Assertion records own metadata; their nested business objects do not.
+        if field in result:
+            result[field] = [_business(item) for item in result[field]]
     result['data'] = [_business(data[ref]) for ref in step.get('data_refs', [])]  # Object identity alone is insufficient.
     if rules_only:
         for item in result['data']:
             if isinstance(item.get('generation_rule'), str) and item['generation_rule'].strip():
                 item.pop('value', None)  # Only explicit generation rules separate values from semantics.
     return result
+
+
+def case_signature(case, data):
+    """Sign already resolved groups while retaining legacy absent-post hashes."""
+    return _digest({group: [signature(step, data) for step in case.get(group, [])]
+        for group in GROUPS if group != 'common_postconditions' or group in case})  # Presence is part of the historical contract.
 
 
 def select_reuse(catalog, candidates, candidate_data):
@@ -32,7 +41,7 @@ def select_reuse(catalog, candidates, candidate_data):
     target_data = dict(source_data, **{item['id']: item for item in candidate_data})
     definitions = {}  # One technical definition per exact P0 step version.
     for case in cases:
-        target_digest = _digest({group: [signature(step, target_data) for step in case.get(group, [])] for group in GROUPS})  # Capture the authored order and endpoint.
+        target_digest = case_signature(case, target_data)  # Capture the authored order and endpoint.
         selected = False
         for assessment in case.pop('reuse_assessments', []):
             group = assessment['group']
@@ -115,7 +124,7 @@ def expanded(batch):
                 case[group] = [resolve_step(batch, case, group, step)[0] for step in case[group]]
         if case.get('reuse_target_digest'):
             data = {item['id']: item for item in result['data']}
-            current = _digest({group: [signature(step, data) for step in case.get(group, [])] for group in GROUPS})
+            current = case_signature(case, data)
             if current != case['reuse_target_digest']:
                 raise ValueError('step reference target sequence or endpoint changed: ' + case['id'])
     return result

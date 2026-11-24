@@ -110,7 +110,8 @@ class ClarificationTests(unittest.TestCase):
         self.assertEqual(case['execution_status'], 'not_run')
         self.assertEqual(result['actions'], [])
         self.assertIn('ui-test', result['next_step'])
-        self.assertIn('approved', result['human_view'])
+        self.assertEqual(result['batch']['cases'][0]['review_status'], 'approved')  # 审批仍在权威候选，不要求机器状态污染业务正文。
+        self.assertNotIn('最终评审：approved', result['human_view'])
         actions = [dict(kind=kind, content_version=final['content_version'], case_ids=final['case_ids'],
                         actual_reply='[SIMULATED] start execution and merge requested explicitly')
                    for kind in ('execution_start', 'merge_instruction')]

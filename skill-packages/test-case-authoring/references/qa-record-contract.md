@@ -64,23 +64,50 @@ advance_record 的写入 OSError 带 `pending_payload/pending_action/record_path
 
 ## 对话与实际决定
 
-完整问题必须包含稳定编号、适用用例/字段/检查、证据定位、中文选项、
-允许自定义答复、推荐、当前理由、主要代价/边界和具体例子。用正常中文
-正文全文展示，不能只发路径或问题卡。真实来源与假设分开标识；无证据
-时说明缺口，不能给未知规则填推荐答案。保留原问题编号和证据。
-
-收到真实答复后逐项核对对象、行为和条件，再记录原话、对话来源与归纳。
-“不知道”不等于搁置或暂定，先保留原话并继续问处置；未取得明确决定前
-先用 record_note 保存并回读原话，再调用 respond 记录 partial 或 unknown；
-两者都保持问题未决，返回完整追问必须在正常对话实际发送并等待答复。
-不得改写既有事件块。仅记录未知而没有实际追问不算完成。
+共同提问、部分答复追问、汇总交付和继续意图按宿主同名加载的
+**test-grill-me** 执行；TCA 的阶段与公开入口映射见[阶段适配](stage-adapter.md)。
+下面只规定本任务持久化和专业决定的含义，不另维护一套共同对话流程。
 
 - formal：实际明确确认的规则，记录确认者来源，不冒充产品确认。
-- provisional：明确授权的暂定预期 authorized_expectation，以及待产品
-  核对的 product_check；只有“先继续”而无预期和条件时继续澄清。
-- deferred：实际明确搁置，记录影响范围，不写候选更新。
+- provisional：明确授权的 authorized_expectation 和待产品核对的
+  product_check；单独“先继续”不能补出预期和条件。
+- deferred：实际明确搁置，记录影响，不写候选更新。
+- partial/unknown：仍未决，不是自动搁置或产品待确认；原话先
+  record_note 保存回读，然后 respond 记录真实已答部分。
 
 ## 持久化公开入口
+
+### 显示评估与公共/特殊归属
+
+实际生成、反馈和恢复均通过同一 `advance_record` 保存两种现有纯评估的同名动作：
+
+```python
+state = advance_record(qa_path, 'assess_review_projection', {
+    'source_version': state['batch']['content_version'],
+    'basis': actual_source_locator_and_reason,
+    'assessments': actual_leaf_assessments,
+    # 有父源的范围副本传准确完整 source_catalog，不能传展示子集。
+    'source_catalog': source_catalog,
+})
+state = advance_record(qa_path, 'review_preparation_scope', actual_scope_review)
+```
+
+显示参数见 [逐叶评估](source-assessed-display.md)，公共与本例特殊参数见
+[适用归属](aggregation-contract.md)。这些事件只改变原 batch 的显示元数据、
+来源绑定及当前视图；问题、真实答复历史、未决和业务确认保持，不记录执行请求。
+未完成的反馈先走原反馈确认流程，不用元数据动作绕过它。
+
+推荐顺序：原来源与真实答复核对 → 正常汇总应用 → 实际显示/适用归属评估保存 →
+具体稿评审 → write_artifacts → 实际 MD 回传 → 原反馈汇总/应用 → 受影响部分复评 →
+write_artifacts → checkpoint/resume。真实业务或来源变化后按当前 owner 重新评估
+失效部分，不能沿用旧绑定。新 review/review_feedback 事件给原话生成同 QA 精确锚点；
+Agent 说明引用该 qa_ref，历史事件和确认文字保持原样。
+
+普通 review 也可在 payload 提供准确完整 `source_catalog`；事件回放和评审渲染
+使用同一源。含父源的候选交付继续把该材料传给 render_review_batch、write_artifacts，
+checkpoint 使用实际 `source_catalog_path`。P1/P2 的当前 P0 证据仍必须通过既有
+`extension_evidence` 路径核验；评估事件不替代该门。不要新建可独立修改的答案 JSON，
+也不要改 candidate 去迎合 checkpoint。
 
 `scripts/qa_record.py` 是对现有 clarification 纯 API 的薄适配。
 MD 内事件保存实际来源，技术状态按事件回放；不要另存可独立编辑的
@@ -94,7 +121,8 @@ session = advance_record(qa_path, 'respond', actual_replies)
 # 实际回读原始来源、答复历史和直接依赖，发现新问题先 append_questions 并等待实际答复。
 session = advance_record(qa_path, 'record_coverage', actual_source_review)
 session = advance_record(qa_path, 'summarize')
-# 以中文展示 summary 中实际决定、拟更新、暂定条件及阻塞范围，等待汇总确认。
+# 按 test-grill-me 展示汇总；仅确认时先 record_note 保存版本/范围并等待。
+# 只有确认且明确继续（或已有有效继续授权）才调用下一行；不可仅为保存确认而应用。
 session = advance_record(qa_path, 'apply_summary', actual_confirmation)
 # 展示更新后的完整用例，单独等待本版本完整评审。
 session = advance_record(qa_path, 'review', actual_review)
@@ -130,13 +158,21 @@ actual_reply；实际报告选择用 record_note，read_notes 从同一 MD 回�
 该记录的汇总和更新。人工编辑导致正文/事件不一致时先核原话，保留冲突，
 不任意覆盖。该工具是本地工作流校验，不是宿主强制安全边界。
 
-规则答复期间候选不变；汇总确认后才集中更新。完整用例评审、合并、
+规则答复期间候选不变；汇总确认加明确继续授权后才集中更新。完整用例评审、合并、
 执行继续独立，不新设业务需求文档审批。模拟答复必须显式标注模拟。
 
-复用来源：grill-with-docs 的完整提问及记录顺序、coverage 扩展 1.0.0 的
-来源核对义务、test-point-discovery 的中文对话与单一问答记录设计；不引入
-grill-system 的单题和独立 JSON 答案运行时。结构回归不能代替实际分轮对话。
+共同交互来源与适配版本由 test-grill-me 单处维护；TCA 继续复用以上公开
+记录入口，不引入另一个答案运行时。结构回归不能代替实际分轮对话。
 
 ## Review repair boundary
 
 Repairs do not rewrite historical event payloads or confirmation hashes. Old tasks without new scope annotations keep their default blocking semantics. If an old disposition was misclassified, preserve the failed task and start an explicitly new synthetic validation task with source scope correctly declared; obtain fresh actual answers and version confirmation. This is a validation restart, not migration of prior approval.
+
+## 本范围收尾
+
+旧任务升级、具体稿保存后收尾、清理中断或局部变更时，执行 [范围收尾](scope-closure.md)。永久事件不删除；临时行只是同文件可丢弃投影。上游问答保留原路径与引用，不把跨Skill资料合并成新总账。
+
+规则答复的 interpretation 表达实际规则/决定含义。复用来源与提问过程使用本 MD 的
+既有 note/qa_ref；分级及风险依据按实际用途定位，具体写法与逐项来源核对见
+[专业生成](professional-generation.md#规则解释与实际来源)。历史解释若只是过程，
+用同 MD 的逐叶评估保存处置，保留原答复与身份，不修改历史事件或创建新答案台账。

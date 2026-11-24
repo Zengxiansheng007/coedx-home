@@ -20,7 +20,7 @@ class XmindFeedbackTests(unittest.TestCase):
             self.assertNotIn('- 1. Enter notice title', markdown)
 
     def test_native_scalar_edits_use_existing_summary_and_both_views(self):
-        original = scope()
+        original = scope(include_all=True)
         lines = original['xmind_markdown'].splitlines()
         root = {'title': lines[0][2:], 'children': {'attached': []}}
         stack = [(-1, root)]
@@ -46,7 +46,7 @@ class XmindFeedbackTests(unittest.TestCase):
                 actual_reply='SIMULATED: edited native file', case_bindings=bound_cases(original['batch'], edited))
             self.assertEqual(pending['status'], 'ready_for_clarification')
             self.assertEqual(pending['channel'], 'xmind')
-            self.assertEqual(len(pending['changes']), 3)  # shared data and two case expectations
+            self.assertEqual(len(pending['changes']), 4)  # shared data and two case expectations
             self.assertEqual(original['batch']['data'][0]['value'], 'Sample notice')
             updated = confirm(pending)
             self.assertEqual(updated['batch']['feedback_history'][-1]['channel'], 'xmind')

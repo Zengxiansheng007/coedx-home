@@ -53,7 +53,8 @@ downstream scope immediately; it is not an execution request. Use
 `prepare_product_change(catalog, result, changes)` then the existing feedback
 contract's `respond`, `summarize`, `apply_feedback`, and `review_feedback` gates.
 Ask all eligible independent questions in chat, preserve partial/unanswered
-records, obtain exact-summary agreement, update the common version once, regenerate
+records, obtain exact-summary agreement and explicit continuation per the
+[stage adapter](stage-adapter.md), update the common version once, regenerate
 both review views, and submit complete changed cases for exact-version final
 review. Regenerate the existing extension design coverage from the revised common
 content with `render_extension` when extension design is present; coverage design

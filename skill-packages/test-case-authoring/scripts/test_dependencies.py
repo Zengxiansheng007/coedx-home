@@ -61,7 +61,7 @@ class DependencyTests(unittest.TestCase):
         full, p = fixture()
         p['final_state_matches'] = False
         r = review_dependencies(full, 'batch', ['EDIT'], [p])
-        self.assertEqual(r['findings'][0]['status'], 'propose_add_or_split')
+        self.assertEqual(r['findings'][0]['status'], 'alternative_or_inline_required')
         p['step_range'] = [0, 1]
         with self.assertRaises(ValueError):
             review_dependencies(full, 'batch', ['EDIT'], [p])

@@ -5,6 +5,12 @@ preparing scoped review. The agent authors meaning; renderers project supplied
 meaning and never infer missing actions from natural-language data. Structural
 checks alone do not establish this review. Keep original inputs unchanged.
 
+首次生成或从材料完整重生成时，先完成[专业生成核对](professional-generation.md)
+的材料、路径、独立观察方面和逐例分级判断，再应用以下动作/数据/结果规则。
+
+Apply [goal/preparation ownership](goal-preparation.md) before assigning source
+actions to preparation or tests, including when repairing or resuming a draft.
+
 ## Work from the verification goal
 
 1. State the case's goal and endpoint against its source. Map every necessary
@@ -35,6 +41,14 @@ checks alone do not establish this review. Keep original inputs unchanged.
    Keep authorized roles, initial state, environment, valid version values and
    required no-record outcomes in business conditions/checks. Relocation never
    removes constraints or grants execution authority.
+8. Before shortening, compare the complete object, condition, action, observation
+   time and result. Normalize source-established synonyms in the authored candidate;
+   never merge unknown equivalence. Keep blur and save triggers, prompt and no-record
+   assertions, role/state differences, ordered operations, data bindings and endpoints
+   independently visible. Use the same review after feedback and recovery. A simple
+   value needs no metadata tree; generation rules and meaningful limits remain data,
+   and complex conditional branches remain explicit. Do not delete fields by name
+   or move actions into parameters merely to shorten a view.
 
 ## Unknown behavior requires an actual question
 

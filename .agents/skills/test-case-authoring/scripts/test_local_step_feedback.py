@@ -14,6 +14,23 @@ def shared_design():
 
 
 class LocalStepFeedbackTests(unittest.TestCase):
+    def test_data_feedback_cannot_implicitly_change_displayed_p0(self):
+        from authoring import _digest
+        args = shared_design()
+        batch = build_extension(*args, mode='simulation')['batch']
+        source = copy.deepcopy(args[0]['cases'][0])
+        batch['cases'].append(source)
+        batch['selection'].append(dict(case_id=source['id'], action='related', reason='SIMULATED displayed source'))
+        base = batch['initial_copy_baseline']
+        base['cases'].append(copy.deepcopy(source))
+        base['copy_version'] = _digest({k: base[k] for k in ('cases', 'data', 'selection', 'step_definitions')})
+        frozen = copy.deepcopy(batch)
+        pending = prepare_feedback(batch, 'chat', source_catalog=args[0], actual_reply='SIMULATED: adjust current candidate input', changes=[
+            dict(collection='data', id=batch['data'][0]['id'], path=['value'], value='changed input')])
+        with self.assertRaisesRegex(ValueError, 'unshown|Explicit P0'):
+            confirm(pending)  # A global data leaf cannot bypass the shared-source impact proposal.
+        self.assertEqual(batch, frozen)
+
     def test_dynamic_data_feedback_is_scoped_to_current_binding(self):
         from p0_evidence import approve_p0_scope
         args = list(shared_design())
@@ -27,26 +44,24 @@ class LocalStepFeedbackTests(unittest.TestCase):
             case['steps'][0]['data_refs'] = [item['id']]
         batch = build_extension(*args, mode='simulation')['batch']
         frozen = copy.deepcopy(batch)
-        pending = prepare_feedback(batch, 'chat', actual_reply='SIMULATED: current data only', changes=[
+        pending = prepare_feedback(batch, 'chat', source_catalog=args[0], actual_reply='SIMULATED: current data only', changes=[
             dict(collection='data', id='current-0', path=['value'], value='Revised')])
-        updated = confirm(pending)['batch']
+        updated = confirm(pending, source_catalog=args[0])['batch']
         self.assertEqual(pending['affected_case_ids'], ['LOW'])
         self.assertNotIn('step_reference', updated['cases'][0]['steps'][0])
         self.assertEqual(updated['cases'][1], frozen['cases'][1])
         self.assertEqual(updated['step_definitions'], frozen['step_definitions'])
         self.assertEqual(batch, frozen)
 
-    def test_explicit_shared_data_feedback_materializes_consumers(self):
-        batch = build_extension(*shared_design(), mode='simulation')['batch']
+    def test_shared_data_feedback_requires_hidden_source_consumers(self):
+        args = shared_design()
+        batch = build_extension(*args, mode='simulation')['batch']
         frozen = copy.deepcopy(batch)
-        pending = prepare_feedback(batch, 'chat', actual_reply='SIMULATED: edit shared data', changes=[
+        pending = prepare_feedback(batch, 'chat', source_catalog=args[0], actual_reply='SIMULATED: edit shared data', changes=[
             dict(collection='data', id=batch['data'][0]['id'], path=['value'], value='changed input')])
-        updated = confirm(pending)['batch']
-        self.assertEqual(set(pending['affected_case_ids']), {'LOW', 'HIGH'})
-        for case in updated['cases']:
-            self.assertNotIn('step_reference', case['steps'][0])
-            self.assertTrue(case['steps'][0]['expected'])
-        self.assertEqual(updated['step_definitions'], frozen['step_definitions'])
+        self.assertTrue({'LOW', 'HIGH', 'EDIT', 'LINK'}.issubset(pending['affected_case_ids']))
+        with self.assertRaisesRegex(ValueError, 'unshown'):
+            confirm(pending, source_catalog=args[0])  # Hidden P0 consumers require a separately authorized complete review.
         self.assertEqual(batch, frozen)
 
     def test_layout_whitespace_keeps_reference_and_review_scope(self):

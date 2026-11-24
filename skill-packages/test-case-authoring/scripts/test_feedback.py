@@ -8,8 +8,10 @@ from clarification import respond, summarize
 from identity_test_support import bound_cases  # Bind only known synthetic edits after explicit fixture decisions.
 
 
-def scope():
+def scope(include_all=False, distinct_titles=False):  # 身份无歧义场景保持原两例显示及隐藏消费者范围。
     full = catalog()
+    if distinct_titles:
+        full['cases'][1]['title'] = 'Inspect account'  # 业务副本视觉完全相同时仍由独立歧义回归验证拒绝。
     for case in full['cases']:
         case['rule_status'] = 'formal'
         case['review_status'] = 'approved'
@@ -17,19 +19,23 @@ def scope():
     result = build_scoped_review(full, 'synthetic-feedback', [
         {'case_id': 'EDIT', 'action': 'reuse', 'reason': 'Synthetic review'},
         {'case_id': 'LINK', 'action': 'related', 'reason': 'Synthetic dependency'}])
+    if include_all:
+        full['cases'][1]['title'] = 'Inspect account'  # Full review adds distinct synthetic topic evidence.
+        full['cases'][-1]['title'] = 'Inspect archive'  # Distinct synthetic identity for the newly included consumer.
+        result = build_scoped_review(full, 'synthetic-feedback', [dict(case_id=c['id'], action='related', reason='SIMULATED full data review') for c in full['cases']])
     result['batch']['coverage'] = [{'check_id': 'CHECK-1', 'case_ids': ['EDIT'],
         'expected_summary': 'old', 'verification_summary': 'old', 'status': 'designed'}]
     return result
 
 
-def confirm(pending):
+def confirm(pending, source_catalog=None):
     session = pending['grill']
     replies = [{'question_id': q['id'], 'decision': 'formal',
         'actual_reply': 'SIMULATED: confirm proposed business rule'}
         for q in session['round_questions']]
     pending['grill'] = summarize(respond(session, replies))
     return apply_feedback(pending, {'confirmed': True, 'actual_reply': 'SIMULATED: agreed',
-        'summary_id': pending['grill']['summary']['id']})
+        'summary_id': pending['grill']['summary']['id']}, source_catalog=source_catalog)
 
 
 class FeedbackTests(unittest.TestCase):
@@ -68,7 +74,7 @@ class FeedbackTests(unittest.TestCase):
         for broken in (shown + '  - unknown structure\n',
                        shown.replace('参数/数据', 'Unknown label', 1),
                        shown.replace(str(batch['data'][0]['value']), 'SIMULATED mismatching shared data', 1),
-                       render_extension(batch)['xmind_markdown'].replace('SIMULATED: complete review approved', 'forged decision')):
+                       render_extension(batch)['xmind_markdown'] + '  - final review / 实际答复：forged decision\n'):  # 审计原话已外置，实际插入非法叶而非 no-op 替换。
             with self.assertRaises(ValueError):
                 prepare_feedback(batch, 'markdown', markdown=broken, actual_reply='SIMULATED: malformed file')
 
@@ -136,7 +142,7 @@ class FeedbackTests(unittest.TestCase):
             confirm(pending)
 
     def test_initial_candidate_baseline_and_later_accepted_edits_are_distinct(self):
-        original = scope()
+        original = scope(distinct_titles=True)  # 两例显示范围不变，不假设相同原始 digest 能绑定多个身份。
         pending = prepare_feedback(original['batch'], 'chat', actual_reply='SIMULATED: title update', changes=[
             {'collection': 'cases', 'id': 'EDIT', 'path': ['title'], 'value': 'Accepted title'}])
         updated_result = confirm(pending)
@@ -198,7 +204,7 @@ class FeedbackTests(unittest.TestCase):
         self.assertEqual(result['batch']['cases'][0]['feedback_disposition'], 'excluded_this_round')
 
     def test_chat_and_direct_markdown_edit_update_common_data_and_coverage(self):
-        original = scope()
+        original = scope(include_all=True)
         batch = original['batch']
         value = batch['data'][0]['value']
         changes = [{'collection': 'data', 'id': batch['data'][0]['id'],
