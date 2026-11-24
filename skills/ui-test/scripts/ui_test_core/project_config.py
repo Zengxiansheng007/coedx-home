@@ -138,8 +138,8 @@ def runtime_index_path(config: dict[str, Any]) -> Path:
     if not isinstance(reference, str) or not reference.startswith("path:"):
         raise ProjectConfigError("E_RUNTIME_INDEX_REF_MISSING: project config must declare a path reference")
     raw_path = reference.removeprefix("path:").replace("/", "\\")
-    source = Path(raw_path)
-    expected_root = Path(r"D:\UI-Test\_private\runtime-values")
+    source = PureWindowsPath(raw_path)  # Validate the configured Windows path on every host.
+    expected_root = PureWindowsPath(r"D:\UI-Test\_private\runtime-values")
     try:
         source.relative_to(expected_root)
     except ValueError as exc:
@@ -148,7 +148,7 @@ def runtime_index_path(config: dict[str, Any]) -> Path:
     expected_parts = (str(scope.get("project_group", "")), str(scope.get("product", "")), str(scope.get("environment", "")), "runtime-value-index.yaml")
     if tuple(source.parts[-4:]) != expected_parts:
         raise ProjectConfigError("E_RUNTIME_INDEX_SCOPE_MISMATCH: runtime index path does not match project scope")
-    return source
+    return Path(raw_path)  # Preserve the existing filesystem path return contract.
 
 
 def credential_index_path(config: dict[str, Any]) -> Path:
@@ -157,8 +157,8 @@ def credential_index_path(config: dict[str, Any]) -> Path:
     if not isinstance(reference, str) or not reference.startswith("path:"):
         raise ProjectConfigError("E_CREDENTIAL_INDEX_REF_MISSING: project config must declare a path reference")
     raw_path = reference.removeprefix("path:").replace("/", "\\")
-    source = Path(raw_path)
-    expected_root = Path(r"D:\UI-Test\_private\runtime-values")
+    source = PureWindowsPath(raw_path)  # Validate the configured Windows path on every host.
+    expected_root = PureWindowsPath(r"D:\UI-Test\_private\runtime-values")
     try:
         source.relative_to(expected_root)
     except ValueError as exc:
@@ -167,7 +167,7 @@ def credential_index_path(config: dict[str, Any]) -> Path:
     expected_parts = (str(scope.get("project_group", "")), str(scope.get("product", "")), str(scope.get("environment", "")), "credential-index.yaml")
     if tuple(source.parts[-4:]) != expected_parts:
         raise ProjectConfigError("E_CREDENTIAL_INDEX_SCOPE_MISMATCH: credential index path does not match project scope")
-    return source
+    return Path(raw_path)  # Preserve the existing filesystem path return contract.
 
 
 def load_project_runtime_values(config: dict[str, Any]) -> dict[str, Any]:
