@@ -15,3 +15,5 @@
 ## Open Risks
 
 实际行为及宿主调用待Root独立验证。AT02初次静态缺少索引标题的失败保留于at02-validation.md；修正后见at02-validation-after.md。AT03验证见at03-validation.md；当前均为applied候选。
+
+- [CR-20261127-071 · Selected suite routing](entries/2026/2026-11/CR-20261127-071-selected-suite-routing.md)

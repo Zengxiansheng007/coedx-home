@@ -33,3 +33,5 @@
 - Impact: 只读咨询，不执行下游。
 - Validation: 见详情与tests/ask-test/at03-validation.md；行为待Root。
 - Detail record: [CR-20261111-003](../entries/2026/2026-11/CR-20261111-003-content-quality.md)
+
+- [CR-20261127-071 · Selected suite routing](../entries/2026/2026-11/CR-20261127-071-selected-suite-routing.md)
