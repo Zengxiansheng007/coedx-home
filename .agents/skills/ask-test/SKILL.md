@@ -1,6 +1,6 @@
 ---
 name: ask-test
-description: "测试编写顾问。Use only when the user explicitly invokes $ask-test or directly requests this skill. 提供只读材料核对、阶段与缺口判断及入口建议；普通答疑直接回答，咨询止于建议。"
+description: "测试编写顾问。Use when the user explicitly invokes $ask-test or directly requests this skill. 提供只读材料核对、阶段与缺口判断及入口建议；普通答疑直接回答，咨询止于建议。"
 ---
 
 # 测试编写顾问
@@ -10,6 +10,12 @@ description: "测试编写顾问。Use only when the user explicitly invokes $as
 仅用户明确调用 `$ask-test` 或直接要求使用本 Skill 时进入。提及名称、其他 Skill 推荐、关键词及阶段变化均不是调用。`agents/openai.yaml` 声明禁用隐式调用；配置是静态意图，是否遵循须宿主另验。
 
 本入口以 test-point-discovery、test-case-authoring 为核心，提供有依据的阶段、缺口和继续建议。输入可以是当前问题、任务目录、PRD、问答、测试点、P0或报告。输出在对话中；普通答疑直接回答，不强制阶段全表或交接长文。
+
+## UI 测试咨询
+
+明确咨询 UI 自动化时，使用用户所选 `ui-test` 安装，直接读取该主 Skill 的 `references` 目录中的 `capabilities.json`（UTF-8，schema_version 1）。用户指定路径或版本时固定该选择。未指定时，使用当前项目/宿主提供的唯一安装；多份列出实际候选目录，请用户选择。缺失、不可读或未知版本时说明路径及所缺目录，测试编写仍按下述既有地图咨询。
+
+根据业务目标在全部 entries 中匹配 description 和 outputs，询问完整流程时选 kind=workflow，单项交付选 capability。以规范名给出推荐，结合所需交付说明理由，并将 inputs、requires 与用户明确指定的材料对照，指出具体缺项或已知前置。需要确认时列出候选间的交付区别。按同一方法接纳新登记的能力。答复后结束；只读目录数据和指定材料，不导入套件代码、不运行工具入口、不启动下游、不改变阶段或尝试次数。
 
 ## 只读咨询步骤
 
