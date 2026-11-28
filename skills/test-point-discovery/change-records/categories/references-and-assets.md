@@ -8,6 +8,7 @@
 
 | Date | Change ID | Section | Change Type | Summary | Status |
 | --- | --- | --- | --- | --- | --- |
+| 2026-11-28 | CR-20261128-194 | 模块大纲 | changed | 原树采用记录、输入契约和逐模块入口 | validated |
 | 2026-11-10 | CR-20261110-006 | 共同反馈定义及当前证据 | fixed / validation | 单一来源与CR004/005独立结论 | validated |
 | 2026-11-10 | CR-20261110-005 | 最终已知修复及当前技术状态 | fixed | 序号表述及前三票状态证据对齐 | validated |
 | 2026-11-10 | CR-20261110-004 | 阶段8交接 | changed | 整体核对及12AC冻结观察 | validated |
@@ -22,6 +23,14 @@
 | 2026-11-09 | CR-20261109-003 | 当前模块集中生成 | fixed | 处置、来源补漏和依赖复核绑定生成 | validated |
 
 ## Detailed Records
+
+### CR-20261128-194 - 模块大纲
+
+- Section changed / After：原树采用记录、输入契约和逐模块入口。
+- Before：阶段入口依靠人工读取现有流程。
+- Why / Impact：#194 要求按任务和模块核对用户原意与拟写范围。
+- Validation / Detail record：[开发验证与边界](../entries/2026/2026-11/CR-20261128-194-module-outline-check.md)。
+
 
 ### CR-20261110-002 - planning-transitions
 
