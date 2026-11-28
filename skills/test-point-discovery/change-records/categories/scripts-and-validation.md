@@ -8,6 +8,7 @@
 
 | Date | Change ID | Section | Change Type | Summary | Status |
 | --- | --- | --- | --- | --- | --- |
+| 2026-11-28 | CR-20261128-200 | 清空后恢复 | fixed | 固定程序从原清空确认恢复空历史，覆盖重新增加、确认和续写 | validated |
 | 2026-11-28 | CR-20261128-197 | 已采用范围的修订 | changed | 同一 CLI 支持明确待删旧叶、变更复核及原叶内细化 | validated |
 | 2026-11-28 | CR-20261128-196 | 原问答范围回查 | changed | 支持原始连续行范围；测试保留追加后的有效引用并拒绝原文改写。 | validated |
 | 2026-11-28 | CR-20261128-195 | 大纲展示与等待 | changed | 会话确认校验助手展示、用户角色与消息顺序 | validated |
@@ -27,6 +28,12 @@
 | 2026-11-09 | CR-20261109-003 | 当前模块集中生成 | fixed | 处置、来源补漏和依赖复核绑定生成 | validated |
 
 ## Detailed Records
+
+### CR-20261128-200 - 清空后恢复
+
+- Section changed / After：固定程序从原清空确认恢复空历史，覆盖重新增加、确认和续写。
+- Before / Why：已合法清空的模块无法展示随后新增的第一叶。
+- Impact / Validation：[适用范围和回归结果](../entries/2026/2026-11/CR-20261128-200-reopen-retired-outline.md)。
 
 ### CR-20261128-197 - 已采用范围的修订
 
