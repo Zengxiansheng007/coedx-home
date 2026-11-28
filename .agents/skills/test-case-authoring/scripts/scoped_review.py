@@ -273,7 +273,7 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
                     tree.append(indent + '    - 参数/数据')  # Complex branches retain individual leaves.
                     for position, value in enumerate(values):
                         if position in input_positions:
-                            input_bindings[len(tree) - 3] = input_positions[position]
+                            input_bindings[len(tree) - 3] = (case['id'], step['id'], input_positions[position])
                         tree.append(indent + '      - ' + _cell(value))
                 tree.append(indent + '    - 预期')
                 tree.extend(indent + '      - ' + _cell(v) for v in expected)
@@ -519,6 +519,8 @@ def build_scoped_review(catalog, batch_id, selection, approved_validation_scope=
         batch['review_layout'] = review_layout  # 随候选版本一起保存，恢复时选回同一布局。
     if hypothetical:
         batch['hypothetical'] = True  # 本轮版式演示的声明随候选保存。
+    if full.get('input_reuse'):
+        batch['input_reuse'] = {cid: rows for cid, rows in full['input_reuse'].items() if cid in selected_ids}
     if full.get('source_preparations'):
         batch['source_preparations'] = copy.deepcopy(full['source_preparations'])
     if full.get('preparation_scopes'):

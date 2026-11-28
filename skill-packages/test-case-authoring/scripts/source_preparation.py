@@ -216,6 +216,7 @@ def main():
     parser.add_argument('--candidate', type=Path, required=True)
     parser.add_argument('--source-catalog', type=Path, help='Exact complete parent for an authorized extension')
     parser.add_argument('--assessment', type=Path)
+    parser.add_argument('--input-assessments', type=Path, help='Source-assessed P0 invocation inputs by target case ID')
     parser.add_argument('--case', dest='ids', action='append')
     parser.add_argument('--impact', metavar='NAME', help='Review every current reference to this common definition')
     parser.add_argument('--module-path', action='append', help='Repeat for each ordered module path component')
@@ -227,8 +228,11 @@ def main():
     parent = json.loads(args.source_catalog.read_text(encoding='utf-8-sig')) if args.source_catalog else None
     if args.assessment:
         batch = assess_preparations(batch, json.loads(args.assessment.read_text(encoding='utf-8-sig')), source_catalog=parent)
+    if args.input_assessments:
+        from input_reuse import bind_inputs
+        batch = bind_inputs(batch, json.loads(args.input_assessments.read_text(encoding='utf-8-sig')), source_catalog=parent)
     if args.impact:
-        if args.ids or args.assessment or not args.module_path or not args.version:
+        if args.ids or args.assessment or args.input_assessments or not args.module_path or not args.version:
             parser.error('--impact needs --module-path and --version on an assessed candidate, without --case or --assessment')
         args.ids = affected_case_ids(batch, args.module_path, args.impact, args.version, source_catalog=parent)
     elif args.module_path or args.version:
