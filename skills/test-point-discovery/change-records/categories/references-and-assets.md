@@ -8,6 +8,12 @@
 
 | Date | Change ID | Section | Change Type | Summary | Status |
 | --- | --- | --- | --- | --- | --- |
+| 2026-11-28 | CR-20261128-200 | 清空后恢复 | fixed | 说明清空后沿用该决定重新展示第一叶 | validated |
+| 2026-11-28 | CR-20261128-197 | 已采用范围的修订 | changed | 记录新旧范围、差异展示、用户答复及局部写删请求 | validated |
+| 2026-11-28 | CR-20261128-196 | 接续判定与引用 | changed | 记录本次范围、版本、实际决定、阶段5缺口及出稿渠道。 | validated |
+| 2026-11-28 | CR-20261128-195 | 大纲展示与等待 | changed | 按资料核对漏项和归属，展示具体版本并等待真实答复 | validated |
+| 2026-11-28 | CR-20261128-194 | 模块大纲 | changed | 原树采用记录、输入契约和逐模块入口 | validated |
+| 2026-11-28 | CR-20261128-198 | 短节点与共用表达 | changed | 在同一规则写全判据，点名合写输入，显式区分平台和证据身份。 | validated |
 | 2026-11-10 | CR-20261110-006 | 共同反馈定义及当前证据 | fixed / validation | 单一来源与CR004/005独立结论 | validated |
 | 2026-11-10 | CR-20261110-005 | 最终已知修复及当前技术状态 | fixed | 序号表述及前三票状态证据对齐 | validated |
 | 2026-11-10 | CR-20261110-004 | 阶段8交接 | changed | 整体核对及12AC冻结观察 | validated |
@@ -22,6 +28,41 @@
 | 2026-11-09 | CR-20261109-003 | 当前模块集中生成 | fixed | 处置、来源补漏和依赖复核绑定生成 | validated |
 
 ## Detailed Records
+
+### CR-20261128-200 - 清空后恢复
+
+- Section changed / After：说明清空后沿用该决定重新展示第一叶。
+- Before / Why：已合法清空的模块无法展示随后新增的第一叶。
+- Impact / Validation：[适用范围和回归结果](../entries/2026/2026-11/CR-20261128-200-reopen-retired-outline.md)。
+
+### CR-20261128-197 - 已采用范围的修订
+
+- Section changed / After：记录新旧范围、差异展示、用户答复及局部写删请求。
+- Before / Why：整棵树的变更会连带阻断未变分支，原入口未绑定删除旧稿的动作。
+- Impact / Validation：[变更详情与演练证据](../entries/2026/2026-11/CR-20261128-197-outline-revisions.md)。
+
+### CR-20261128-196 - 接续判定与引用
+
+- Section changed：接续判定与引用。
+- Before：接续材料没有按原大纲版本恢复的步骤。
+- After：记录本次范围、版本、实际决定、阶段5缺口及出稿渠道。
+- Why：#196 要求接续时复用仍有效的大纲。
+- Impact：阶段6的原记录恢复、出稿和阻断。
+- Validation / Detail record：[CR-20261128-196](../entries/2026/2026-11/CR-20261128-196-stage-six-resume.md)。
+
+### CR-20261128-195 - 大纲展示与等待
+
+- Section changed / After：按资料核对漏项和归属，展示具体版本并等待真实答复。
+- Before / Why：#195 要求把首次阻断接到实际资料和一轮具体的大纲决定。
+- Impact / Validation：[测试结果及作用范围](../entries/2026/2026-11/CR-20261128-195-display-and-wait.md)。
+
+### CR-20261128-194 - 模块大纲
+
+- Section changed / After：原树采用记录、输入契约和逐模块入口。
+- Before：阶段入口依靠人工读取现有流程。
+- Why / Impact：#194 要求按任务和模块核对用户原意与拟写范围。
+- Validation / Detail record：[开发验证与边界](../entries/2026/2026-11/CR-20261128-194-module-outline-check.md)。
+
 
 ### CR-20261110-002 - planning-transitions
 
@@ -168,3 +209,13 @@ CR004/005当前validated只登记上述原冻结的独立技术结论，整体�
 本分类CR004/005/006为validated，整体为validated-candidate。共同反馈单一来源及受影响反馈回流在原SIMULATION范围通过，references/assets保持原版本。
 
 验证摘要为7b2已完成技术结果，历史pending/失败及d07记录沿用原身份。完整证据、版本/hash、条件裁定和未验边界见[CR006当前技术详情](../entries/2026/2026-11/CR-20261110-006-shared-feedback-definition.md#current-technical-status-at-7b2a44b5)。
+
+### CR-20261128-198 · 短节点与共用表达
+
+- Section changed：短节点与共用表达。
+- Before：示例把上限和超限处理拆成两个并列节点。
+- After：在同一规则写全判据，点名合写输入，显式区分平台和证据身份。
+- Why：#198 要求在精简稿中保留判据与执行覆盖。
+- Impact：当前模块编写、修订与交接。
+- Validation：局部新稿的 9 个输入分支可回查 18 个执行条目。
+- Detail record：[CR-20261128-198](../entries/2026/2026-11/CR-20261128-198-outline-writing.md)。

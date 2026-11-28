@@ -8,6 +8,12 @@
 
 | Date | Change ID | Section | Change Type | Summary | Status |
 | --- | --- | --- | --- | --- | --- |
+| 2026-11-28 | CR-20261128-200 | 清空后恢复 | fixed | 固定程序从原清空确认恢复空历史，覆盖重新增加、确认和续写 | validated |
+| 2026-11-28 | CR-20261128-197 | 已采用范围的修订 | changed | 同一 CLI 支持明确待删旧叶、变更复核及原叶内细化 | validated |
+| 2026-11-28 | CR-20261128-196 | 原问答范围回查 | changed | 支持原始连续行范围；测试保留追加后的有效引用并拒绝原文改写。 | validated |
+| 2026-11-28 | CR-20261128-195 | 大纲展示与等待 | changed | 会话确认校验助手展示、用户角色与消息顺序 | validated |
+| 2026-11-28 | CR-20261128-194 | 模块大纲 | changed | 只读标准库校验器、合成负例与 CI | validated |
+| 2026-11-28 | CR-20261128-198 | 编写回归 | changed | 增加合成请求及事后评审条件，使用本机既有材料核对实际局部稿。 | validated |
 | 2026-11-10 | CR-20261110-006 | 共同反馈定义及当前证据 | fixed / validation | 单一来源与CR004/005独立结论 | validated |
 | 2026-11-10 | CR-20261110-005 | 最终已知修复及当前技术状态 | fixed | 序号表述及前三票状态证据对齐 | validated |
 | 2026-11-10 | CR-20261110-004 | 阶段8交接 | changed | 整体核对及12AC冻结观察 | validated |
@@ -22,6 +28,41 @@
 | 2026-11-09 | CR-20261109-003 | 当前模块集中生成 | fixed | 处置、来源补漏和依赖复核绑定生成 | validated |
 
 ## Detailed Records
+
+### CR-20261128-200 - 清空后恢复
+
+- Section changed / After：固定程序从原清空确认恢复空历史，覆盖重新增加、确认和续写。
+- Before / Why：已合法清空的模块无法展示随后新增的第一叶。
+- Impact / Validation：[适用范围和回归结果](../entries/2026/2026-11/CR-20261128-200-reopen-retired-outline.md)。
+
+### CR-20261128-197 - 已采用范围的修订
+
+- Section changed / After：同一 CLI 支持明确待删旧叶、变更复核及原叶内细化。
+- Before / Why：整棵树的变更会连带阻断未变分支，原入口未绑定删除旧稿的动作。
+- Impact / Validation：[变更详情与演练证据](../entries/2026/2026-11/CR-20261128-197-outline-revisions.md)。
+
+### CR-20261128-196 - 原问答范围回查
+
+- Section changed：原问答范围回查。
+- Before：追加问答使依靠多行上下文的整文件引用失效。
+- After：支持原始连续行范围；测试保留追加后的有效引用并拒绝原文改写。
+- Why：#196 要求接续时复用仍有效的大纲。
+- Impact：阶段6的原记录恢复、出稿和阻断。
+- Validation / Detail record：[CR-20261128-196](../entries/2026/2026-11/CR-20261128-196-stage-six-resume.md)。
+
+### CR-20261128-195 - 大纲展示与等待
+
+- Section changed / After：会话确认校验助手展示、用户角色与消息顺序。
+- Before / Why：#195 要求把首次阻断接到实际资料和一轮具体的大纲决定。
+- Impact / Validation：[测试结果及作用范围](../entries/2026/2026-11/CR-20261128-195-display-and-wait.md)。
+
+### CR-20261128-194 - 模块大纲
+
+- Section changed / After：只读标准库校验器、合成负例与 CI。
+- Before：阶段入口依靠人工读取现有流程。
+- Why / Impact：#194 要求按任务和模块核对用户原意与拟写范围。
+- Validation / Detail record：[开发验证与边界](../entries/2026/2026-11/CR-20261128-194-module-outline-check.md)。
+
 
 ### CR-20261110-002 - planning-transitions
 
@@ -168,3 +209,13 @@ CR004/005当前validated只登记上述原冻结的独立技术结论，整体�
 本分类CR004/005/006为validated，整体为validated-candidate。当前证据为限定模拟与静态验证，脚本及测试保持原版本。
 
 验证摘要为7b2已完成技术结果，历史pending/失败及d07记录沿用原身份。完整证据、版本/hash、条件裁定和未验边界见[CR006当前技术详情](../entries/2026/2026-11/CR-20261110-006-shared-feedback-definition.md#current-technical-status-at-7b2a44b5)。
+
+### CR-20261128-198 · 编写回归
+
+- Section changed：编写回归。
+- Before：现有编写样例未检验每种合写输入的执行去向。
+- After：增加合成请求及事后评审条件，使用本机既有材料核对实际局部稿。
+- Why：#198 要求在精简稿中保留判据与执行覆盖。
+- Impact：当前模块编写、修订与交接。
+- Validation：局部新稿的 9 个输入分支可回查 18 个执行条目。
+- Detail record：[CR-20261128-198](../entries/2026/2026-11/CR-20261128-198-outline-writing.md)。

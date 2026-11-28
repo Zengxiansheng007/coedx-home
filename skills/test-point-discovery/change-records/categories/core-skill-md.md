@@ -8,6 +8,11 @@
 
 | Date | Change ID | Section | Change Type | Summary | Status |
 | --- | --- | --- | --- | --- | --- |
+| 2026-11-28 | CR-20261128-197 | 已采用范围的修订 | changed | 已采用模块的修订从正式入口重查旧决定与本次改动 | validated |
+| 2026-11-28 | CR-20261128-196 | 阶段6接续入口 | changed | SKILL 接入原问答恢复、固定程序和编写前提。 | validated |
+| 2026-11-28 | CR-20261128-195 | 大纲展示与等待 | changed | 入口在缺树、示例或范围不明时转入展示与等待 | validated |
+| 2026-11-28 | CR-20261128-194 | 模块大纲 | changed | 首次调用运行固定程序，聊天和文件共享结果 | validated |
+| 2026-11-28 | CR-20261128-198 | 阶段6编写与自检 | changed | 编写时沿当前大纲恢复输入、差异与执行依据。 | validated |
 | 2026-11-10 | CR-20261110-006 | 共同反馈定义及当前证据 | fixed / validation | 单一来源与CR004/005独立结论 | validated |
 | 2026-11-10 | CR-20261110-005 | 最终已知修复及当前技术状态 | fixed | 序号表述及前三票状态证据对齐 | validated |
 | 2026-11-10 | CR-20261110-004 | 阶段8交接 | changed | 整体核对及12AC冻结观察 | validated |
@@ -22,6 +27,35 @@
 | 2026-11-09 | CR-20261109-003 | 当前模块集中生成 | fixed | 处置、来源补漏和依赖复核绑定生成 | validated |
 
 ## Detailed Records
+
+### CR-20261128-197 - 已采用范围的修订
+
+- Section changed / After：已采用模块的修订从正式入口重查旧决定与本次改动。
+- Before / Why：整棵树的变更会连带阻断未变分支，原入口未绑定删除旧稿的动作。
+- Impact / Validation：[变更详情与演练证据](../entries/2026/2026-11/CR-20261128-197-outline-revisions.md)。
+
+### CR-20261128-196 - 阶段6接续入口
+
+- Section changed：阶段6接续入口。
+- Before：入口核对阶段3与5，未明确重跑大纲校验。
+- After：SKILL 接入原问答恢复、固定程序和编写前提。
+- Why：#196 要求接续时复用仍有效的大纲。
+- Impact：阶段6的原记录恢复、出稿和阻断。
+- Validation / Detail record：[CR-20261128-196](../entries/2026/2026-11/CR-20261128-196-stage-six-resume.md)。
+
+### CR-20261128-195 - 大纲展示与等待
+
+- Section changed / After：入口在缺树、示例或范围不明时转入展示与等待。
+- Before / Why：#195 要求把首次阻断接到实际资料和一轮具体的大纲决定。
+- Impact / Validation：[测试结果及作用范围](../entries/2026/2026-11/CR-20261128-195-display-and-wait.md)。
+
+### CR-20261128-194 - 模块大纲
+
+- Section changed / After：首次调用运行固定程序，聊天和文件共享结果。
+- Before：阶段入口依靠人工读取现有流程。
+- Why / Impact：#194 要求按任务和模块核对用户原意与拟写范围。
+- Validation / Detail record：[开发验证与边界](../entries/2026/2026-11/CR-20261128-194-module-outline-check.md)。
+
 
 ### CR-20261110-002 - planning-transitions
 
@@ -168,3 +202,13 @@ CR004/005当前validated只登记上述原冻结的独立技术结论，整体�
 本分类CR004/005/006为validated，整体为validated-candidate。八阶段入口及模块推进沿用已验证版本，本次仅收敛行政证据指针。
 
 验证摘要为7b2已完成技术结果，历史pending/失败及d07记录沿用原身份。完整证据、版本/hash、条件裁定和未验边界见[CR006当前技术详情](../entries/2026/2026-11/CR-20261110-006-shared-feedback-definition.md#current-technical-status-at-7b2a44b5)。
+
+### CR-20261128-198 · 阶段6编写与自检
+
+- Section changed：阶段6编写与自检。
+- Before：入口指向通用规则粒度和名称标记。
+- After：编写时沿当前大纲恢复输入、差异与执行依据。
+- Why：#198 要求在精简稿中保留判据与执行覆盖。
+- Impact：当前模块编写、修订与交接。
+- Validation：局部新稿的 9 个输入分支可回查 18 个执行条目。
+- Detail record：[CR-20261128-198](../entries/2026/2026-11/CR-20261128-198-outline-writing.md)。
