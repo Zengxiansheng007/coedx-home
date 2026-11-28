@@ -68,15 +68,19 @@ records and cannot stand in for fresh generation or user review.
 
 ## Independent case handoff
 
-For a named case from an assessed review, use the same candidate that supplied the XMind copy.
-Call `presentation.render_chat(batch, [case_id], source_catalog=parent_if_scoped)` for chat.
-For a portable JSON attachment run:
+An independent executor reads `content_version` and `case_ids` from the delivered
+`agent.json`. Select one listed case and pass that exact version:
 
 ```shell
-python scripts/single_case.py --candidate candidate.json --version <content_version> --case <case_id> --output case.json
+python scripts/single_case.py --agent path/to/agent.json --version <content_version> --case <case_id> --output case.json
 ```
 
-For a partial catalog copy, add `--source-catalog <exact-parent.json>`. The output path must be new.
+Keep the index with its candidate and any indexed parent catalog. The command checks
+the selected case, its step and data identities, and the versioned sources, then writes
+to a new output path. A scope or source mismatch requires the matching delivery.
+For the existing direct candidate workflow, use `--candidate candidate.json` in place
+of `--agent` and add `--source-catalog <exact-parent.json>` for a partial copy.
+For chat, call `presentation.render_chat(batch, [case_id], source_catalog=parent_if_scoped)`.
 Read the current case's context, ordered preparation and steps, and any postconditions.
 Each step's `data_refs` names records in the attachment's `data` object. Use their actual values,
 preserving omitted keys, empty strings and objects. Replace only existing placeholders with

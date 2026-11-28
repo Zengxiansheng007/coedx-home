@@ -37,8 +37,8 @@ Deliver the same-version `xmind.md` and `agent.json` with the exact candidate an
 required parent from [reader delivery](references/chat-delivery.md#paired-reader-delivery).
 Keep business conditions at their applicable operation and execution methods in the Agent source. For an explicitly needed selection of
 1–9 complete cases, call `presentation.render_chat` and show its returned text
-directly in chat. For an independent execution handoff, export one checked candidate
-version and case ID with [the single-case entry](references/chat-delivery.md#independent-case-handoff).
+directly in chat. An independent executor opens the delivered `agent.json` and retrieves one
+listed case by version and ID using [single_case.py --agent](references/chat-delivery.md#independent-case-handoff).
 Keep candidate/Q&A records; human-view tables have no file artifact.
 
 Before display, rename, same-name feedback or Markdown/native return, read

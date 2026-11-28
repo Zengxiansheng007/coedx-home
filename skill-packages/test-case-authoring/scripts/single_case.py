@@ -6,6 +6,7 @@ from pathlib import Path
 
 from authoring import _credential_guard, _digest
 from preparation_scope import operation_scopes, scope_context
+from reader_delivery import case_references
 from restoration import preflight, validate_executable_step
 from review_segments import checked_range, signature
 from scoped_review import GROUPS, _references
@@ -86,20 +87,60 @@ def get_case(batch, version, case_id, *, source_catalog=None, base_path=None):
     return copy.deepcopy(packet)
 
 
+def read_json(path):
+    return json.loads(path.read_text(encoding='utf-8-sig'))
+
+
+def get_agent_case(path, version, case_id):
+    index = read_json(path)
+    if (not isinstance(index, dict) or index.get('format') != 'tca.agent-review.v1'
+            or index.get('candidate') != 'candidate.json'):
+        raise ValueError('Expected a delivered Agent review index with its adjacent candidate.json')
+    if index.get('content_version') != version:
+        raise ValueError('Agent index version mismatch: ' + version)
+    ids, bindings = index['case_ids'], index['cases']
+    if (not isinstance(ids, list) or not isinstance(bindings, dict)
+            or not all(isinstance(cid, str) and cid for cid in ids)
+            or len(ids) != len(set(ids)) or set(ids) != set(bindings)):
+        raise ValueError('Inconsistent Agent case scope')
+    if case_id not in ids:
+        raise ValueError('Case outside delivered Agent scope: ' + case_id)
+    for blocker in index['blockers']:
+        if blocker['case_id'] == case_id:
+            raise ValueError(case_id + ': ' + blocker['reason'])
+    batch = read_json(path.parent / 'candidate.json')
+    case = _one(batch['cases'], case_id, 'Case')
+    if bindings[case_id] != case_references(case):
+        raise ValueError('Agent step or data identities differ from the candidate: ' + case_id)
+    parent = None
+    if 'source_catalog' in index or 'source_catalog_version' in index:
+        baseline = batch.get('initial_copy_baseline') or {}
+        if (index.get('source_catalog') != 'source-catalog.json' or not baseline.get('catalog_version')
+                or index.get('source_catalog_version') != baseline['catalog_version']):
+            raise ValueError('Agent source catalog has no matching candidate parent binding')
+        parent = read_json(path.parent / 'source-catalog.json')
+    return get_case(batch, version, case_id, source_catalog=parent, base_path=path.parent)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--candidate', required=True, type=Path)
+    source = parser.add_mutually_exclusive_group(required=True)
+    source.add_argument('--agent', type=Path, help='agent.json from the delivered review scope')
+    source.add_argument('--candidate', type=Path, help='Direct access to an assessed candidate')
     parser.add_argument('--version', required=True)
     parser.add_argument('--case', required=True)
     parser.add_argument('--source-catalog', type=Path)
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
-    def read(path):
-        return json.loads(path.read_text(encoding='utf-8-sig'))
     try:
-        packet = get_case(read(args.candidate), args.version, args.case,
-                          source_catalog=read(args.source_catalog) if args.source_catalog else None,
-                          base_path=args.candidate.parent)
+        if args.agent:
+            if args.source_catalog:
+                parser.error('--agent resolves its own source catalog')
+            packet = get_agent_case(args.agent, args.version, args.case)
+        else:
+            packet = get_case(read_json(args.candidate), args.version, args.case,
+                              source_catalog=read_json(args.source_catalog) if args.source_catalog else None,
+                              base_path=args.candidate.parent)
         with args.output.open('x', encoding='utf-8') as stream:
             json.dump(packet, stream, ensure_ascii=False, indent=2)
             stream.write('\n')
