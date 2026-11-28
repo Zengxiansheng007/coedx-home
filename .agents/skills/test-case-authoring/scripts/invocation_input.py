@@ -10,6 +10,7 @@ def json_input(record):
 
 def json_block(value, indent=''):
     payload = json.dumps(value, ensure_ascii=False, allow_nan=False, indent=2)
-    # XMind may preserve Markdown fences as literal clipboard text. An indented
-    # CommonMark code block consists solely of JSON, including under a list item.
-    return ['', *[indent + '    ' + line for line in payload.split('\n')]]
+    # Five spaces after the child marker start an indented CommonMark code
+    # block *inside* that item. Its only content is JSON; its parent owns the label.
+    first, *rest = payload.split('\n')
+    return [indent + '-     ' + first, *[indent + '      ' + line for line in rest]]

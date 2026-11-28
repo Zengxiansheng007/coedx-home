@@ -21,20 +21,26 @@ class InvocationInputTests(unittest.TestCase):
         markdown = render_selection(full, [case['id']])['xmind_markdown']
         lines = markdown.splitlines()
         blocks = []
+        positions = []
         for index, line in enumerate(lines):
             if line.endswith('（完整 JSON）'):
-                self.assertEqual(lines[index + 1], '')
-                indent = ' ' * (len(line) - len(line.lstrip()) + 6)
-                body = []
+                child_indent = ' ' * (len(line) - len(line.lstrip()) + 2)
+                first = lines[index + 1]
+                # A child list item directly owns the payload. The parent label
+                # must never be part of the copied item's text.
+                self.assertTrue(first.startswith(child_indent + '-     '), first)
+                indent = child_indent + '      '
+                body = [first[len(indent):]]
                 for code_line in lines[index + 2:]:
                     if not code_line.startswith(indent):
                         break
-                    body.append(code_line)
+                    body.append(code_line[len(indent):])
                 blocks.append('\n'.join(body))
+                positions.append(markdown.index(first))
         self.assertEqual(len(blocks), 2)
         self.assertEqual([json.loads(body) for body in blocks], [start, stop])
-        for step, body in zip(case['steps'], blocks):
-            self.assertLess(markdown.index(step['operation']), markdown.index(body))
-        self.assertLess(markdown.index(blocks[0]), markdown.index(case['steps'][1]['operation']))
+        for step, position in zip(case['steps'], positions):
+            self.assertLess(markdown.index(step['operation']), position)
+        self.assertLess(positions[0], markdown.index(case['steps'][1]['operation']))
         self.assertNotIn('```', markdown)
         self.assertNotIn('值 / nested', markdown)

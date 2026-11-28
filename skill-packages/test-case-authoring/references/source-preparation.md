@@ -35,4 +35,4 @@ python -B scripts/source_preparation.py --candidate full-review/candidate.json -
 
 把一个输入框提交的对象或数组存为一个数据记录的 `value`，在对应调用步骤的 `data_refs` 中引用它。用 `object_ref` 标明输入框或调用名称。同一用例的开始和停止各用各自的数据记录。输入框接受 JSON 标量时可在记录根声明 `"input_format": "json"`。对象内部的字段名、值类型、空对象、空数组、空字符串和省略键按来源保留。
 
-生成的 `xmind.md` 在该操作下以一个 `json` 代码块显示整次输入。选中代码块内容一次复制、粘贴并解析，与本版同一步引用的 `value` 对照。Windows XMind 客户端从同一 Markdown 导入后再验证一次，记录客户端、操作和实际粘贴内容。
+生成的 `xmind.md` 在该操作的输入名称下放置独立的 JSON 子项。人工从渲染后的 Markdown 整块复制代码，或在 Windows XMind 导入后进入该子主题的文本编辑状态，全选文字、复制一次并粘贴到输入框。将实际粘贴内容直接解析，与本版同一步引用的 `value` 逐项对照，分别记录两个入口的结果。
