@@ -143,6 +143,8 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
     data = {d['id']: displayed('data', d) for d in batch['data']}
     selection = {s['case_id']: s for s in batch['selection']}
     case_prose = {}  # Keep each case bound by stable identity.
+    input_bindings = {}  # A flat source row identifies the exact input through directory projection.
+    source_data = {record['id']: record for record in batch['data']}
     case_group_ranges = {}  # 对话表的原分组范围，供显式归属后的同投影替换。
     for case in displayed_cases:
         group_ranges = {}  # 每例只维护当前瞬时显示位置，不是业务权威。
@@ -218,8 +220,18 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
                             tree.append(indent + '    - 本例数据：' + _cell(line))
                         human.append(f'| {i} | {_cell(step["operation"])} | 整步引用：{_cell(label)}；{_cell("；".join(current_data))} | 见引用步骤 |')
                         continue  # Shared data, expectation and assertion remain maintained in P0.
-                values = [line for ref in step.get('data_refs', [])
-                          for line in data_lines(data[ref], lambda value: _business_lines(value, batch=reference_batch or batch, _legacy=metadata_legacy), legacy=_legacy_feedback or _data_legacy, metadata_legacy=metadata_legacy, incremental=batch.get('review_layout') == LAYOUT)] or ['无']  # 只有新版显示明确空输入。
+                from invocation_input import json_input
+                values, input_positions = [], {}
+                for ref in step.get('data_refs', []):
+                    record = data[ref]
+                    if module_review and json_input(source_data[ref]):
+                        input_positions[len(values)] = ref
+                        values.append(str(record.get('object_ref') or '输入参数') + '（完整 JSON）')
+                        record = {k: v for k, v in record.items() if k not in ('value', 'object_ref', 'input_format')}
+                    values.extend(data_lines(record, lambda value: _business_lines(value, batch=reference_batch or batch, _legacy=metadata_legacy),
+                                             legacy=_legacy_feedback or _data_legacy, metadata_legacy=metadata_legacy,
+                                             incremental=batch.get('review_layout') == LAYOUT))
+                values = values or ['无']
                 if definition and _expand_whole_steps:
                     values.insert(0, '整步引用：' + label)
                     for ref in step.get('data_refs', []):
@@ -249,17 +261,23 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
                             lambda claim: _business_lines(claim if metadata_legacy else business_value(claim, 'claim'), batch=reference_batch or batch, _legacy=metadata_legacy), original)  # 精确旧布局沿旧 claim 投影。
                 operation = step.get('operation', '待核对')
                 tree.append(indent + f'  - 步骤 {i}：' + _cell(operation))  # Preserve operation and data ownership.
-                if not _legacy_feedback and len(values) == 1 and values != ['无']:  # One scalar needs no mechanical child level.
+                if not _legacy_feedback and len(values) == 1 and values != ['无'] and not input_positions:  # One scalar needs no mechanical child level.
                     tree.append(indent + '    - 参数/数据：' + _cell(values[0]))  # Preserve literal and feedback mapping.
                 else:
                     tree.append(indent + '    - 参数/数据')  # Complex branches retain individual leaves.
-                    tree.extend(indent + '      - ' + _cell(v) for v in values)
+                    for position, value in enumerate(values):
+                        if position in input_positions:
+                            input_bindings[len(tree) - 3] = input_positions[position]
+                        tree.append(indent + '      - ' + _cell(value))
                 tree.append(indent + '    - 预期')
                 tree.extend(indent + '      - ' + _cell(v) for v in expected)
                 if checks:  # No empty duplicate assertion node.
                     tree.append(indent + '      - 验证点：' + _cell('；'.join(checks)))
                 check_text = '；验证点：' + _cell('；'.join(checks)) if checks else ''  # Same visible meaning in chat.
-                human.append(f'| {i} | {_cell(operation)} | {_cell("；".join(values))} | 预期：{_cell("；".join(expected))}{check_text} |')
+                table_values = list(values)
+                for position, ref in input_positions.items():
+                    table_values[position] += ' ' + json.dumps(source_data[ref]['value'], ensure_ascii=False)
+                human.append(f'| {i} | {_cell(operation)} | {_cell("；".join(table_values))} | 预期：{_cell("；".join(expected))}{check_text} |')
             if group.startswith('common_') and not _legacy_feedback and _independent_case is None:
                 human[group_human_start:] = []  # Module projection below supplies common or unresolved preparation.
             elif group in ('steps', 'special_preconditions', 'special_postconditions'):
@@ -340,7 +358,7 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
         common_prose(projected, [])
         human = preparation
     return {'artifact_status': 'planned', 'ready_case_ids': [c['id'] for c in batch['cases']], 'blocked_case_ids': [], 'blockers': [], 'clarifications': [], 'batch': copy.deepcopy(batch), 'human_view': '\n'.join(human) + '\n',
-            'xmind_markdown': markdown if flat else aggregate(batch, markdown, source_catalog=reference_batch, display_case_ids=_display_case_ids, companion_base=companion_base, module_review=module_review)}  # 两个投影共享请求范围。
+            'xmind_markdown': markdown if flat else aggregate(batch, markdown, source_catalog=reference_batch, display_case_ids=_display_case_ids, companion_base=companion_base, module_review=module_review, input_bindings=input_bindings)}  # 两个投影共享请求范围。
 
 
 def render_review_batch(batch, *, source_catalog=None, companion_base=None):
