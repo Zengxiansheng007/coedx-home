@@ -9,6 +9,7 @@
 | Date | Change ID | Section | Change Type | Summary | Status |
 | --- | --- | --- | --- | --- | --- |
 | 2026-11-28 | CR-20261128-194 | 模块大纲 | changed | 原树采用记录、输入契约和逐模块入口 | validated |
+| 2026-11-28 | CR-20261128-198 | 短节点与共用表达 | changed | 在同一规则写全判据，点名合写输入，显式区分平台和证据身份。 | validated |
 | 2026-11-10 | CR-20261110-006 | 共同反馈定义及当前证据 | fixed / validation | 单一来源与CR004/005独立结论 | validated |
 | 2026-11-10 | CR-20261110-005 | 最终已知修复及当前技术状态 | fixed | 序号表述及前三票状态证据对齐 | validated |
 | 2026-11-10 | CR-20261110-004 | 阶段8交接 | changed | 整体核对及12AC冻结观察 | validated |
@@ -177,3 +178,13 @@ CR004/005当前validated只登记上述原冻结的独立技术结论，整体�
 本分类CR004/005/006为validated，整体为validated-candidate。共同反馈单一来源及受影响反馈回流在原SIMULATION范围通过，references/assets保持原版本。
 
 验证摘要为7b2已完成技术结果，历史pending/失败及d07记录沿用原身份。完整证据、版本/hash、条件裁定和未验边界见[CR006当前技术详情](../entries/2026/2026-11/CR-20261110-006-shared-feedback-definition.md#current-technical-status-at-7b2a44b5)。
+
+### CR-20261128-198 · 短节点与共用表达
+
+- Section changed：短节点与共用表达。
+- Before：示例把上限和超限处理拆成两个并列节点。
+- After：在同一规则写全判据，点名合写输入，显式区分平台和证据身份。
+- Why：#198 要求在精简稿中保留判据与执行覆盖。
+- Impact：当前模块编写、修订与交接。
+- Validation：局部新稿的 9 个输入分支可回查 18 个执行条目。
+- Detail record：[CR-20261128-198](../entries/2026/2026-11/CR-20261128-198-outline-writing.md)。

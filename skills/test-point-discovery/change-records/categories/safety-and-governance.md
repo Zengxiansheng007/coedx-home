@@ -18,4 +18,3 @@
 - Before：阶段入口依靠人工读取现有流程。
 - Why / Impact：#194 要求按任务和模块核对用户原意与拟写范围。
 - Validation / Detail record：[开发验证与边界](../entries/2026/2026-11/CR-20261128-194-module-outline-check.md)。
-
