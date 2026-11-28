@@ -4,6 +4,7 @@
 
 | Date | Change ID | Summary | Status |
 | --- | --- | --- | --- |
+| 2026-11-28 | [CR-20261128-198](entries/2026/2026-11/CR-20261128-198-outline-writing.md) | 沿已确认大纲写可判定的短节点，保留每种输入的执行材料映射 | validated |
 | 2026-11-10 | [CR-20261110-006](entries/2026/2026-11/CR-20261110-006-shared-feedback-definition.md) | 共同反馈单一来源及最终独立技术证据 | validated |
 | 2026-11-10 | [CR-20261110-005](entries/2026/2026-11/CR-20261110-005-final-known-repair.md) | 内部操作序号术语与前三票当前独立技术状态 | validated |
 | 2026-11-10 | [CR-20261110-004](entries/2026/2026-11/CR-20261110-004-stage-eight-handoff.md) | 阶段8整体核对、实际决定与独立恢复 | validated |

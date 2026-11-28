@@ -8,6 +8,7 @@
 
 | Date | Change ID | Section | Change Type | Summary | Status |
 | --- | --- | --- | --- | --- | --- |
+| 2026-11-28 | CR-20261128-198 | 编写回归 | changed | 增加合成请求及事后评审条件，使用本机既有材料核对实际局部稿。 | validated |
 | 2026-11-10 | CR-20261110-006 | 共同反馈定义及当前证据 | fixed / validation | 单一来源与CR004/005独立结论 | validated |
 | 2026-11-10 | CR-20261110-005 | 最终已知修复及当前技术状态 | fixed | 序号表述及前三票状态证据对齐 | validated |
 | 2026-11-10 | CR-20261110-004 | 阶段8交接 | changed | 整体核对及12AC冻结观察 | validated |
@@ -168,3 +169,13 @@ CR004/005当前validated只登记上述原冻结的独立技术结论，整体�
 本分类CR004/005/006为validated，整体为validated-candidate。当前证据为限定模拟与静态验证，脚本及测试保持原版本。
 
 验证摘要为7b2已完成技术结果，历史pending/失败及d07记录沿用原身份。完整证据、版本/hash、条件裁定和未验边界见[CR006当前技术详情](../entries/2026/2026-11/CR-20261110-006-shared-feedback-definition.md#current-technical-status-at-7b2a44b5)。
+
+### CR-20261128-198 · 编写回归
+
+- Section changed：编写回归。
+- Before：现有编写样例未检验每种合写输入的执行去向。
+- After：增加合成请求及事后评审条件，使用本机既有材料核对实际局部稿。
+- Why：#198 要求在精简稿中保留判据与执行覆盖。
+- Impact：当前模块编写、修订与交接。
+- Validation：局部新稿的 9 个输入分支可回查 18 个执行条目。
+- Detail record：[CR-20261128-198](../entries/2026/2026-11/CR-20261128-198-outline-writing.md)。
