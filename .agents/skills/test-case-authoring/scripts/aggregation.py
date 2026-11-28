@@ -161,7 +161,7 @@ def projection(batch, markdown, *, handoff=True, common_legacy=False, source_cat
                         source['children'].insert(0, dict(text='前置操作未提供，待核对', children=[], origins=[]))
             elif records:
                 common['children'] = [{'text': '适用：' + shared['text'] + '（执行时仍须完成）', 'children': [], 'origins': []}]  # Historical feedback retains its explicit reference layout.
-        if input_bindings:
+        if input_bindings is not None and (input_bindings or case['id'] in batch.get('input_reuse', {})):
             from input_reuse import project_inputs
             project_inputs(batch, case, source, input_bindings, source_catalog)
         if handoff and not common_legacy and case.get('review_segment'):
