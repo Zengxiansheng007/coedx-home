@@ -268,7 +268,33 @@ def _build_batch(text, interpretation, prd, input_kind):
     batch['data_version'] = _digest(batch['data'])
     case['semantic_version'] = _digest(case)
     case['data_version'] = batch['data_version']
-    batch['content_version'] = _digest(batch)
+    if draft.get('initial_variants'):
+        from review_segments import bind_segments
+        assessments = {}
+        data = {item['id']: item for item in batch['data']}
+        for variant in draft['initial_variants']:
+            if variant.get('priority') not in ('P1', 'P2') or not variant.get('priority_basis') or variant.get('initial_variants'):
+                raise ValueError('Initial variants require a separately sourced P1/P2 and priority basis')
+            variant_batch = _build_batch(text, variant, prd, input_kind)['batch']
+            child = variant_batch['cases'][0]
+            child.update(priority=variant['priority'], priority_basis=variant['priority_basis'])
+            child['semantic_version'] = _digest({k: v for k, v in child.items() if k not in ('semantic_version', 'data_version')})
+            batch['cases'].append(child)
+            batch['selection'].append(dict(case_id=child['id'], reason='首次混合交稿'))
+            batch['questions'].extend(variant_batch['questions'])
+            for item in variant_batch['data']:
+                if item['id'] in data and item != data[item['id']]:
+                    raise ValueError('Conflicting initial variant data identity')
+                data[item['id']] = item
+            if 'review_segment' in variant:
+                assessments[child['id']] = variant['review_segment']
+        batch['data'] = list(data.values())
+        batch['data_version'] = _digest(batch['data'])
+        for owner in batch['cases']:
+            owner['data_version'] = batch['data_version']
+        batch = bind_segments(batch, assessments)
+    else:
+        batch['content_version'] = _digest(batch)
     human, tree = _views(batch)
     _credential_guard([batch, human, tree])
     return {'artifact_status': 'planned', 'batch': batch, 'human_view': human, 'xmind_markdown': tree}

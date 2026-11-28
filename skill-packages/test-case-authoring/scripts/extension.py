@@ -179,6 +179,9 @@ def build_extension(catalog, baseline, reports, entry_request, design, mode='pro
     for index, case in enumerate(batch['cases']):
         if case['id'] not in candidate_ids:
             continue
+        if 'review_segment' in case:
+            from review_segments import bind_case
+            bind_case(case, case['review_segment'], catalog, batch['data'])
         case['data_version'] = batch['data_version']
         case['semantic_version'] = _digest({k: v for k, v in case.items() if k not in ('semantic_version', 'data_version')})
         batch['questions'].append({'case_id': case['id'], 'field': 'priority',

@@ -162,19 +162,22 @@ def _case_markers(case_id):
     return begin, end, re.escape(begin) + r'.*?' + re.escape(end)  # Literal boundaries prevent regex interpretation of markers.
 
 
-def write_artifacts(result, output, *, source_catalog=None):
+def write_artifacts(result, output, *, source_catalog=None, review_ids=None):
     """Save technical documents and the business tree; sibling batch folders share notes."""
     from pathlib import Path
     import re
     import json
     original = result['batch']  # Candidate remains the sole state/history authority.
-    output = Path(output)
+    from authoring import _credential_guard
+    _credential_guard([original, source_catalog])
+    import os
+    output = Path(os.path.abspath(output))
     from restoration import preflight
     checked = preflight(original, source_catalog=source_catalog, base_path=output, require_current_sources=True)  # Re-read current sources before planning any notes mutation.
     previous_blockers = result.get('blocked_case_ids', [])  # A corrected source restores the previously hidden scope.
     result.update({k: v for k, v in checked.items() if k != 'complete_batch'})
     batch = dict(original, cases=[c for c in original['cases'] if c['id'] in checked['ready_case_ids']])  # Only fully restored selected owners may update or retire notes.
-    if checked['blockers'] or previous_blockers:
+    if review_ids is None and (checked['blockers'] or previous_blockers):
         from authoring import render_batch
         if batch.get('kind') == 'scoped_review_copy':
             from scoped_review import render_review_batch
@@ -199,7 +202,12 @@ def write_artifacts(result, output, *, source_catalog=None):
                 continue
             heading, lines = own_notes[0]
             position = next(i for i, owner in enumerate(original['cases']) if owner is case)  # Position in the complete persisted authority, including blocked owners.
-            binding = '候选来源：[' + case['id'] + '](' + (output / 'candidate.json').resolve().as_uri() + '#/cases/' + str(position) + ')；内容版本（content_version）：' + str(original.get('content_version', '未指定'))  # Bind the displayed section to its complete original candidate position.
+            candidate_path = (output / 'candidate.json').resolve()
+            candidate_ref = candidate_path.as_uri()
+            if review_ids is not None and candidate_path.drive == target.drive:
+                from urllib.parse import quote
+                candidate_ref = quote(Path(os.path.relpath(candidate_path, target.parent)).as_posix(), safe='/')
+            binding = '候选来源：[' + case['id'] + '](' + candidate_ref + '#/cases/' + str(position) + ')；内容版本（content_version）：' + str(original.get('content_version', '未指定'))  # Bind the displayed section to its complete original candidate position.
             lines = [binding, '版本映射：语义 ' + str(case.get('semantic_version', '未指定')) + '；数据 ' + str(case.get('data_version', '未指定')), *lines]  # Retain per-case semantic and data versions beside the source.
             section = begin + '\n## ' + heading + '\n' + '\n'.join('- ' + line for line in lines) + '\n' + end
             content = re.sub(pattern, lambda _: section, content, flags=re.S) if begin in content else content.rstrip() + '\n\n' + section + '\n'
@@ -242,7 +250,12 @@ def write_artifacts(result, output, *, source_catalog=None):
         temporary.write_text(content, encoding='utf-8')
         temporary.replace(target)  # No per-batch copy or append-only status history.
     from incremental_review import LAYOUT
-    if original.get('review_layout') == LAYOUT:
+    if review_ids is not None:
+        from source_preparation import render_selection
+        blocked = {row['case_id'] for row in checked['blockers'] if not row.get('scope_only')}
+        view = render_selection(original, review_ids, blocked_ids=blocked, source_catalog=source_catalog)
+        result.update(xmind_markdown=view['xmind_markdown'], human_view=view['human_view'])
+    elif original.get('review_layout') == LAYOUT:
         from scoped_review import render_review_batch
         result['xmind_markdown'] = render_review_batch(
             original, source_catalog=source_catalog, companion_base=output)['xmind_markdown']

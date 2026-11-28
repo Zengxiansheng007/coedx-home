@@ -333,3 +333,5 @@ Candidate-only whole-claim comparison and simple data display. Detail: [CR-20261
 - [CR-20261119-149](entries/2026/2026-11/CR-20261119-149-formal-human-view.md) Write formal Human View from validated input, applied candidate.
 
 - [CR-20261119-153](entries/2026/2026-11/CR-20261119-153-integration-review-layout.md) Use the incremental layout from the standard extension entry. Applied candidate.
+
+- [CR-20261128-175](entries/2026/2026-11/CR-20261128-175-review-and-case-handoff.md)　同版批量评审与完整业务单例交接。

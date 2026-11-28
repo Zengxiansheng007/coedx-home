@@ -38,7 +38,8 @@ def _steps(children):
             result.append(child)
             continue
         number += 1
-        _decorate(child, match.group(), f'操作 {number}：')
+        ordinal = child.get('target_step_number', number)
+        _decorate(child, match.group(), f'操作 {ordinal}：')
         details = []
         for detail in child['children']:
             if detail['text'] == '预期':
@@ -151,6 +152,11 @@ def project(batch, root, *, companion_base=None):
                         children.extend(child['children'])  # 用例内保留动作顺序，省去前后置分组。
                     else:
                         children.append(child)
+                if case.get('review_segment'):
+                    point = next((c for c in children if c.get('segment_test_point')), None)
+                    if point is not None:
+                        children.remove(point)
+                        children.insert(0, point)
                 node['children'] = _steps(children)
             elif node.get('scope'):
                 members = node['members']

@@ -15,10 +15,15 @@ interaction, summary delivery and return. Pass the existing task/stage; do not
 ask the user to select it again. TCA owns professional checks and actual authoring.
 Keep its existing candidate and sole Q&A event record as the only authorities.
 
+首次混合交稿和已获准扩写均先写完整 P1/P2，再读[同版 P0 操作段契约](references/step-reuse.md#连续操作段的评审展示)，从材料核实能合写的一段操作，按本例标出测试点、变化及判据。
+
 Before selecting P0 steps for P1/P2 reuse or reviewing a compact reference batch,
 read [whole-step reuse](references/step-reuse.md). Explicit P0 changes enter the existing feedback `shared_change` impact proposal; local edits never imply shared authority. Supply complete source-based
 target steps and explicit four-part applicability/endpoint assessments; use the
 shared resolver before review. Missing or stale references return to clarification.
+
+编写涉及本次实收证据的用例、交付执行单例或核对执行报告时，先读
+[本次证据判定](references/run-evidence.md)。保留逐例取证对象、关联信息、失败与待取证依据。
 
 Before any delivery or regenerated review, read [chat delivery](references/chat-delivery.md).
 For a new incremental scope, use the `incremental-v1` layout in the
@@ -28,7 +33,9 @@ Set `design.review_layout` to `incremental-v1` when creating a new P1/P2
 extension. Preserve the layout of a previously saved extension.
 Deliver the same-version XMind scope copy. For an explicitly needed selection of
 1–9 complete cases, call `presentation.render_chat` and show its returned text
-directly in chat. Keep candidate/Q&A records; human-view tables have no file artifact.
+directly in chat. For an independent execution handoff, export one checked candidate
+version and case ID with [the single-case entry](references/chat-delivery.md#independent-case-handoff).
+Keep candidate/Q&A records; human-view tables have no file artifact.
 
 Before display, rename, same-name feedback or Markdown/native return, read
 [the presentation identity contract](references/presentation-identity.md).
@@ -119,6 +126,10 @@ separately invoked testing skill. Formal integration remains unverified.
 Before resuming an old task or closing a reviewed scope, read
 [scoped recovery and closure](references/scope-closure.md). Preserve permanent
 questions, actual replies and product impact before bounded temporary cleanup.
+
+
+首次整批编写和从整批选例时，按来源区分固定交互、每次输入、素材和取证时机，先读[公共前置、操作、数据与取证的逐例归属](references/source-preparation.md)。
+从本次资料确认共同起点、条件准备、本例特有和待核原文，完成全量适用映射后用该入口生成整批与节选供评审。
 
 ## Clarify a candidate batch
 

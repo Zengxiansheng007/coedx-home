@@ -20,10 +20,23 @@ def render_chat(batch, case_ids=None, *, source_catalog=None):  # Exact original
     cases = {case['id']: case for case in batch['cases']}  # Keep the complete source for references.
     if any(cid not in cases for cid in case_ids):  # Reject stale or unknown selection.
         raise ValueError('Unknown case requested for chat')  # Never silently skip requested content.
-    selection = {row['case_id']: row for row in batch['selection']}  # Preserve historical authoring defaults without mutating the candidate.
+    selection = {row['case_id']: row for row in batch.get('selection', [])}  # Preserve historical authoring defaults without mutating the candidate.
     notes = [dict(selection.get(cid, {'case_id': cid, 'reason': '候选评审'})) for cid in cases]  # Complete membership stays intact.
     for note in notes:
         note.setdefault('action', 'add')  # Existing authoring selections omit the maintenance action.
-    view = _render(dict(batch, selection=notes), reference_batch=source_catalog, _display_case_ids=case_ids)  # Assess current membership once with the exact original parent.
+    if batch.get('source_preparations') or any(cases[cid].get('review_segment') for cid in case_ids):
+        from single_case import get_case
+        sections = []
+        for cid in case_ids:
+            packet = get_case(batch, batch['content_version'], cid, source_catalog=source_catalog)
+            display = dict(batch, cases=[packet['case']], data=list(packet['data'].values()), selection=notes,
+                           questions=batch.get('questions', []), approved_validation_scope=batch.get('approved_validation_scope', []))
+            view = _render(display, flat=True, reference_batch=source_catalog or batch,
+                           _skip_preflight=True, _independent_case=packet)
+            sections.append(view['human_view'] + '\n' + packet['evidence_policy'])
+        result.update(case_ids=list(case_ids), human_view='\n\n'.join(sections))
+        return result
+    view = _render(dict(batch, selection=notes), reference_batch=source_catalog, _display_case_ids=case_ids,
+                   _expand_whole_steps=len(case_ids) == 1)  # Assess current membership once with the exact original parent.
     result.update(case_ids=list(case_ids), human_view=view['human_view'])  # Shared definitions appear once per module.
     return result  # No human-view file or secondary business source.

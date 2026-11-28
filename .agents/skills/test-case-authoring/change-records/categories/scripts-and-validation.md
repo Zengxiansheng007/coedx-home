@@ -698,3 +698,7 @@ CR-20261115-009 record correction: completed required metadata and sections from
 | 2026-11-19 | CR-20261119-153 | Use the incremental layout from the standard extension entry | changed | Integrated contract verification | applied |
 
 [Detail](../entries/2026/2026-11/CR-20261119-153-integration-review-layout.md)
+
+## CR-20261128-175
+
+公共投影、完整单例、当次证据与来源检查。[变更记录](../entries/2026/2026-11/CR-20261128-175-review-and-case-handoff.md)

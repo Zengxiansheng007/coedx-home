@@ -51,7 +51,7 @@ def _shape(node):  # Source offsets can combine only when their rendered descend
     return [node['text'], [_shape(child) for child in node['children']]]
 
 
-def projection(batch, markdown, *, handoff=True, common_legacy=False, source_catalog=None, display_case_ids=None, _trailing_legacy=False):  # 旧投影模式仅用于精确复原历史生成布局。
+def projection(batch, markdown, *, handoff=True, common_legacy=False, source_catalog=None, display_case_ids=None, _trailing_legacy=False, module_review=False):  # 旧投影模式仅用于精确复原历史生成布局。
     from module_handoff import TITLE, module_notes  # Generated nodes never acquire business edit origins.
     instructions = module_notes(dict(batch, cases=[c for c in batch['cases'] if display_case_ids is None or c['id'] in display_case_ids]))  # Companion notes cannot resolve undisplayed blocked references.
     attached = set()  # Attach exactly once per complete module path.
@@ -66,6 +66,8 @@ def projection(batch, markdown, *, handoff=True, common_legacy=False, source_cat
     operations, pending = operation_scopes(batch, source_catalog)  # Per-item exclusions remain in one candidate record.
     indexed = {case['id']: case for case in batch['cases']}  # Full current batch still drives scope validation above.
     displayed = batch['cases'] if display_case_ids is None else [indexed[cid] for cid in display_case_ids]  # Match the ordered flat source exactly.
+    from source_preparation import current_definitions, project_preparations
+    source_definitions = current_definitions(batch, source_catalog) if handoff and not common_legacy else []
     for case, branch in zip(displayed, root['children']):  # Only selected branches are visible.
         target, source = merged, branch  # Walk source hierarchy and shared target in lockstep.
         for level, part in enumerate(case['module_path']):  # Match level and ancestor, never text globally.
@@ -79,6 +81,14 @@ def projection(batch, markdown, *, handoff=True, common_legacy=False, source_cat
         source['case_id'] = case['id']
         path = tuple(case['module_path'])  # Parents without direct cases never reach this branch.
         target['module_path'] = path  # 配套资料按完整模块路径定位。
+        for label, group in (('公共前置操作', 'common_preconditions'), ('公共后置操作', 'common_postconditions')):
+            common = next((node for node in source['children'] if node['text'] == label), None)
+            if common:
+                step_nodes = (node for node in common['children'] if node['text'].startswith('步骤 '))
+                for node, step in zip(step_nodes, case.get(group, [])):
+                    node['preparation_step_id'] = step['id']
+        if source_definitions:
+            project_preparations(source_definitions, case, source, target, displayed)
         scope_target = target  # Module fallback or the explicitly reviewed ancestor.
         for level, part in enumerate(business_path(case)):  # Group only inside the existing module owner.
             node = next((n for n in target['children'] if n.get('directory') == ('business', level, part)), None)
@@ -100,7 +110,7 @@ def projection(batch, markdown, *, handoff=True, common_legacy=False, source_cat
             removed = []
             if attributed and handoff and not common_legacy:
                 ids = {step_id for scope in attributed for step_id in scope['step_ids_by_case'][case['id']]}
-                children = [node for node, step in zip([node for node in common['children'] if node['text'].startswith('步骤 ')], case.get(group, [])) if step['id'] in ids]  # 不改源下标、原序或 origins。
+                children = [node for node in common['children'] if node.get('preparation_step_id') in ids]  # 不改源下标、原序或 origins。
                 special_label = '特殊前置操作' if direction == 'pre' else '特殊后置操作'
                 special = next((node for node in source['children'] if node['text'] == special_label), None)
                 if special is None:
@@ -111,8 +121,7 @@ def projection(batch, markdown, *, handoff=True, common_legacy=False, source_cat
                 removed.extend(children)
             for scope in records:
                 ids = scope.get('step_ids_by_case', {}).get(case['id'])
-                children = common['children'] if ids is None else [node for node, step in zip(
-                    [n for n in common['children'] if n['text'].startswith('步骤 ')], case.get(group, [])) if step['id'] in ids]
+                children = common['children'] if ids is None else [node for node in common['children'] if node.get('preparation_step_id') in ids]
                 key = (tuple(case['module_path']), scope['id'])  # Display owner is always the module.
                 if key not in groups:
                     shared = dict(text=label + ' ' + str(1 + sum(k[0] == key[0] for k in groups)),
@@ -144,10 +153,21 @@ def projection(batch, markdown, *, handoff=True, common_legacy=False, source_cat
                     source['children'].insert(insertion, common)
                 elif case.get(group + '_note') and not case.get(group):
                     source['children'][insertion:insertion] = common['children']  # Explicit absence conditions remain readable without an empty heading.
-                elif direction == 'pre' and not case.get(group) and not case.get(group + '_note'):
-                    source['children'].insert(0, dict(text='前置操作未提供，待核对', children=[], origins=[]))
+                elif direction == 'pre' and not case.get(group):
+                    assessed_start = any(item.get('kind', 'preparation') == 'preparation'
+                                         and 'context/initial_state' in item['applicable'].get(case['id'], [])
+                                         for item in source_definitions)
+                    if not module_review or not (case.get('special_preconditions') or assessed_start):
+                        source['children'].insert(0, dict(text='前置操作未提供，待核对', children=[], origins=[]))
             elif records:
                 common['children'] = [{'text': '适用：' + shared['text'] + '（执行时仍须完成）', 'children': [], 'origins': []}]  # Historical feedback retains its explicit reference layout.
+        if handoff and not common_legacy and case.get('review_segment'):
+            from review_segments import project_segment
+            project_segment(batch, case, source, source_catalog)
+        if module_review and not any(n.get('segment_test_point') for n in source['children']):
+            from authoring import _cell
+            point = case.get('test_point') or case.get('title') or '待核对'
+            source['children'].insert(0, dict(text='测试点：' + _cell(point), children=[], origins=[], segment_test_point=True))
         target['children'].append(source)  # Keep each individual case after its shared preparation.
     for shared in groups.values():  # Final membership is available after all cases are projected.
         shared['children'].insert(0, {'text': '适用用例：' + '、'.join(case_name(batch, cid) for cid in shared['members']), 'children': [], 'origins': []})  # Display names while preserving internal member IDs.
@@ -163,8 +183,8 @@ def projection(batch, markdown, *, handoff=True, common_legacy=False, source_cat
     return lines[:3], merged
 
 
-def aggregate(batch, markdown, source_catalog=None, *, display_case_ids=None, companion_base=None):  # 保留完整范围及资料交付位置。
-    header, root = projection(batch, markdown, source_catalog=source_catalog, display_case_ids=display_case_ids)  # Shared display contract.
+def aggregate(batch, markdown, source_catalog=None, *, display_case_ids=None, companion_base=None, module_review=False):  # 保留完整范围及资料交付位置。
+    header, root = projection(batch, markdown, source_catalog=source_catalog, display_case_ids=display_case_ids, module_review=module_review)  # Shared display contract.
     if batch.get('review_layout') == incremental_review.LAYOUT:
         header, root = incremental_review.project(batch, root, companion_base=companion_base)  # 新版共用准确的业务源行。
     lines = list(header)
