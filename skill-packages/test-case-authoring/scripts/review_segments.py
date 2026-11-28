@@ -112,6 +112,10 @@ def project_segment(batch, case, node, source_catalog):
         pos = row['target_start'] - 1
         for number, child in enumerate(steps['children'], 1):
             child['target_step_number'] = number
+        for compacted in steps['children'][pos:pos+length]:
+            for condition in compacted['children']:
+                if 'condition_step' in condition:
+                    lines[0]['children'].append(leaf(f"第 {condition['condition_step']} 步，{condition['text']}"))
         steps['children'][pos:pos+length] = lines
         node['children'].insert(0, dict(leaf('测试点：' + row['test_point']), segment_test_point=True))
     except (KeyError, ValueError, TypeError, StopIteration):

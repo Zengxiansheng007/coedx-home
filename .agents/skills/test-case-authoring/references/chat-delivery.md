@@ -91,3 +91,27 @@ A single named case expands legacy whole-step references with their original P0 
 number, current input, operation, expected outcome and independent checks. Each executable
 expected or verification item needs nonblank business text. Use the case, group, step and
 claim field from a retrieval error to correct the candidate at its source.
+
+## Paired reader delivery
+
+Use the normal writer for both files. A new full authoring run uses `authoring.py`;
+for an assessed complete candidate use `source_preparation.py --candidate ... --output-dir ...`.
+While drafting, pass repeated `--case` to the latter entry for the actual ordered review list.
+For a premerge scope use `scoped_review.py --catalog ... --request ... --output-dir ...`
+with the selected cases in the request. The full, draft, and premerge deliveries retain their
+separate authorization and review boundaries.
+
+Read the version and selected IDs from the Markdown and the adjacent `agent.json`.
+The index points to the authoritative `candidate.json` and, for a partial catalog, the exact
+`source-catalog.json`. Its `cases` maps each selected identity to its step and data references.
+Keep these files together when moving a delivery. Regenerate the pair after confirmation of
+a source change. A copy of the full parent provides reference context, including hidden P0
+inputs, while the index lists only the current review selection.
+
+Use data-record root fields `validity`, `generation_rule`, `reuse_policy`, and
+`invalidation_action` for execution instructions. Put a business input or acceptance
+condition under its bound step. An actual property with one of these names inside a JSON
+input retains its meaning. For a source preparation's data or evidence definition,
+`review_condition` can name the observable business condition at its applicable step.
+Use an explicit empty string when there is no such condition. Older evidence methods retain
+their timing at each bound step. Their detailed collection instructions stay in the Agent source.

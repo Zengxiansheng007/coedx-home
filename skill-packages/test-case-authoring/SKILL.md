@@ -31,7 +31,9 @@ For a new incremental scope, use the `incremental-v1` layout in the
 layout when continuing a review and use the matching file location on return.
 Set `design.review_layout` to `incremental-v1` when creating a new P1/P2
 extension. Preserve the layout of a previously saved extension.
-Deliver the same-version XMind scope copy. For an explicitly needed selection of
+Deliver the same-version `xmind.md` and `agent.json` with the exact candidate and any
+required parent from [reader delivery](references/chat-delivery.md#paired-reader-delivery).
+Keep business conditions at their applicable operation and execution methods in the Agent source. For an explicitly needed selection of
 1–9 complete cases, call `presentation.render_chat` and show its returned text
 directly in chat. For an independent execution handoff, export one checked candidate
 version and case ID with [the single-case entry](references/chat-delivery.md#independent-case-handoff).

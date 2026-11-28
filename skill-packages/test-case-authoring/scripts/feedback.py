@@ -92,8 +92,10 @@ def _markdown_layout_changes(batch, markdown, case_bindings=None, *, legacy=Fals
         initial = copy.deepcopy(batch)
         initial['cases'] = [c for c in initial['cases'] if c.get('feedback_disposition') != 'excluded_this_round']
     from aggregation import expand_feedback  # Restore source bindings before scalar interpretation.
+    module_review = (any(line.startswith('  - 待评用例：') for line in incoming) if incremental
+                     else len(incoming) > 2 and '；待评用例：' in incoming[2])
     metadata_bindings = {}  # 渲染器按准确用例根字段提供瞬时源行身份。
-    flat = _render(initial, flat=True, reference_batch=source_catalog, _legacy_feedback=legacy, _data_legacy=data_legacy, _metadata_legacy=metadata_legacy, _metadata_bindings=metadata_bindings)['xmind_markdown']  # 同一布局用于初始投影和标量探针。
+    flat = _render(initial, flat=True, reference_batch=source_catalog, _legacy_feedback=legacy, _data_legacy=data_legacy, _metadata_legacy=metadata_legacy, _metadata_bindings=metadata_bindings, module_review=module_review)['xmind_markdown']  # 同一布局用于初始投影和标量探针。
     original = flat.splitlines()
     if not incremental and companion_base is not None and len(incoming) >= 3:  # 旧稿只归一化真实生成的入口。
         from module_handoff import entrance
@@ -152,7 +154,7 @@ def _markdown_layout_changes(batch, markdown, case_bindings=None, *, legacy=Fals
         if any(sum(topic['returned_digest'] == binding.get('returned_digest') for topic in raw_topics) != 1 for binding in case_bindings.values()):
             raise ValueError('Identity evidence does not uniquely bind the raw return')  # 同摘要多处出现仍需业务澄清。
     incoming = expand_feedback(initial, '\n'.join(original), '\n'.join(incoming), case_bindings,
-        handoff=not legacy, common_legacy=common_legacy, source_catalog=source_catalog, _normalize_case=normalize_case, _trailing_legacy=trailing_legacy, companion_base=companion_base).splitlines()  # 原始摘要与资料位置先验证。
+        handoff=not legacy, common_legacy=common_legacy, source_catalog=source_catalog, _normalize_case=normalize_case, _trailing_legacy=trailing_legacy, companion_base=companion_base, module_review=module_review).splitlines()  # 原始摘要与资料位置先验证。
 
     source_starts = {}  # 原始 flat 块起点不随回传删除或保留范围移动。
     def blocks(lines):
@@ -188,7 +190,7 @@ def _markdown_layout_changes(batch, markdown, case_bindings=None, *, legacy=Fals
                     from local_step_feedback import materialize  # Probe copy alone may contain an inline step.
                     materialize(probe, probe[collection][index], path)
                 _set(probe[collection][index], path, marker)
-                rendered = blocks(_render(probe, flat=True, reference_batch=source_catalog or initial, _legacy_feedback=legacy, _expression_baseline=initial, _data_legacy=data_legacy, _metadata_legacy=metadata_legacy)['xmind_markdown'].splitlines())  # 探针使用同一准确新旧布局。
+                rendered = blocks(_render(probe, flat=True, reference_batch=source_catalog or initial, _legacy_feedback=legacy, _expression_baseline=initial, _data_legacy=data_legacy, _metadata_legacy=metadata_legacy, module_review=module_review)['xmind_markdown'].splitlines())  # 探针使用同一准确新旧布局。
                 for cid, lines in rendered.items():
                     for line_index, line in enumerate(lines):
                         if marker in line:

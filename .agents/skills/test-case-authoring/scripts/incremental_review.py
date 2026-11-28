@@ -114,7 +114,7 @@ def _selection_notes(selection, baseline):
     return []
 
 
-def project(batch, root, *, companion_base=None):
+def project(batch, root, *, companion_base=None, reader_ids=None):
     """Retain the established identities and edit origins while changing layout."""
     from module_handoff import companion_links
 
@@ -197,6 +197,8 @@ def project(batch, root, *, companion_base=None):
         _node('评审重点：' + '、'.join(focus)),
         _node('评审状态：' + '、'.join(statuses)),
     ]
+    if reader_ids is not None:
+        summary.append(_node('待评用例：' + '、'.join(reader_ids)))
     if batch.get('hypothetical'):
         summary.append(_node('假设样稿。项目、规则、用例和数据均为版式示例'))
     questions = [q for q in batch['questions']

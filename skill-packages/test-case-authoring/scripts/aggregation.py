@@ -88,7 +88,7 @@ def projection(batch, markdown, *, handoff=True, common_legacy=False, source_cat
                 for node, step in zip(step_nodes, case.get(group, [])):
                     node['preparation_step_id'] = step['id']
         if source_definitions:
-            project_preparations(source_definitions, case, source, target, displayed)
+            project_preparations(source_definitions, case, source, target, displayed, business_only=module_review)
         scope_target = target  # Module fallback or the explicitly reviewed ancestor.
         for level, part in enumerate(business_path(case)):  # Group only inside the existing module owner.
             node = next((n for n in target['children'] if n.get('directory') == ('business', level, part)), None)
@@ -186,7 +186,8 @@ def projection(batch, markdown, *, handoff=True, common_legacy=False, source_cat
 def aggregate(batch, markdown, source_catalog=None, *, display_case_ids=None, companion_base=None, module_review=False, input_bindings=None):  # 保留完整范围及资料交付位置。
     header, root = projection(batch, markdown, source_catalog=source_catalog, display_case_ids=display_case_ids, module_review=module_review)  # Shared display contract.
     if batch.get('review_layout') == incremental_review.LAYOUT:
-        header, root = incremental_review.project(batch, root, companion_base=companion_base)  # 新版共用准确的业务源行。
+        reader_ids = [case['id'] for case in batch['cases']] if display_case_ids is None else display_case_ids
+        header, root = incremental_review.project(batch, root, companion_base=companion_base, reader_ids=reader_ids if module_review else None)  # 新版共用准确的业务源行。
     lines = list(header)
     from invocation_input import json_block
     inputs = {d['id']: d for d in batch['data']} if input_bindings else {}
@@ -219,13 +220,14 @@ def feedback_topics(markdown):
     return result
 
 
-def expand_feedback(batch, flat_markdown, incoming, case_bindings=None, *, handoff=True, common_legacy=False, source_catalog=None, _normalize_case=None, _trailing_legacy=False, companion_base=None):  # 交付位置约束材料链接的回传。
+def expand_feedback(batch, flat_markdown, incoming, case_bindings=None, *, handoff=True, common_legacy=False, source_catalog=None, _normalize_case=None, _trailing_legacy=False, companion_base=None, module_review=False):  # 交付位置约束材料链接的回传。
     """Expand edits through exact baseline bindings before existing feedback review."""
-    header, expected = projection(batch, flat_markdown, handoff=handoff, common_legacy=common_legacy, source_catalog=source_catalog, _trailing_legacy=_trailing_legacy)  # 历史布局仍绑定同版候选及完整原始源偏移。
+    header, expected = projection(batch, flat_markdown, handoff=handoff, common_legacy=common_legacy, source_catalog=source_catalog, _trailing_legacy=_trailing_legacy, module_review=module_review)  # 历史布局仍绑定同版候选及完整原始源偏移。
     lines = incoming.splitlines()
     incremental = batch.get('review_layout') == incremental_review.LAYOUT and incremental_review.is_incremental(incoming)  # 只对已登记的新稿启用新版解释。
     if incremental:
-        header, expected = incremental_review.project(batch, expected, companion_base=companion_base)
+        header, expected = incremental_review.project(batch, expected, companion_base=companion_base,
+            reader_ids=[case['id'] for case in batch['cases']] if module_review else None)
     if lines[:len(header)] != header:
         raise ValueError('Markdown header/version must match initial display')
     actual = _parse(lines[len(header):])

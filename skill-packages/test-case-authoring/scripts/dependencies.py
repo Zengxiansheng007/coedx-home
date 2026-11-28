@@ -215,7 +215,7 @@ def main():
         output = Path(args.output_dir)
         output.mkdir(parents=True, exist_ok=False)
         from module_handoff import write_artifacts  # Persist the same module documents across sibling batches.
-        write_artifacts(result, output, source_catalog=catalog)
+        write_artifacts(result, output, source_catalog=catalog, reader_stage='draft')
         for filename, content in [('dependency-review.json',
                 {k:v for k,v in result.items() if k not in ('batch', 'human_view', 'xmind_markdown', 'review_notes')})]:
             (output / filename).write_text(json.dumps(content, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')

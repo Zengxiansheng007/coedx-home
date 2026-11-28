@@ -132,6 +132,8 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
     if module_review and batch.get('kind') != 'scoped_review_copy' and len(displayed_cases) == len(batch['cases']):
         tree[0] = '# 完整候选用例评审'
         tree[2] = '- 展示本版全部候选用例'
+    if module_review:
+        tree[2] += '；待评用例：' + '、'.join(case['id'] for case in displayed_cases)
     from module_handoff import entrance  # One entrance, direct links to necessary documents.
     if not _legacy_feedback:
         tree[2] += '；' + entrance(note_batch)  # Display-only note selection has no role in applicability validation.
@@ -141,6 +143,10 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
         original = next((r for r in (_expression_baseline or batch).get(collection, []) if r.get('id', r.get('case_id')) == owner.get('id', owner.get('case_id'))), owner)
         return project_record(_expression_baseline or batch, collection, owner, binding_owner=original)  # Probe visibility follows the unchanged baseline.
     data = {d['id']: displayed('data', d) for d in batch['data']}
+    if module_review:
+        runtime_fields = {'generation_rule', 'validity', 'reuse_policy', 'invalidation_action'}
+        data = {ref: {key: value for key, value in entry.items() if key not in runtime_fields}
+                for ref, entry in data.items()}
     selection = {s['case_id']: s for s in batch['selection']}
     case_prose = {}  # Keep each case bound by stable identity.
     input_bindings = {}  # A flat source row identifies the exact input through directory projection.
@@ -550,7 +556,7 @@ def main():
         output = Path(args.output_dir)
         output.mkdir(parents=True, exist_ok=False)
         from module_handoff import write_artifacts  # Persist the same module documents across sibling batches.
-        write_artifacts(result, output, source_catalog=catalog)  # Actual input remains available at delivery.
+        write_artifacts(result, output, source_catalog=catalog, reader_stage='premerge')  # Actual input remains available at delivery.
         for filename, content in [('initial-copy-baseline.json', result['batch']['initial_copy_baseline']),
                                   ('changes.json', result['changes'])]:
             (output / filename).write_text(json.dumps(content, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
