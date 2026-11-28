@@ -102,7 +102,7 @@ def _rule_lines(case, batch, *, original_case=None):  # 原始决定只负责身
     return lines  # Source dictionaries remain untouched.
 
 
-def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, _expression_baseline=None, _data_legacy=False, _skip_preflight=False, _display_case_ids=None, _metadata_legacy=False, _metadata_bindings=None, companion_base=None, _independent_case=None, module_review=False, _expand_whole_steps=False):  # 资料路径只影响交付显示，源行仍为反馈保留。
+def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, _expression_baseline=None, _data_legacy=False, _skip_preflight=False, _display_case_ids=None, _metadata_legacy=False, _metadata_bindings=None, companion_base=None, _independent_case=None, module_review=False, _expand_whole_steps=False, _return_bindings=None):  # 资料路径只影响交付显示，源行仍为反馈保留。
     if batch.get('review_layout') == LAYOUT and not _legacy_feedback:
         batch = json.loads(json.dumps(batch, ensure_ascii=False, sort_keys=True))  # 问答保存按键排序；首次出稿和探针使用相同顺序。
     metadata_legacy = _legacy_feedback or _metadata_legacy  # 不改变历史业务身份、原始值或版本。
@@ -118,7 +118,7 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
         if check['blockers']:
             visible_ids = set(check['ready_case_ids']) | {b['case_id'] for b in check['blockers'] if b.get('scope_only')}  # Keep unaffected operations and unresolved source actions visible.
             visible_ids = [cid for cid in (_display_case_ids if _display_case_ids is not None else [c['id'] for c in batch['cases']]) if cid in visible_ids]  # Keep caller order and omit blocked references.
-            result = _render(batch, flat=flat, reference_batch=reference_batch, _legacy_feedback=_legacy_feedback, _data_legacy=_data_legacy, _skip_preflight=True, _display_case_ids=visible_ids, _metadata_legacy=_metadata_legacy, _metadata_bindings=_metadata_bindings, companion_base=companion_base, module_review=module_review, _expand_whole_steps=_expand_whole_steps)  # 同一交付位置仍绑定缩小后的可见范围。
+            result = _render(batch, flat=flat, reference_batch=reference_batch, _legacy_feedback=_legacy_feedback, _data_legacy=_data_legacy, _skip_preflight=True, _display_case_ids=visible_ids, _metadata_legacy=_metadata_legacy, _metadata_bindings=_metadata_bindings, companion_base=companion_base, module_review=module_review, _expand_whole_steps=_expand_whole_steps, _return_bindings=_return_bindings)  # 同一交付位置仍绑定缩小后的可见范围。
             result.update({k: v for k, v in check.items() if k != 'complete_batch'})
             result['batch'] = copy.deepcopy(batch)  # Unshown never means deleted.
             return result
@@ -149,6 +149,7 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
                 for ref, entry in data.items()}
     selection = {s['case_id']: s for s in batch['selection']}
     case_prose = {}  # Keep each case bound by stable identity.
+    scalar_bindings = {}
     input_bindings = {}  # A flat source row identifies the exact input through directory projection.
     source_data = {record['id']: record for record in batch['data']}
     case_group_ranges = {}  # 对话表的原分组范围，供显式归属后的同投影替换。
@@ -272,6 +273,8 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
                         checks = independent_checks(step.get('expected', []), step['verification'],
                             lambda claim: _business_lines(claim if metadata_legacy else business_value(claim, 'claim'), batch=reference_batch or batch, _legacy=metadata_legacy), original)  # 精确旧布局沿旧 claim 投影。
                 operation = step.get('operation', '待核对')
+                if _return_bindings is not None:
+                    scalar_bindings[len(tree) - 3] = (case['id'], [group, i-1, 'operation'], operation)
                 tree.append(indent + f'  - 步骤 {i}：' + _cell(operation))  # Preserve operation and data ownership.
                 if not _legacy_feedback and len(values) == 1 and values != ['无'] and not input_positions:  # One scalar needs no mechanical child level.
                     tree.append(indent + '    - 参数/数据：' + _cell(values[0]))  # Preserve literal and feedback mapping.
@@ -282,7 +285,12 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
                             input_bindings[len(tree) - 3] = (case['id'], step['id'], input_positions[position])
                         tree.append(indent + '      - ' + _cell(value))
                 tree.append(indent + '    - 预期')
-                tree.extend(indent + '      - ' + _cell(v) for v in expected)
+                for claim_line in expected:
+                    if _return_bindings is not None:
+                        matches = [j for j, claim in enumerate(step.get('expected', [])) if claim.get('text') == claim_line]
+                        if len(matches) == 1:
+                            scalar_bindings[len(tree) - 3] = (case['id'], [group, i-1, 'expected', matches[0], 'text'], claim_line)
+                    tree.append(indent + '      - ' + _cell(claim_line))
                 if checks:  # No empty duplicate assertion node.
                     tree.append(indent + '      - 验证点：' + _cell('；'.join(checks)))
                 check_text = '；验证点：' + _cell('；'.join(checks)) if checks else ''  # Same visible meaning in chat.
@@ -370,7 +378,7 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
         common_prose(projected, [])
         human = preparation
     return {'artifact_status': 'planned', 'ready_case_ids': [c['id'] for c in batch['cases']], 'blocked_case_ids': [], 'blockers': [], 'clarifications': [], 'batch': copy.deepcopy(batch), 'human_view': '\n'.join(human) + '\n',
-            'xmind_markdown': markdown if flat else aggregate(batch, markdown, source_catalog=reference_batch, display_case_ids=_display_case_ids, companion_base=companion_base, module_review=module_review, input_bindings=input_bindings)}  # 两个投影共享请求范围。
+            'xmind_markdown': markdown if flat else aggregate(batch, markdown, source_catalog=reference_batch, display_case_ids=_display_case_ids, companion_base=companion_base, module_review=module_review, input_bindings=input_bindings, return_bindings=_return_bindings, scalar_bindings=scalar_bindings)}  # 两个投影共享请求范围。
 
 
 def render_review_batch(batch, *, source_catalog=None, companion_base=None):

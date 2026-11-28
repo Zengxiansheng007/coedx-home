@@ -207,6 +207,7 @@ and read the file with its public entry before continuing this same review gate.
 If it reports pending verification, retain the input and resolve the identity or
 format ambiguity in chat. Client import alone does not establish feedback intake.
 
+For a returned two-reader Markdown, use the original delivery’s Agent index to bind its scope; present the field edits and affected invocations before applying them.
 Read [the feedback contract](references/feedback-contract.md) whenever the user
 changes an already displayed case in chat or edits its generated hierarchy
 Markdown. Load the initial displayed baseline and latest accepted candidate;
