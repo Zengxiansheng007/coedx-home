@@ -15,6 +15,8 @@ interaction, summary delivery and return. Pass the existing task/stage; do not
 ask the user to select it again. TCA owns professional checks and actual authoring.
 Keep its existing candidate and sole Q&A event record as the only authorities.
 
+编写或更新人工评审稿时，按[调用输入复用](references/input-reuse.md)分别核实 P0 输入与共同操作段，展示每次调用的全部字段变化与本例终点。
+
 首次混合交稿和已获准扩写均先写完整 P1/P2，再读[同版 P0 操作段契约](references/step-reuse.md#连续操作段的评审展示)，从材料核实能合写的一段操作，按本例标出测试点、变化及判据。
 
 Before selecting P0 steps for P1/P2 reuse or reviewing a compact reference batch,

@@ -702,3 +702,7 @@ CR-20261115-009 record correction: completed required metadata and sections from
 ## CR-20261128-175
 
 公共投影、完整单例、当次证据与来源检查。[变更记录](../entries/2026/2026-11/CR-20261128-175-review-and-case-handoff.md)
+
+## CR-20261128-184
+
+生成、回传及实际公共入口验证。[详细记录](../entries/2026/2026-11/CR-20261128-184-reader-views.md)

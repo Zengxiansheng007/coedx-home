@@ -295,3 +295,7 @@ Track source semantics and technical handoff changes in this category.
 ## CR-20261128-175
 
 按版本和编号交付独立执行者。[变更记录](../entries/2026/2026-11/CR-20261128-175-review-and-case-handoff.md)
+
+## CR-20261128-184
+
+按同版编号读取完整单例及反馈交接。[详细记录](../entries/2026/2026-11/CR-20261128-184-reader-views.md)
