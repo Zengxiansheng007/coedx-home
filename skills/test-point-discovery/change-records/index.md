@@ -4,6 +4,7 @@
 
 | Date | Change ID | Summary | Status |
 | --- | --- | --- | --- |
+| 2026-11-28 | [CR-20261128-197](entries/2026/2026-11/CR-20261128-197-outline-revisions.md) | 增删展示差异，分别绑定拟写与待删范围，沿用未变叶的有效决定 | validated |
 | 2026-11-28 | [CR-20261128-196](entries/2026/2026-11/CR-20261128-196-stage-six-resume.md) | 阶段6接续回查原决定，重跑当前范围并复核问题及来源 | validated |
 | 2026-11-28 | [CR-20261128-195](entries/2026/2026-11/CR-20261128-195-display-and-wait.md) | 缺树或整理后展示当前模块大纲，等待该版真实答复 | validated |
 | 2026-11-28 | [CR-20261128-194](entries/2026/2026-11/CR-20261128-194-module-outline-check.md) | 首次调用逐模块核对实际采用依据和大纲版本 | validated |
