@@ -650,3 +650,7 @@ CR-20261115-010: Document versioned source bindings and historical retention. De
 ## CR-20261128-175
 
 同版适用范围、公共定义和当次证据的契约。[变更记录](../entries/2026/2026-11/CR-20261128-175-review-and-case-handoff.md)
+
+## CR-20261128-184
+
+调用输入、复制和评审反馈契约。[详细记录](../entries/2026/2026-11/CR-20261128-184-reader-views.md)

@@ -367,3 +367,7 @@ final-inspection.json under the local task evidence root, outside this repositor
 ## CR-20261128-175
 
 批量评审及点名执行单例的编写入口。[变更记录](../entries/2026/2026-11/CR-20261128-175-review-and-case-handoff.md)
+
+## CR-20261128-184
+
+两种读者与常规交付入口。[详细记录](../entries/2026/2026-11/CR-20261128-184-reader-views.md)
