@@ -209,7 +209,7 @@ def main():
         output = Path(args.output_dir)
         output.mkdir(parents=True, exist_ok=False)
         from module_handoff import write_artifacts  # Persist the same module documents across sibling batches.
-        write_artifacts(result, output, source_catalog=envelope['catalog'])  # Reuse the actual current P0 input.
+        write_artifacts(result, output, source_catalog=envelope['catalog'], reader_stage='draft')  # Reuse the actual current P0 input.
         for filename, key in [('coverage.json', 'coverage'), ('changes.json', 'changes')]:
             (output / filename).write_text(json.dumps(result[key], ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
         for filename, key in [('xmind.md', 'xmind_markdown'), ('review-notes.md', 'review_notes')]:

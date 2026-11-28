@@ -52,6 +52,8 @@ def assess_preparations(batch, definitions, *, source_catalog=None):
         if not all(isinstance(reason, str) and reason.strip() for reason in (*pending.values(), *excluded.values())):
             raise ValueError('Exceptions require a source-based reason')
         kind = item.get('kind', 'preparation')
+        if 'review_condition' in item and not isinstance(item['review_condition'], str):
+            raise ValueError('Review condition must be business text or an explicitly empty string')
         if kind not in HEADINGS:
             raise ValueError('Unknown shared method kind')
         for cid, slots in applicable.items():
@@ -134,7 +136,7 @@ def applicable_preparations(batch, case_id, source_catalog=None):
     return [item for item in current_definitions(batch, source_catalog) if case_id in item['applicable']]
 
 
-def project_preparations(definitions, case, source, module, displayed):
+def project_preparations(definitions, case, source, module, displayed, *, business_only=False):
     from scoped_review import BUSINESS_LABELS
     def node(label, children=None):
         return dict(text=label, children=children or [], origins=[])
@@ -145,6 +147,18 @@ def project_preparations(definitions, case, source, module, displayed):
         if cid not in item['applicable']:
             continue
         kind = item.get('kind', 'preparation')
+        if business_only and kind in ('data', 'evidence'):
+            # Old evidence records bind their timing to exact invocations. Preserve the
+            # observable window there while keeping the collection instructions in Agent.
+            condition = item.get('review_condition', item['timing'] if kind == 'evidence' else '')
+            if condition:
+                operations = next((n for n in source['children'] if n['text'] == '测试步骤'), None)
+                if operations:
+                    for number, (step, child) in enumerate(zip(case['steps'], operations['children']), 1):
+                        if 'steps/' + step['id'] in item['applicable'][cid]:
+                            child['children'].insert(0, dict(node(item['name'] + '：' + condition),
+                                                             condition_step=number))
+            continue
         label = HEADINGS[kind]
         heading = next((n for n in module['children'] if n.get('source_preparation') and n['text'] == label), None)
         if heading is None:
@@ -153,8 +167,9 @@ def project_preparations(definitions, case, source, module, displayed):
         key = (item['name'], item['source'], item['instruction'], item['timing'])
         if key not in heading['included']:
             ids = [c['id'] for c in displayed if c['id'] in item['applicable']]
+            timing = [] if business_only and kind == 'preparation' else [node('执行时机：' + item['timing'])]
             heading['children'].append(node(item['name'], [node('适用用例：' + '、'.join(ids)),
-                node('执行时机：' + item['timing']), node(item['instruction'])]))
+                                                          *timing, node(item['instruction'])]))
             heading['included'].add(key)
         slots = item['applicable'][cid]
         if kind != 'preparation':
@@ -221,7 +236,8 @@ def main():
     result = render_selection(batch, args.ids, source_catalog=parent)
     args.output_dir.mkdir(parents=True, exist_ok=False)
     from module_handoff import write_artifacts
-    write_artifacts(result, args.output_dir, source_catalog=parent, review_ids=args.ids or [case['id'] for case in batch['cases']])
+    write_artifacts(result, args.output_dir, source_catalog=parent, review_ids=args.ids or [case['id'] for case in batch['cases']],
+                    reader_stage='draft' if args.ids is not None else 'full')
 
 
 if __name__ == '__main__':

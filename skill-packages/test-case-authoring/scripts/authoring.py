@@ -318,7 +318,7 @@ def main():
         output = Path(args.output_dir)
         output.mkdir(parents=True, exist_ok=False)
         from module_handoff import write_artifacts  # Persist the same module documents across sibling batches.
-        write_artifacts(result, output)  # The shared writer owns candidate bytes and companion links.
+        write_artifacts(result, output, reader_stage='full')  # The shared writer owns candidate bytes and companion links.
         (output / 'xmind.md').write_text(result['xmind_markdown'], encoding='utf-8')
     except (ValueError, KeyError, TypeError, AttributeError, OSError):
         print('Candidate conversion rejected: check input contract, credential references and new output directory.', file=sys.stderr)

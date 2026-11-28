@@ -158,7 +158,7 @@ class ScopedReviewTests(unittest.TestCase):
             self.assertEqual(done.returncode, 0, done.stderr)
             self.assertEqual(source.read_bytes(), before)
             files = {p.name for p in (root / 'review').iterdir()}
-            self.assertEqual(files, {'candidate.json', 'initial-copy-baseline.json', 'changes.json',
+            self.assertEqual(files, {'candidate.json', 'agent.json', 'source-catalog.json', 'initial-copy-baseline.json', 'changes.json',
                                      'xmind.md', 'review-notes.md'})  # No persisted human-view table.
             self.assertNotEqual(subprocess.run(command, capture_output=True).returncode, 0)
 

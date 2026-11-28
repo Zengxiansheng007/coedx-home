@@ -42,6 +42,8 @@ class CommonMethodTests(unittest.TestCase):
             affected_case_ids(candidate, method['module_path'], '查回执', 'old-version')
         candidate['cases'][1]['steps'][-1]['operation'] += '变更'
         tree = render_selection(candidate, [cases[0]['id'], cases[1]['id']])['xmind_markdown']
-        self.assertIn('公共取证方法', tree)
+        self.assertNotIn('公共取证方法', tree)
+        self.assertNotIn('定位本次回执', tree)
+        self.assertIn('查回执：每例结束前', tree)
         self.assertIn('适用范围待核对：查回执', tree)
         self.assertNotIn('适用用例：' + cases[0]['id'] + '、' + cases[1]['id'], tree)
