@@ -68,15 +68,19 @@ records and cannot stand in for fresh generation or user review.
 
 ## Independent case handoff
 
-For a named case from an assessed review, use the same candidate that supplied the XMind copy.
-Call `presentation.render_chat(batch, [case_id], source_catalog=parent_if_scoped)` for chat.
-For a portable JSON attachment run:
+An independent executor reads `content_version` and `case_ids` from the delivered
+`agent.json`. Select one listed case and pass that exact version:
 
 ```shell
-python scripts/single_case.py --candidate candidate.json --version <content_version> --case <case_id> --output case.json
+python scripts/single_case.py --agent path/to/agent.json --version <content_version> --case <case_id> --output case.json
 ```
 
-For a partial catalog copy, add `--source-catalog <exact-parent.json>`. The output path must be new.
+Keep the index with its candidate and any indexed parent catalog. The command checks
+the selected case, its step and data identities, and the versioned sources, then writes
+to a new output path. A scope or source mismatch requires the matching delivery.
+For the existing direct candidate workflow, use `--candidate candidate.json` in place
+of `--agent` and add `--source-catalog <exact-parent.json>` for a partial copy.
+For chat, call `presentation.render_chat(batch, [case_id], source_catalog=parent_if_scoped)`.
 Read the current case's context, ordered preparation and steps, and any postconditions.
 Each step's `data_refs` names records in the attachment's `data` object. Use their actual values,
 preserving omitted keys, empty strings and objects. Replace only existing placeholders with
@@ -91,3 +95,29 @@ A single named case expands legacy whole-step references with their original P0 
 number, current input, operation, expected outcome and independent checks. Each executable
 expected or verification item needs nonblank business text. Use the case, group, step and
 claim field from a retrieval error to correct the candidate at its source.
+
+## Paired reader delivery
+
+Use the normal writer for both files. A new full authoring run uses `authoring.py`;
+for an assessed complete candidate use `source_preparation.py --candidate ... --output-dir ...`.
+While drafting, pass repeated `--case` to the latter entry for the actual ordered review list.
+For a premerge scope use `scoped_review.py --catalog ... --request ... --output-dir ...`
+with the selected cases in the request. The full, draft, and premerge deliveries retain their
+separate authorization and review boundaries.
+
+Read the version and selected IDs from the Markdown and the adjacent `agent.json`.
+The index points to the authoritative `candidate.json` and, for a partial catalog, the exact
+`source-catalog.json`. Its `cases` maps each selected identity to its step and data references.
+Keep these files together when moving a delivery. Regenerate the pair after confirmation of
+a source change. A copy of the full parent provides reference context, including hidden P0
+inputs, while the index lists only the current review selection.
+
+Use data-record root fields `validity`, `generation_rule`, `reuse_policy`, and
+`invalidation_action` for execution instructions. Put a business input or acceptance
+condition under its bound step. An actual property with one of these names inside a JSON
+input retains its meaning. For a source preparation's data or evidence definition,
+`review_condition` can name the observable business condition at its applicable step.
+Use an explicit empty string when the timing merely tells the executor to collect evidence.
+Keep a condition such as starting an observation window before submission when that timing
+determines whether the observed result is valid. Older evidence methods retain
+their timing at each bound step. Their detailed collection instructions stay in the Agent source.

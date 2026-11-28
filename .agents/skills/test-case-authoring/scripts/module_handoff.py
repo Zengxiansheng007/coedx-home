@@ -162,12 +162,14 @@ def _case_markers(case_id):
     return begin, end, re.escape(begin) + r'.*?' + re.escape(end)  # Literal boundaries prevent regex interpretation of markers.
 
 
-def write_artifacts(result, output, *, source_catalog=None, review_ids=None):
+def write_artifacts(result, output, *, source_catalog=None, review_ids=None, reader_stage=None):
     """Save technical documents and the business tree; sibling batch folders share notes."""
     from pathlib import Path
     import re
     import json
     original = result['batch']  # Candidate remains the sole state/history authority.
+    if review_ids is None:
+        review_ids = result.get('review_ids')  # An agreed reader return retains its original selection.
     from authoring import _credential_guard
     _credential_guard([original, source_catalog])
     import os
@@ -250,10 +252,14 @@ def write_artifacts(result, output, *, source_catalog=None, review_ids=None):
         temporary.write_text(content, encoding='utf-8')
         temporary.replace(target)  # No per-batch copy or append-only status history.
     from incremental_review import LAYOUT
-    if review_ids is not None:
+    selected_ids = review_ids if review_ids is not None else [c['id'] for c in original['cases']]
+    blocked = {row['case_id'] for row in checked['blockers'] if not row.get('scope_only')}
+    from reader_delivery import visible_review_ids
+    visible_ids = visible_review_ids(original, selected_ids, blocked)
+    if reader_stage or review_ids is not None or any(c.get('feedback_disposition') == 'excluded_this_round' for c in original['cases']):
         from source_preparation import render_selection
-        blocked = {row['case_id'] for row in checked['blockers'] if not row.get('scope_only')}
-        view = render_selection(original, review_ids, blocked_ids=blocked, source_catalog=source_catalog)
+        view = render_selection(original, selected_ids, blocked_ids=blocked, source_catalog=source_catalog,
+                                companion_base=output if original.get('review_layout') == LAYOUT else None)
         result.update(xmind_markdown=view['xmind_markdown'], human_view=view['human_view'])
     elif original.get('review_layout') == LAYOUT:
         from scoped_review import render_review_batch
@@ -263,6 +269,10 @@ def write_artifacts(result, output, *, source_catalog=None, review_ids=None):
         lines = result['xmind_markdown'].splitlines()  # 历史布局的配套入口保持原位置。
         lines[2] = lines[2].partition('配套资料：')[0] + entrance(batch, base_path=output)
         result['xmind_markdown'] = '\n'.join(lines) + '\n'
+    from reader_delivery import write_agent_index
+    stage = reader_stage or ('premerge' if original.get('kind') == 'scoped_review_copy'
+                             else 'full' if len(selected_ids) == len(original['cases']) else 'draft')
+    write_agent_index(output, original, visible_ids, stage, source_catalog, checked['blockers'])
     (output / 'xmind.md').write_text(result['xmind_markdown'], encoding='utf-8')
     for target, content in plans:
         if (target.exists() if content is None else target.read_text(encoding='utf-8') != content):

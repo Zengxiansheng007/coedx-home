@@ -11,6 +11,51 @@ its unchanged `initial_copy_baseline`. Full source and formal assets stay read-o
 from the catalog. `catalog_cases/catalog_data` remain the old selected catalog
 records; they must never replace the displayed diff baseline.
 
+## Returned reader Markdown and submitted JSON
+
+Use the same Q&A record with the actual returned file and the **original delivery’s** `agent.json`.
+
+```python
+from input_feedback import start_reader_feedback, describe_proposal
+from qa_record import advance_record
+from module_handoff import write_artifacts
+
+state = start_reader_feedback(record, returned_md, original_agent, actual_reply=reply)
+proposal = describe_proposal(state['feedback_pending'])
+# Present the proposal and resolve any open questions. Capture the actual agreement.
+state = advance_record(record, 'summarize')
+state = advance_record(record, 'apply_feedback', {
+    'confirmed': True, 'summary_id': state['summary']['id'], 'actual_reply': agreement,
+    # Include source_catalog for a physically scoped copy.
+})
+write_artifacts(state['feedback_result'], new_directory, source_catalog=parent, reader_stage=stage)
+```
+
+The original Agent index supplies the ordered selection, not the edited file. Pure
+`prepare_feedback` callers must supply that saved `review_ids` for a selected reader
+file. Without it the expected scope is the complete current case list. A P0 JSON
+block accepts legal JSON. A variant accepts the generated field sentences, or
+`省略 完整字段路径`, `保留 完整字段路径，值为 JSON值` and `新增 完整字段路径，值为 JSON值`.
+Keep unchanged sentences and use bracketed JSON strings for keys containing
+punctuation. An outside P0 copy appendix is read-only. Return that P0's own
+review if its input is to change.
+
+The case number identifies the returned topic within its source directory. A missing whole
+case enters the usual deletion clarification. For a multi-case return from an earlier layout
+without individual numbers, pass the clarified `case_bindings` to `start_reader_feedback`
+as described in [presentation identity](presentation-identity.md). Kept and added keys
+must agree with the indicated P0 input. A contradictory verb requires clarification at that field.
+
+The default edit belongs to the named case and invocation. Explicit shared
+changes pass `shared_input=[p0_case_id, step_id, data_id]` to the same call.
+Read every inherited field and preserved override, including outside the review.
+Use the complete candidate to apply changes to physical records outside a scoped
+copy. A stale or ambiguous return keeps its source intact. Recheck affected
+titles, operations, expected outcomes, and previous applicability assessments.
+Changed inputs can invalidate a compact operation segment; the complete case
+then supplies its steps for renewed assessment. Changes made only in a runtime
+input box do not enter the returned-file and confirmation workflow.
+
 ## Same-task review chapter
 
 Read the existing MD and current candidate before interpreting feedback. Save

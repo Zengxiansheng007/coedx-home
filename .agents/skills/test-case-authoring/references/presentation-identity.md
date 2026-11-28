@@ -6,7 +6,9 @@ Author a Chinese business title from the supplied meaning; never prefix it with
 the stable English case ID. Display priority, one space and the Chinese title,
 for example `P0 创建系统公告`; keep the stored title unprefixed. Preserve actions, data and checks.
 `render_batch` and `render_review_batch` project one candidate version. Public
-trees omit English identity headings and use business names in references.
+trees use business titles as headings. In paired reader deliveries the generated “用例编号”
+child identifies its case. Reviewers can move a case within its original business directory
+and edit its supported business fields while keeping this number.
 The internal flat renderer is source mapping only, never a user deliverable.
 
 Keep each original case ID on rename; keep same-name cases as separate records.
@@ -27,7 +29,10 @@ paths and complete subtree digests without guessing source IDs. After actual
 business clarification or an existing explicit source mapping, the agent supplies
 `case_bindings={case_id: {returned_digest, source_version, actual_reply}}` to
 `prepare_feedback`. Use the displayed return's version and preserve the actual
-identity answer verbatim. Unique complete unedited subtrees can match themselves.
+identity answer verbatim. A direct case number in the original business directory identifies
+a returned subtree. Earlier single-case reader files can use the one matching number in the
+original review scope and the returned header when that directory contains exactly one
+eligible case. Unique complete unedited subtrees can match themselves.
 Changed or identical subtrees without unambiguous binding raise `ValueError` and
 return to clarification. Matching never uses Chinese title or ordinal alone.
 Paths and applicability are generated structure: clarify their changes. Shared

@@ -102,11 +102,11 @@ def _rule_lines(case, batch, *, original_case=None):  # 原始决定只负责身
     return lines  # Source dictionaries remain untouched.
 
 
-def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, _expression_baseline=None, _data_legacy=False, _skip_preflight=False, _display_case_ids=None, _metadata_legacy=False, _metadata_bindings=None, companion_base=None, _independent_case=None, module_review=False, _expand_whole_steps=False):  # 资料路径只影响交付显示，源行仍为反馈保留。
+def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, _expression_baseline=None, _data_legacy=False, _skip_preflight=False, _display_case_ids=None, _metadata_legacy=False, _metadata_bindings=None, companion_base=None, _independent_case=None, module_review=False, _expand_whole_steps=False, _return_bindings=None):  # 资料路径只影响交付显示，源行仍为反馈保留。
     if batch.get('review_layout') == LAYOUT and not _legacy_feedback:
         batch = json.loads(json.dumps(batch, ensure_ascii=False, sort_keys=True))  # 问答保存按键排序；首次出稿和探针使用相同顺序。
     metadata_legacy = _legacy_feedback or _metadata_legacy  # 不改变历史业务身份、原始值或版本。
-    if _expression_baseline is not None:
+    if _expression_baseline is not None and not _skip_preflight:
         from restoration import preflight
         check = preflight(_expression_baseline, source_catalog=reference_batch)  # Probe eligibility uses the actual complete parent.
         ready = set(check['ready_case_ids']) | {b['case_id'] for b in check['blockers'] if b.get('scope_only')}  # Scope-pending actions remain editable; invalid references stay excluded.
@@ -118,7 +118,7 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
         if check['blockers']:
             visible_ids = set(check['ready_case_ids']) | {b['case_id'] for b in check['blockers'] if b.get('scope_only')}  # Keep unaffected operations and unresolved source actions visible.
             visible_ids = [cid for cid in (_display_case_ids if _display_case_ids is not None else [c['id'] for c in batch['cases']]) if cid in visible_ids]  # Keep caller order and omit blocked references.
-            result = _render(batch, flat=flat, reference_batch=reference_batch, _legacy_feedback=_legacy_feedback, _data_legacy=_data_legacy, _skip_preflight=True, _display_case_ids=visible_ids, _metadata_legacy=_metadata_legacy, _metadata_bindings=_metadata_bindings, companion_base=companion_base, module_review=module_review, _expand_whole_steps=_expand_whole_steps)  # 同一交付位置仍绑定缩小后的可见范围。
+            result = _render(batch, flat=flat, reference_batch=reference_batch, _legacy_feedback=_legacy_feedback, _data_legacy=_data_legacy, _skip_preflight=True, _display_case_ids=visible_ids, _metadata_legacy=_metadata_legacy, _metadata_bindings=_metadata_bindings, companion_base=companion_base, module_review=module_review, _expand_whole_steps=_expand_whole_steps, _return_bindings=_return_bindings)  # 同一交付位置仍绑定缩小后的可见范围。
             result.update({k: v for k, v in check.items() if k != 'complete_batch'})
             result['batch'] = copy.deepcopy(batch)  # Unshown never means deleted.
             return result
@@ -132,6 +132,8 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
     if module_review and batch.get('kind') != 'scoped_review_copy' and len(displayed_cases) == len(batch['cases']):
         tree[0] = '# 完整候选用例评审'
         tree[2] = '- 展示本版全部候选用例'
+    if module_review:
+        tree[2] += '；待评用例：' + '、'.join(case['id'] for case in displayed_cases)
     from module_handoff import entrance  # One entrance, direct links to necessary documents.
     if not _legacy_feedback:
         tree[2] += '；' + entrance(note_batch)  # Display-only note selection has no role in applicability validation.
@@ -141,8 +143,14 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
         original = next((r for r in (_expression_baseline or batch).get(collection, []) if r.get('id', r.get('case_id')) == owner.get('id', owner.get('case_id'))), owner)
         return project_record(_expression_baseline or batch, collection, owner, binding_owner=original)  # Probe visibility follows the unchanged baseline.
     data = {d['id']: displayed('data', d) for d in batch['data']}
+    if module_review:
+        runtime_fields = {'generation_rule', 'validity', 'reuse_policy', 'invalidation_action'}
+        data = {ref: {key: value for key, value in entry.items() if key not in runtime_fields}
+                for ref, entry in data.items()}
     selection = {s['case_id']: s for s in batch['selection']}
     case_prose = {}  # Keep each case bound by stable identity.
+    input_bindings = {}  # A flat source row identifies the exact input through directory projection.
+    source_data = {record['id']: record for record in batch['data']}
     case_group_ranges = {}  # 对话表的原分组范围，供显式归属后的同投影替换。
     for case in displayed_cases:
         group_ranges = {}  # 每例只维护当前瞬时显示位置，不是业务权威。
@@ -159,6 +167,8 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
         if module_review:
             point = (case.get('review_segment') or {}).get('test_point') or case.get('test_point') or case['title']
             human.append('测试点：' + _cell(point))
+            if case.get('test_point') and not case.get('review_segment'):
+                tree.append(indent + '- 测试点：' + _cell(point))
         note = selection[case['id']] if _legacy_feedback else displayed('selection', selection[case['id']])
         for key, value in (([('入选用途', str(note.get('action', '')) + '：' + str(note.get('reason', '')))] if note.get('action') or note.get('reason') else []) + [('本轮功能验证', '已单独列入批准范围' if case['id'] in batch['approved_validation_scope'] else '未列入批准范围')] if metadata_legacy else []):  # 新正文不重复编写范围模板。
             tree.append(indent + '- ' + key + '：' + _cell(value))
@@ -207,19 +217,35 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
                     original = owner.get(group, [])[i - 1]
                     if 'step_reference' in original:
                         _, definition = resolve_step(_expression_baseline, owner, group, original)  # Only visible action is mapped; source label stays immutable.
+                from invocation_input import input_label, json_input
                 if definition:
                     group_label = dict(zip(GROUPS, ('公共前置操作', '特殊前置操作', '测试步骤', '特殊后置操作', '公共后置操作')))[group]
                     label = 'P0 ' + definition['title'] + '，' + group_label + '步骤 ' + str(definition['step_number'])
                     if not _expand_whole_steps:
                         tree.append(indent + f'  - 步骤 {i}：' + _cell(step['operation']))
                         tree.append(indent + '    - 整步引用：' + _cell(label))
+                        if module_review:
+                            for ref in step.get('data_refs', []):
+                                if json_input(source_data[ref]):
+                                    input_bindings[len(tree) - 3] = (case['id'], step['id'], ref)
+                                    box = input_label(source_data[ref], step, source_data)
+                                    tree.append(indent + '    - ' + _cell(box) + '（完整 JSON）')
                         current_data = [line for ref in step.get('data_refs', []) if data[ref].get('generation_rule') for line in _business_lines(data[ref], batch=reference_batch or batch)]  # Dynamic values belong to this case.
                         for line in current_data:
                             tree.append(indent + '    - 本例数据：' + _cell(line))
                         human.append(f'| {i} | {_cell(step["operation"])} | 整步引用：{_cell(label)}；{_cell("；".join(current_data))} | 见引用步骤 |')
                         continue  # Shared data, expectation and assertion remain maintained in P0.
-                values = [line for ref in step.get('data_refs', [])
-                          for line in data_lines(data[ref], lambda value: _business_lines(value, batch=reference_batch or batch, _legacy=metadata_legacy), legacy=_legacy_feedback or _data_legacy, metadata_legacy=metadata_legacy, incremental=batch.get('review_layout') == LAYOUT)] or ['无']  # 只有新版显示明确空输入。
+                values, input_positions = [], {}
+                for ref in step.get('data_refs', []):
+                    record = data[ref]
+                    if module_review and json_input(source_data[ref]):
+                        input_positions[len(values)] = ref
+                        values.append(input_label(source_data[ref], step, source_data) + '（完整 JSON）')
+                        record = {k: v for k, v in record.items() if k not in ('value', 'object_ref', 'input_format')}
+                    values.extend(data_lines(record, lambda value: _business_lines(value, batch=reference_batch or batch, _legacy=metadata_legacy),
+                                             legacy=_legacy_feedback or _data_legacy, metadata_legacy=metadata_legacy,
+                                             incremental=batch.get('review_layout') == LAYOUT))
+                values = values or ['无']
                 if definition and _expand_whole_steps:
                     values.insert(0, '整步引用：' + label)
                     for ref in step.get('data_refs', []):
@@ -249,17 +275,24 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
                             lambda claim: _business_lines(claim if metadata_legacy else business_value(claim, 'claim'), batch=reference_batch or batch, _legacy=metadata_legacy), original)  # 精确旧布局沿旧 claim 投影。
                 operation = step.get('operation', '待核对')
                 tree.append(indent + f'  - 步骤 {i}：' + _cell(operation))  # Preserve operation and data ownership.
-                if not _legacy_feedback and len(values) == 1 and values != ['无']:  # One scalar needs no mechanical child level.
+                if not _legacy_feedback and len(values) == 1 and values != ['无'] and not input_positions:  # One scalar needs no mechanical child level.
                     tree.append(indent + '    - 参数/数据：' + _cell(values[0]))  # Preserve literal and feedback mapping.
                 else:
                     tree.append(indent + '    - 参数/数据')  # Complex branches retain individual leaves.
-                    tree.extend(indent + '      - ' + _cell(v) for v in values)
+                    for position, value in enumerate(values):
+                        if position in input_positions:
+                            input_bindings[len(tree) - 3] = (case['id'], step['id'], input_positions[position])
+                        tree.append(indent + '      - ' + _cell(value))
                 tree.append(indent + '    - 预期')
-                tree.extend(indent + '      - ' + _cell(v) for v in expected)
+                for claim_line in expected:
+                    tree.append(indent + '      - ' + _cell(claim_line))
                 if checks:  # No empty duplicate assertion node.
                     tree.append(indent + '      - 验证点：' + _cell('；'.join(checks)))
                 check_text = '；验证点：' + _cell('；'.join(checks)) if checks else ''  # Same visible meaning in chat.
-                human.append(f'| {i} | {_cell(operation)} | {_cell("；".join(values))} | 预期：{_cell("；".join(expected))}{check_text} |')
+                table_values = list(values)
+                for position, ref in input_positions.items():
+                    table_values[position] += ' ' + json.dumps(source_data[ref]['value'], ensure_ascii=False)
+                human.append(f'| {i} | {_cell(operation)} | {_cell("；".join(table_values))} | 预期：{_cell("；".join(expected))}{check_text} |')
             if group.startswith('common_') and not _legacy_feedback and _independent_case is None:
                 human[group_human_start:] = []  # Module projection below supplies common or unresolved preparation.
             elif group in ('steps', 'special_preconditions', 'special_postconditions'):
@@ -340,7 +373,7 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
         common_prose(projected, [])
         human = preparation
     return {'artifact_status': 'planned', 'ready_case_ids': [c['id'] for c in batch['cases']], 'blocked_case_ids': [], 'blockers': [], 'clarifications': [], 'batch': copy.deepcopy(batch), 'human_view': '\n'.join(human) + '\n',
-            'xmind_markdown': markdown if flat else aggregate(batch, markdown, source_catalog=reference_batch, display_case_ids=_display_case_ids, companion_base=companion_base, module_review=module_review)}  # 两个投影共享请求范围。
+            'xmind_markdown': markdown if flat else aggregate(batch, markdown, source_catalog=reference_batch, display_case_ids=_display_case_ids, companion_base=companion_base, module_review=module_review, input_bindings=input_bindings, return_bindings=_return_bindings)}  # 两个投影共享请求范围。
 
 
 def render_review_batch(batch, *, source_catalog=None, companion_base=None):
@@ -495,6 +528,8 @@ def build_scoped_review(catalog, batch_id, selection, approved_validation_scope=
         batch['review_layout'] = review_layout  # 随候选版本一起保存，恢复时选回同一布局。
     if hypothetical:
         batch['hypothetical'] = True  # 本轮版式演示的声明随候选保存。
+    if full.get('input_reuse'):
+        batch['input_reuse'] = {cid: rows for cid, rows in full['input_reuse'].items() if cid in selected_ids}
     if full.get('source_preparations'):
         batch['source_preparations'] = copy.deepcopy(full['source_preparations'])
     if full.get('preparation_scopes'):
@@ -532,7 +567,7 @@ def main():
         output = Path(args.output_dir)
         output.mkdir(parents=True, exist_ok=False)
         from module_handoff import write_artifacts  # Persist the same module documents across sibling batches.
-        write_artifacts(result, output, source_catalog=catalog)  # Actual input remains available at delivery.
+        write_artifacts(result, output, source_catalog=catalog, reader_stage='premerge')  # Actual input remains available at delivery.
         for filename, content in [('initial-copy-baseline.json', result['batch']['initial_copy_baseline']),
                                   ('changes.json', result['changes'])]:
             (output / filename).write_text(json.dumps(content, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')

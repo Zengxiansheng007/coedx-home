@@ -270,6 +270,10 @@ def advance_record(path, action, payload=None, *, _expected_record=None, _expect
         event['display'] = payload['display']  # Exactly the text to send after successful read-back.
     elif action == 'start_feedback':  # Same task, new review chapter with actual proposal and questions.
         event['display'] = '评审回问\n原话：' + payload['actual_reply'] + '\n拟变更：' + json.dumps(updated['feedback_pending']['changes'], ensure_ascii=False) + '\n' + updated['chat']  # Record before displaying.
+        pending = updated['feedback_pending']
+        if pending.get('input_edits'):
+            from input_feedback import describe_proposal
+            event['display'] += '\n' + describe_proposal(pending)
     elif action == 'record_note':  # Actual non-rule answers must be readable without inspecting JSON.
         event['display'] = '原话：' + payload['actual_reply'] + '\n来源：' + payload['source_ref']  # Preserve real words and provenance.
     elif action == 'record_coverage':  # Keep source review readable beside its authoritative event.

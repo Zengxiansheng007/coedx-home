@@ -52,6 +52,8 @@ def assess_preparations(batch, definitions, *, source_catalog=None):
         if not all(isinstance(reason, str) and reason.strip() for reason in (*pending.values(), *excluded.values())):
             raise ValueError('Exceptions require a source-based reason')
         kind = item.get('kind', 'preparation')
+        if 'review_condition' in item and not isinstance(item['review_condition'], str):
+            raise ValueError('Review condition must be business text or an explicitly empty string')
         if kind not in HEADINGS:
             raise ValueError('Unknown shared method kind')
         for cid, slots in applicable.items():
@@ -134,7 +136,7 @@ def applicable_preparations(batch, case_id, source_catalog=None):
     return [item for item in current_definitions(batch, source_catalog) if case_id in item['applicable']]
 
 
-def project_preparations(definitions, case, source, module, displayed):
+def project_preparations(definitions, case, source, module, displayed, *, business_only=False):
     from scoped_review import BUSINESS_LABELS
     def node(label, children=None):
         return dict(text=label, children=children or [], origins=[])
@@ -145,6 +147,18 @@ def project_preparations(definitions, case, source, module, displayed):
         if cid not in item['applicable']:
             continue
         kind = item.get('kind', 'preparation')
+        if business_only and kind in ('data', 'evidence'):
+            # Old evidence records bind their timing to exact invocations. Preserve the
+            # observable window there while keeping the collection instructions in Agent.
+            condition = item.get('review_condition', item['timing'] if kind == 'evidence' else '')
+            if condition:
+                operations = next((n for n in source['children'] if n['text'] == '测试步骤'), None)
+                if operations:
+                    for number, (step, child) in enumerate(zip(case['steps'], operations['children']), 1):
+                        if 'steps/' + step['id'] in item['applicable'][cid]:
+                            child['children'].insert(0, dict(node(item['name'] + '：' + condition),
+                                                             condition_step=number))
+            continue
         label = HEADINGS[kind]
         heading = next((n for n in module['children'] if n.get('source_preparation') and n['text'] == label), None)
         if heading is None:
@@ -153,8 +167,9 @@ def project_preparations(definitions, case, source, module, displayed):
         key = (item['name'], item['source'], item['instruction'], item['timing'])
         if key not in heading['included']:
             ids = [c['id'] for c in displayed if c['id'] in item['applicable']]
+            timing = [] if business_only and kind == 'preparation' else [node('执行时机：' + item['timing'])]
             heading['children'].append(node(item['name'], [node('适用用例：' + '、'.join(ids)),
-                node('执行时机：' + item['timing']), node(item['instruction'])]))
+                                                          *timing, node(item['instruction'])]))
             heading['included'].add(key)
         slots = item['applicable'][cid]
         if kind != 'preparation':
@@ -178,7 +193,14 @@ def project_preparations(definitions, case, source, module, displayed):
             group['children'] = [n for n in group['children'] if n.get('preparation_step_id') not in slots]
 
 
-def render_selection(batch, case_ids=None, *, companion_base=None, blocked_ids=(), source_catalog=None):
+def reader_source(batch):
+    selection = {s['case_id']: s for s in batch.get('selection', [])}
+    return dict(batch, approved_validation_scope=batch.get('approved_validation_scope', []),
+                   questions=batch.get('questions', []), selection=[
+        selection.get(cid, dict(case_id=cid, action='related', reason='候选评审')) for cid in (case['id'] for case in batch['cases'])])
+
+
+def render_selection(batch, case_ids=None, *, companion_base=None, blocked_ids=(), source_catalog=None, _return_bindings=None):
     """Render selected cases against the complete assessed candidate and preserve input order."""
     from scoped_review import _render
     _credential_guard([batch, source_catalog])
@@ -186,12 +208,10 @@ def render_selection(batch, case_ids=None, *, companion_base=None, blocked_ids=(
     chosen = ids if case_ids is None else case_ids
     if not chosen or len(chosen) != len(set(chosen)) or set(chosen) - set(ids):
         raise ValueError('Select distinct known case IDs')
-    selection = {s['case_id']: s for s in batch.get('selection', [])}
-    display = dict(batch, approved_validation_scope=batch.get('approved_validation_scope', []),
-                   questions=batch.get('questions', []), selection=[
-        selection.get(cid, dict(case_id=cid, action='related', reason='候选评审')) for cid in ids])
-    visible = [cid for cid in chosen if cid not in blocked_ids]
-    result = _render(display, reference_batch=source_catalog, _display_case_ids=visible, companion_base=companion_base, module_review=True)
+    display = reader_source(batch)
+    from reader_delivery import visible_review_ids
+    visible = visible_review_ids(batch, chosen, blocked_ids)
+    result = _render(display, reference_batch=source_catalog, _display_case_ids=visible, companion_base=companion_base, module_review=True, _return_bindings=_return_bindings)
     result['batch'] = copy.deepcopy(batch)
     return result
 
@@ -201,6 +221,7 @@ def main():
     parser.add_argument('--candidate', type=Path, required=True)
     parser.add_argument('--source-catalog', type=Path, help='Exact complete parent for an authorized extension')
     parser.add_argument('--assessment', type=Path)
+    parser.add_argument('--input-assessments', type=Path, help='Source-assessed P0 invocation inputs by target case ID')
     parser.add_argument('--case', dest='ids', action='append')
     parser.add_argument('--impact', metavar='NAME', help='Review every current reference to this common definition')
     parser.add_argument('--module-path', action='append', help='Repeat for each ordered module path component')
@@ -212,8 +233,11 @@ def main():
     parent = json.loads(args.source_catalog.read_text(encoding='utf-8-sig')) if args.source_catalog else None
     if args.assessment:
         batch = assess_preparations(batch, json.loads(args.assessment.read_text(encoding='utf-8-sig')), source_catalog=parent)
+    if args.input_assessments:
+        from input_reuse import bind_inputs
+        batch = bind_inputs(batch, json.loads(args.input_assessments.read_text(encoding='utf-8-sig')), source_catalog=parent)
     if args.impact:
-        if args.ids or args.assessment or not args.module_path or not args.version:
+        if args.ids or args.assessment or args.input_assessments or not args.module_path or not args.version:
             parser.error('--impact needs --module-path and --version on an assessed candidate, without --case or --assessment')
         args.ids = affected_case_ids(batch, args.module_path, args.impact, args.version, source_catalog=parent)
     elif args.module_path or args.version:
@@ -221,7 +245,8 @@ def main():
     result = render_selection(batch, args.ids, source_catalog=parent)
     args.output_dir.mkdir(parents=True, exist_ok=False)
     from module_handoff import write_artifacts
-    write_artifacts(result, args.output_dir, source_catalog=parent, review_ids=args.ids or [case['id'] for case in batch['cases']])
+    write_artifacts(result, args.output_dir, source_catalog=parent, review_ids=args.ids or [case['id'] for case in batch['cases']],
+                    reader_stage='draft' if args.ids is not None else 'full')
 
 
 if __name__ == '__main__':
