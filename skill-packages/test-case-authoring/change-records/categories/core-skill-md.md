@@ -363,3 +363,7 @@ final-inspection.json under the local task evidence root, outside this repositor
 | 2026-11-19 | CR-20261119-153 | Use the incremental layout from the standard extension entry | changed | Integrated contract verification | applied |
 
 [Detail](../entries/2026/2026-11/CR-20261119-153-integration-review-layout.md)
+
+## CR-20261128-175
+
+批量评审及点名执行单例的编写入口。[变更记录](../entries/2026/2026-11/CR-20261128-175-review-and-case-handoff.md)

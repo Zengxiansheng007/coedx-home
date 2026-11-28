@@ -66,6 +66,8 @@ def projection(batch, markdown, *, handoff=True, common_legacy=False, source_cat
     operations, pending = operation_scopes(batch, source_catalog)  # Per-item exclusions remain in one candidate record.
     indexed = {case['id']: case for case in batch['cases']}  # Full current batch still drives scope validation above.
     displayed = batch['cases'] if display_case_ids is None else [indexed[cid] for cid in display_case_ids]  # Match the ordered flat source exactly.
+    from source_preparation import current_definitions, project_preparations
+    source_definitions = current_definitions(batch, source_catalog) if handoff and not common_legacy else []
     for case, branch in zip(displayed, root['children']):  # Only selected branches are visible.
         target, source = merged, branch  # Walk source hierarchy and shared target in lockstep.
         for level, part in enumerate(case['module_path']):  # Match level and ancestor, never text globally.
@@ -79,6 +81,8 @@ def projection(batch, markdown, *, handoff=True, common_legacy=False, source_cat
         source['case_id'] = case['id']
         path = tuple(case['module_path'])  # Parents without direct cases never reach this branch.
         target['module_path'] = path  # 配套资料按完整模块路径定位。
+        if source_definitions:
+            project_preparations(source_definitions, case, source, target, displayed)
         scope_target = target  # Module fallback or the explicitly reviewed ancestor.
         for level, part in enumerate(business_path(case)):  # Group only inside the existing module owner.
             node = next((n for n in target['children'] if n.get('directory') == ('business', level, part)), None)
@@ -148,6 +152,9 @@ def projection(batch, markdown, *, handoff=True, common_legacy=False, source_cat
                     source['children'].insert(0, dict(text='前置操作未提供，待核对', children=[], origins=[]))
             elif records:
                 common['children'] = [{'text': '适用：' + shared['text'] + '（执行时仍须完成）', 'children': [], 'origins': []}]  # Historical feedback retains its explicit reference layout.
+        if handoff and not common_legacy and case.get('review_segment'):
+            from review_segments import project_segment
+            project_segment(batch, case, source, source_catalog)
         target['children'].append(source)  # Keep each individual case after its shared preparation.
     for shared in groups.values():  # Final membership is available after all cases are projected.
         shared['children'].insert(0, {'text': '适用用例：' + '、'.join(case_name(batch, cid) for cid in shared['members']), 'children': [], 'origins': []})  # Display names while preserving internal member IDs.

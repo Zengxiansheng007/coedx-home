@@ -14,7 +14,7 @@ from incremental_review import LAYOUT
 GROUPS = ('common_preconditions', 'special_preconditions', 'steps', 'special_postconditions', 'common_postconditions')
 
 
-TECHNICAL_FIELDS = frozenset(('reuse_target_digest', 'reuse_assessments', 'id', 'source', 'lines', 'basis', 'provenance',
+TECHNICAL_FIELDS = frozenset(('review_segment', 'reuse_target_digest', 'reuse_assessments', 'id', 'source', 'lines', 'basis', 'provenance',
     'semantic_version', 'data_version', 'assertion_id', 'assertion_ids', 'operator',
     'build_fingerprint', 'sha256', 'content_hash', 'summary_id', 'content_version', 'technical_handoff', 'business_group', 'rule_id', 'question_id'))  # Stable technical identities remain internal, including historical rule references.
 BUSINESS_LABELS = {
@@ -285,6 +285,12 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
                 if not case.get('common_postconditions') and case.get('common_postconditions_note'):
                     preparation.extend(_business_lines(case['common_postconditions_note'], batch=batch))
                 return
+            if node.get('source_preparation'):
+                preparation.append('## ' + ' / '.join(path + [node['text']]))
+                for item in node['children']:
+                    preparation.append('- ' + item['text'])
+                    preparation.extend('  - ' + child['text'] for child in item['children'])
+                return
             if node['text'].startswith(('公共前置操作 ', '特殊前置操作', '特殊后置操作', '待核对：前置适用范围', '待核对：未归属前置操作', '待核对：未归属前置说明', '公共后置操作 ', '待核对：后置适用范围', '待核对：未归属后置操作', '待核对：未归属后置说明')):  # 显式特殊归属同样沿树生成对话表。
                 preparation.append('## ' + ' / '.join(path) + ' / ' + node['text'])
                 def leaves(item, depth):
@@ -466,6 +472,8 @@ def build_scoped_review(catalog, batch_id, selection, approved_validation_scope=
         batch['review_layout'] = review_layout  # 随候选版本一起保存，恢复时选回同一布局。
     if hypothetical:
         batch['hypothetical'] = True  # 本轮版式演示的声明随候选保存。
+    if full.get('source_preparations'):
+        batch['source_preparations'] = copy.deepcopy(full['source_preparations'])
     if full.get('preparation_scopes'):
         batch['preparation_scopes'] = copy.deepcopy(full['preparation_scopes'])  # Selection never broadens approved membership.
         baseline['preparation_scopes'] = copy.deepcopy(full['preparation_scopes'])  # Preserve review evidence for restoration.

@@ -291,3 +291,7 @@ Track source semantics and technical handoff changes in this category.
 | 2026-11-19 | CR-20261119-153 | Use the incremental layout from the standard extension entry | changed | Integrated contract verification | applied |
 
 [Detail](../entries/2026/2026-11/CR-20261119-153-integration-review-layout.md)
+
+## CR-20261128-175
+
+按版本和编号交付独立执行者。[变更记录](../entries/2026/2026-11/CR-20261128-175-review-and-case-handoff.md)

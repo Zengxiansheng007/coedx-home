@@ -646,3 +646,7 @@ CR-20261115-010: Document versioned source bindings and historical retention. De
 | 2026-11-19 | CR-20261119-149 | Write formal Human View from validated input | changed | Local implementation and regression | applied |
 
 [Detail](../entries/2026/2026-11/CR-20261119-149-formal-human-view.md)
+
+## CR-20261128-175
+
+同版适用范围、公共定义和当次证据的契约。[变更记录](../entries/2026/2026-11/CR-20261128-175-review-and-case-handoff.md)

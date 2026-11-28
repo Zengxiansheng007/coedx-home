@@ -151,6 +151,12 @@ def build_extension(catalog, baseline, reports, entry_request, design, mode='pro
         case.update(rule_status='unconfirmed', review_status='pending', merge_status='not_merged', execution_status='not_run')
         for field in ('final_review', 'supplied_content_confirmation', 'rule_decisions'):
             case.pop(field, None)
+    from review_segments import bind_case
+    review_data = {d['id']: d for d in catalog['data']}
+    review_data.update({d['id']: d for d in design['candidate_data']})
+    for case in candidates:
+        if 'review_segment' in case:
+            bind_case(case, case['review_segment'], catalog, review_data.values())
     selections = design.get('selection') or [{'case_id': c['id'], 'action': 'add', 'reason': 'P1/P2 design expansion'} for c in candidates]
     result = build_scoped_review(catalog, design['batch_id'], selections, candidates=candidates,
                                  candidate_data=design['candidate_data'],
