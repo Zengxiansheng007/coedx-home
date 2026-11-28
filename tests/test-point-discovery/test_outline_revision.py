@@ -103,6 +103,62 @@ class OutlineRevisionTest(unittest.TestCase):
         self.confirm("附件：拍照 → 方式 0、从云盘选择\n" + result["review_text"])
         self.assertEqual(self.check()["status"], "block")
 
+    def test_reopen_after_confirmed_retirement_needs_new_confirmation(self):
+        self.new["branches"] = []
+        self.request.update(scope=[], remove_scope=self.old["branches"])
+        retirement = self.check()
+        self.confirm(retirement["review_text"])
+        self.assertEqual(self.check()["status"], "allow")
+        # Keep the exact successful decision and both original messages for reuse.
+        (self.root / "new.json").rename(self.root / "retired.json")
+        self.new["branches"] = [["选取文档"]]
+        self.request.update(previous_decision="retired.json", scope=self.new["branches"],
+                            remove_scope=[])
+        del self.request["decision"]
+        reentry = self.check()
+        self.assertEqual(reentry["status"], "block")
+        self.assertEqual(reentry.get("diff"),
+                         {"added": [["选取文档"]], "removed": [], "unchanged": []}, reentry)
+        self.assertEqual(reentry["previous_version"], retirement["version"])
+        basis, reply = self.conversation("reopen", [
+            ("assistant", reentry["review_text"]), ("user", "确认添加选取文档。")])
+        self.save("reopen.json", {"task": "演练", "kind": "confirm", "outline": self.new,
+                                  "evidence": [{"basis": basis, "reply": reply}]})
+        self.request["decision"] = "reopen.json"
+        self.assertEqual(self.check()["status"], "allow")
+        self.request["previous_decision"] = self.request.pop("decision")
+        continued = self.check()
+        self.assertEqual(continued["status"], "allow")
+        self.assertEqual(continued["diff"]["unchanged"], self.new["branches"])
+
+    def test_empty_baseline_requires_a_retrievable_confirmation_of_this_retirement(self):
+        self.new["branches"] = []
+        self.request.update(scope=[], remove_scope=self.old["branches"])
+        retired = self.check()
+        empty = self.new
+        self.new = {"module": "附件", "branches": [["选取文档"]]}
+        self.request.update(outline=self.new, scope=self.new["branches"], remove_scope=[],
+                            previous_decision="empty.json")
+        diff = retired["review_text"]
+        header = diff.splitlines()[0]
+        for kind, shown, answer in [
+            ("confirm", "空大纲", "同意。"),
+            ("adopt", diff, "同意。"),
+            ("confirm", diff, ""),
+            ("confirm", header, "同意。"),
+            ("confirm", diff.replace("附件大纲调整", "另一个模块大纲调整"), "同意。"),
+            ("confirm", diff.replace("附件大纲调整", "外部附件大纲调整"), "同意。"),
+            ("confirm", diff.replace(retired["version"][:12], "0" * 12), "同意。"),
+            ("confirm", diff.replace(retired["previous_version"][:12], retired["version"][:12]), "同意。"),
+        ]:
+            with self.subTest(kind=kind, shown=shown, answer=answer):
+                basis, reply = self.conversation("empty", [("assistant", shown), ("user", answer)])
+                self.save("empty.json", {"task": "演练", "kind": kind, "outline": empty,
+                                         "evidence": [{"basis": basis, "reply": reply}]})
+                blocked = self.check()
+                self.assertEqual(blocked["status"], "block")
+                self.assertNotIn("diff", blocked)
+
     def test_move_is_an_addition_and_a_deletion_of_full_paths(self):
         self.new["branches"] = [["录像", "方式 0"], ["录音"]]
         self.request.update(scope=[["录像", "方式 0"]], remove_scope=[["拍照", "方式 0"]])

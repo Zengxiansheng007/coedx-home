@@ -142,7 +142,9 @@ def verify_decision(directory, filename, task, module, expected_outline=None, re
         raise ValueError("采用记录与当前模块不符")
     if expected_outline is not None and expected_outline != outline:
         raise ValueError("采用记录与当前模块或大纲版本不符")
-    branches = set() if retirement else paths(outline.get("branches"), "采用记录缺少具体业务分支")
+    empty_history = expected_outline is None and outline.get("branches") == []
+    branches = (set() if retirement or empty_history else
+                paths(outline.get("branches"), "采用记录缺少具体业务分支"))
     if decision.get("kind") not in ("adopt", "confirm"):
         raise ValueError("缺少用户明确采用或确认的决定")
     evidence = decision.get("evidence")
@@ -157,6 +159,15 @@ def verify_decision(directory, filename, task, module, expected_outline=None, re
         if (decision["kind"] == "confirm" and basis_file == reply_file
                 and shown is not None and answered <= shown):
             raise ValueError("确认须来自展示本次大纲后收到的用户答复")
+    if empty_history:
+        # Retirement decisions already cite the displayed diff. Reuse it without
+        # requiring earlier records to gain a new field after the user replied.
+        empty_version = version(outline)[:12]
+        removal = (rf"(?<!\w){re.escape(module)}大纲调整（(?!{empty_version} )[0-9a-f]{{12}}"
+                   rf" → {empty_version}）\n移除：\S")
+        if decision["kind"] != "confirm" or not any(
+                re.search(removal, pair["basis"]["quote"]) for pair in evidence):
+            raise ValueError("空的历史大纲须回查针对本模块空版本的移除差异及用户确认")
     # Wording may be normalized by the operator, but each source label must
     # remain independently retrievable in the versioned outline/question.
     basis = ["".join(pair["basis"]["quote"].split()).casefold() for pair in evidence]

@@ -8,6 +8,7 @@
 
 | Date | Change ID | Section | Change Type | Summary | Status |
 | --- | --- | --- | --- | --- | --- |
+| 2026-11-28 | CR-20261128-200 | 清空后恢复 | fixed | 说明清空后沿用该决定重新展示第一叶 | validated |
 | 2026-11-28 | CR-20261128-197 | 已采用范围的修订 | changed | 记录新旧范围、差异展示、用户答复及局部写删请求 | validated |
 | 2026-11-28 | CR-20261128-196 | 接续判定与引用 | changed | 记录本次范围、版本、实际决定、阶段5缺口及出稿渠道。 | validated |
 | 2026-11-28 | CR-20261128-195 | 大纲展示与等待 | changed | 按资料核对漏项和归属，展示具体版本并等待真实答复 | validated |
@@ -27,6 +28,12 @@
 | 2026-11-09 | CR-20261109-003 | 当前模块集中生成 | fixed | 处置、来源补漏和依赖复核绑定生成 | validated |
 
 ## Detailed Records
+
+### CR-20261128-200 - 清空后恢复
+
+- Section changed / After：说明清空后沿用该决定重新展示第一叶。
+- Before / Why：已合法清空的模块无法展示随后新增的第一叶。
+- Impact / Validation：[适用范围和回归结果](../entries/2026/2026-11/CR-20261128-200-reopen-retired-outline.md)。
 
 ### CR-20261128-197 - 已采用范围的修订
 
