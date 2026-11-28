@@ -250,12 +250,20 @@ def _data_owners(batch, data_ids, source_catalog):
 
 def prepare_feedback(batch, channel, *, actual_reply, changes=None, markdown=None,
                      removed_case_ids=None, deletion_decisions=None, source_version=None, case_bindings=None,
-                     clear_changes=False, questions=None, shared_change=None, companion_base=None, source_catalog=None):  # Shared impact uses the same review boundary.
+                     clear_changes=False, questions=None, shared_change=None, companion_base=None, source_catalog=None, review_ids=None, shared_input=None):  # Shared impact uses the same review boundary.
     """Locate proposed changes against first display and later accepted content."""
     _credential_guard([batch, actual_reply, changes, markdown, deletion_decisions, case_bindings])  # Binding replies follow the same credential boundary.
     if not actual_reply or channel not in ('chat', 'markdown'):
         raise ValueError('Actual feedback and supported channel required')
-    initial = _initial(batch)
+    from input_feedback import reader_ids, read_return
+    displayed = reader_ids(markdown) if channel == 'markdown' and markdown else None
+    if review_ids is not None and list(review_ids) != displayed:
+        raise ValueError('评审范围 / 待评用例清单与原稿不符')
+    reader = displayed is not None
+    if shared_input and not reader:
+        raise ValueError('共享 P0 输入变更需要实际评审稿')
+    initial = batch if reader else _initial(batch)
+    input_edits, input_impact = [], []
     shared_plan, shared_ids = None, []
     if shared_change is not None:
         from shared_step_feedback import prepare
@@ -269,11 +277,16 @@ def prepare_feedback(batch, channel, *, actual_reply, changes=None, markdown=Non
     if channel == 'markdown':
         if changes or removed_case_ids or markdown is None:
             raise ValueError('Read Markdown itself, not a substituted interpretation')
-        changes, removed_case_ids = _markdown_changes(batch, markdown, case_bindings, companion_base, source_catalog)
+        if reader:
+            changes, input_edits = read_return(batch, markdown, displayed, companion_base, source_catalog)
+            from input_feedback import plan_impact
+            input_edits, input_impact = plan_impact(batch, input_edits, shared_input, displayed, source_catalog)
+        else:
+            changes, removed_case_ids = _markdown_changes(batch, markdown, case_bindings, companion_base, source_catalog)
         current_source = (incremental_review.version_of(markdown) == batch['content_version']
                           if incremental_review.is_incremental(markdown)
                           else markdown.splitlines()[1] == '- 版本：' + batch['content_version'])
-    normalized, affected = [], set()
+    normalized, affected = [], {e['call'][0] for e in input_edits}
     for change in changes or []:
         collection, identity, path = change['collection'], change['id'], change['path']
         if collection not in ('cases', 'data') or not path:  # 具体可编辑字段由同一 typed 叶枚举核对，不再次按路径键全树拦截。
@@ -350,6 +363,10 @@ def prepare_feedback(batch, channel, *, actual_reply, changes=None, markdown=Non
             q['example'] = 'SIMULATED: exclude this round; keep the existing record active'
             questions.append(q)
     proposal_digest = _digest({'changes': normalized, 'deletions': deletions, **({'shared_scope_impact': scope_impact} if scope_impact else {})})
+    reader_proposal = dict(review_ids=displayed, input_edits=input_edits, input_impact=input_impact) if reader else {}
+    if reader:
+        proposal_digest = _digest(dict(changes=normalized, deletions=deletions, **reader_proposal,
+                                       **({'shared_scope_impact':scope_impact} if scope_impact else {})))
     if shared_plan:
         proposal_digest = _digest({'changes': normalized, 'deletions': deletions, 'shared_change': shared_plan})
         affected.update(shared_ids)
@@ -360,7 +377,7 @@ def prepare_feedback(batch, channel, *, actual_reply, changes=None, markdown=Non
             questions.append(_question('shared-source-' + proposal_digest, shared_plan['replacement']['case_id'],
                 'shared_definition', 'Review displayed P0 source update: ' + repr(shared_plan['replacement']['step']), []))
     binding_digest = _digest(case_bindings or {})  # Bind identity evidence separately from shared product proposals.
-    scope_identity = {'batch_id': batch['id'], 'copy_version': batch['initial_copy_baseline']['copy_version']}
+    scope_identity = {'batch_id': batch.get('id'), 'copy_version': (batch.get('initial_copy_baseline') or {}).get('copy_version', batch['content_version'])}
     question_proposal = _digest(dict(scope_identity, proposal=proposal_digest))
     for index, change in enumerate(normalized):
         if clear_changes:  # A clear textual proposal waits for summary, without redundant rule approval.
@@ -391,10 +408,13 @@ def prepare_feedback(batch, channel, *, actual_reply, changes=None, markdown=Non
     if supplied_questions is not None:  # Preserve caller-enriched stable questions instead of rebuilding their graph.
         questions.extend(supplied_questions)  # start_grill validates omissions and dependencies.
         affected.update(q['case_id'] for q in supplied_questions if q.get('stale') or not q.get('history'))  # Reopened dependencies also need review.
-    return {'batch': copy.deepcopy(batch), 'channel': channel, 'actual_reply': actual_reply,
+    grill = start_grill(batch, questions)
+    if reader:
+        grill['feedback_proposal'] = proposal_digest
+    return {**reader_proposal, 'batch': copy.deepcopy(batch), 'channel': channel, 'actual_reply': actual_reply,
             'base_version': batch['content_version'], 'changes': normalized, 'deletions': deletions, 'shared_change': shared_plan,
             'affected_case_ids': sorted(affected), 'proposal_digest': proposal_digest, 'shared_scope_impact': scope_impact,
-            'grill': start_grill(batch, questions), 'case_bindings': copy.deepcopy(case_bindings or {}), 'binding_digest': binding_digest}  # Preserve actual identity clarification with the proposal.
+            'grill': grill, 'case_bindings': copy.deepcopy(case_bindings or {}), 'binding_digest': binding_digest}  # Preserve actual identity clarification with the proposal.
 
 
 def _views(batch, source_catalog=None):
@@ -422,6 +442,8 @@ def apply_feedback(pending, confirmation, deletion_decisions=None, *, source_cat
         proposal['shared_scope_impact'] = pending['shared_scope_impact']  # Impact belongs to the exact proposal.
     if pending.get('shared_change'):
         proposal['shared_change'] = pending['shared_change']
+    if 'review_ids' in pending:
+        proposal.update({key: pending[key] for key in ('review_ids', 'input_edits', 'input_impact')})
     if pending.get('product_resolution'):
         proposal['product_resolution'] = pending['product_resolution']
         if pending['product_resolution'] != pending['batch'].get('product_reconciliation', {}).get('formal_conclusion'):
@@ -432,6 +454,8 @@ def apply_feedback(pending, confirmation, deletion_decisions=None, *, source_cat
             not confirmation.get('actual_reply') or confirmation.get('summary_id') != current['id'] or
             pending['batch'] != pending['grill']['batch'] or pending['base_version'] != pending['batch']['content_version']):
         raise ValueError('Current feedback summary needs explicit agreement')
+    if 'review_ids' in pending and current.get('feedback_proposal') != pending['proposal_digest']:
+        raise ValueError('本次字段修改及其影响范围需要重新确认')
     batch = copy.deepcopy(pending['batch'])
     batch.setdefault('initial_display_version', pending['base_version'])
     batch.setdefault('initial_display_questions', copy.deepcopy(batch['questions']))
@@ -486,6 +510,11 @@ def apply_feedback(pending, confirmation, deletion_decisions=None, *, source_cat
                 if len(path) > 2 and path[0] == 'cases':
                     refresh(batch, batch['cases'][path[1]])
                 affected.add(decision['case_id'])  # Complete revised case must return to review.
+    if pending.get('input_edits'):
+        from input_feedback import apply_inputs
+        if blocked & {e['call'][0] for e in pending['input_edits']}:
+            raise ValueError('字段修改涉及已延期用例，请重新核对影响范围')
+        apply_inputs(batch, pending['input_edits'], source_catalog)
     for deletion in pending['deletions']:
         cid = deletion['case_id']
         if cid in blocked:
@@ -539,6 +568,8 @@ def apply_feedback(pending, confirmation, deletion_decisions=None, *, source_cat
         check['data_refs'] = sorted(set().union(*[_references(c) for c in linked]))
     batch.setdefault('feedback_history', []).append({'channel': pending['channel'], 'actual_reply': pending['actual_reply'],
         'summary': current, 'confirmation': confirmation, 'changes': pending['changes'], 'deletions': pending['deletions']})
+    if 'review_ids' in pending:
+        batch['feedback_history'][-1].update({k:copy.deepcopy(pending[k]) for k in ('review_ids','input_edits','input_impact')})
     if pending.get('returned_source'):
         batch['feedback_history'][-1]['returned_source'] = copy.deepcopy(pending['returned_source'])
     if batch.get('review_layout') == incremental_review.LAYOUT:
@@ -552,7 +583,11 @@ def apply_feedback(pending, confirmation, deletion_decisions=None, *, source_cat
     batch['questions'] = [copy.deepcopy(q) for q in pending['grill']['questions']
                           if pending.get('persisted_feedback') or q['id'].startswith('existing-')]  # Same-task feedback retains the complete stable graph.
     batch['content_version'] = _digest({k: v for k, v in batch.items() if k != 'content_version'})
-    result = _views(batch, source_catalog)
+    if 'review_ids' in pending:
+        from source_preparation import render_selection
+        result = render_selection(batch, pending['review_ids'], source_catalog=source_catalog)
+    else:
+        result = _views(batch, source_catalog)
     result['batch'] = batch
     result['changes'] = copy.deepcopy(pending['changes'])
     result['review_notes'] = 'Candidate feedback only; final review required. Formal source synchronization and execution remain pending.\n' + str(batch.get('coverage', []))
