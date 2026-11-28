@@ -107,7 +107,9 @@ class OutlineRevisionTest(unittest.TestCase):
         self.new["branches"] = []
         self.request.update(scope=[], remove_scope=self.old["branches"])
         retirement = self.check()
-        self.confirm(retirement["review_text"])
+        self.confirm("以下是" + retirement["review_text"].rsplit("\n", 1)[0])
+        self.assertEqual(self.check()["status"], "block")
+        self.confirm("以下是" + retirement["review_text"] + "。请确认。")
         self.assertEqual(self.check()["status"], "allow")
         # Keep the exact successful decision and both original messages for reuse.
         (self.root / "new.json").rename(self.root / "retired.json")
@@ -135,9 +137,17 @@ class OutlineRevisionTest(unittest.TestCase):
         self.new["branches"] = []
         self.request.update(scope=[], remove_scope=self.old["branches"])
         retired = self.check()
+        other_module = "外部附件"
+        other_outline = dict(self.old, module=other_module)
+        cite = self.conversation("other", [("user", "按外部附件大纲写：拍照 → 方式 0、录音")])[0]
+        self.save("other.json", {"task": "演练", "kind": "adopt", "outline": other_outline,
+                                 "evidence": [{"basis": cite, "reply": cite}]})
+        self.request.update(module=other_module, outline=dict(self.new, module=other_module),
+                            previous_decision="other.json")
+        other_retired = self.check()
         empty = self.new
         self.new = {"module": "附件", "branches": [["选取文档"]]}
-        self.request.update(outline=self.new, scope=self.new["branches"], remove_scope=[],
+        self.request.update(module="附件", outline=self.new, scope=self.new["branches"], remove_scope=[],
                             previous_decision="empty.json")
         diff = retired["review_text"]
         header = diff.splitlines()[0]
@@ -147,7 +157,7 @@ class OutlineRevisionTest(unittest.TestCase):
             ("confirm", diff, ""),
             ("confirm", header, "同意。"),
             ("confirm", diff.replace("附件大纲调整", "另一个模块大纲调整"), "同意。"),
-            ("confirm", diff.replace("附件大纲调整", "外部附件大纲调整"), "同意。"),
+            ("confirm", other_retired["review_text"], "同意。"),
             ("confirm", diff.replace(retired["version"][:12], "0" * 12), "同意。"),
             ("confirm", diff.replace(retired["previous_version"][:12], retired["version"][:12]), "同意。"),
         ]:
