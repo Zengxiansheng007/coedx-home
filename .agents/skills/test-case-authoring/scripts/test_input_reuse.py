@@ -94,4 +94,3 @@ class InputReuseTest(unittest.TestCase):
             self.assertIn(phrase, view)
         self.assertEqual(view.count('请求（完整 JSON）'), 1)
         self.assertEqual(original['cases'], batch['cases'])
-

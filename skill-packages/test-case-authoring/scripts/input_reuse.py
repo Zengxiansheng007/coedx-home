@@ -199,4 +199,3 @@ def attach_copy_sources(root):
             appendix.setdefault(identity, dict(text=label, json_value=value, children=[], origins=[]))
     if appendix:
         root['children'].append(dict(text='供复制', children=list(appendix.values()), origins=[]))
-
