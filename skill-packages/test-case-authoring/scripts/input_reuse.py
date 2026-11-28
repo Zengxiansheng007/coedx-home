@@ -3,7 +3,7 @@ import copy
 import json
 
 from authoring import _cell, _credential_guard, _digest
-from invocation_input import json_input
+from invocation_input import input_label, json_input
 from step_reuse import resolve_step
 
 
@@ -58,7 +58,8 @@ def _call(batch, case_id, step_id, data_id):
     data = _one(batch['data'], data_id, '输入')
     if step.get('data_refs', []).count(data_id) != 1 or not json_input(data):
         raise ValueError(f'调用与 JSON 输入不匹配：{step_id} / {data_id}')
-    return case, step, data, case['steps'].index(stored) + 1
+    label = input_label(data, step, {entry['id']: entry for entry in batch['data']})
+    return case, step, data, case['steps'].index(stored) + 1, label
 
 
 def _describe(batch, case_id, row, source_catalog):
@@ -73,8 +74,8 @@ def _describe(batch, case_id, row, source_catalog):
         catalog, unavailable = scope_context(batch, source_catalog, require_parent=True)
         if unavailable:
             raise ValueError('P0 的完整父稿版本或摘要不符：' + row['p0_case_id'])
-    source, source_step, source_data, source_number = _call(catalog, *(row[k] for k in fields[:3]))
-    target, target_step, target_data, target_number = _call(batch, case_id, row['step_id'], row['data_id'])
+    source, source_step, source_data, source_number, source_label = _call(catalog, *(row[k] for k in fields[:3]))
+    target, target_step, target_data, target_number, target_label = _call(batch, case_id, row['step_id'], row['data_id'])
     if source['priority'] != 'P0' or target['priority'] not in ('P1', 'P2'):
         raise ValueError('输入基准须为 P0，目标须为 P1 或 P2：' + case_id)
     # An approved field edit changes the diff. Reassigning either box or changing its
@@ -82,6 +83,7 @@ def _describe(batch, case_id, row, source_catalog):
     binding = _digest([[c['id'], c['module_path'], s['id'], s['operation'], d['id'], d.get('object_ref')]
                        for c, s, d in [(source, source_step, source_data), (target, target_step, target_data)]])
     return dict(binding=binding, source_case=source, source_step=source_step, source_data=source_data,
+                source_label=source_label, target_label=target_label,
                 source_number=source_number, target_step=target_step, target_data=target_data,
                 target_number=target_number, retained=_retained(row, source_data['value'], target_data['value']),
                 changes=list(changes_between(source_data['value'], target_data['value'])))
@@ -158,9 +160,12 @@ def project_inputs(batch, case, node, origins, source_catalog):
                 except ValueError as error:
                     child['children'].append(dict(text='输入复用待核对：' + _cell(str(error)), children=[], origins=[]))
                     continue
-                source, label = detail['source_case'], detail['source_data'].get('object_ref') or '输入参数'
-                target_label = detail['target_data'].get('object_ref') or '输入参数'
-                child['text'] = _cell(f'本例第 {detail["target_number"]} 步「{target_label}」复用同版 P0「{source["title"]}」（{source["id"]}）第 {detail["source_number"]} 步「{label}」')
+                source, label = detail['source_case'], detail['source_label']
+                target_label = detail['target_label']
+                source_label = f'P0「{source["title"]}」（{source["id"]}）第 {detail["source_number"]} 步「{label}」'
+                source_call = (source['id'], row['p0_step_id'], row['p0_data_id'])
+                child['copy_source'] = (source_call, _cell(source_label), detail['source_data']['value'])
+                child['text'] = _cell(f'本例第 {detail["target_number"]} 步「{target_label}」复用同版 {source_label}')
                 child.pop('json_value')
                 changes = [format_change(change) for change in detail['changes']] or ['输入完全相同，直接复制']
                 changes.extend(format_change(item) for item in detail['retained'])
@@ -169,4 +174,29 @@ def project_inputs(batch, case, node, origins, source_catalog):
     for step_id, ref in sorted(rows.keys() - seen):
         node['children'].append(dict(text=_cell(f'输入复用待核对：本例调用或输入已变化 {step_id} / {ref}'),
                                      children=[], origins=[]))
+
+
+def attach_copy_sources(root):
+    """Link only visible references to inputs present in the final layout or its appendix."""
+    displayed, references = set(), []
+
+    def collect(node):
+        if 'copy_source' in node:
+            references.append(node)
+        elif 'input_call' in node and 'json_value' in node:
+            displayed.add(node['input_call'])
+        for child in node['children']:
+            collect(child)
+
+    collect(root)
+    appendix = {}
+    for node in references:
+        identity, label, value = node['copy_source']
+        if identity in displayed:
+            node['text'] += '（见该用例正文）'
+        else:
+            node['text'] += '（见文末“供复制”）'
+            appendix.setdefault(identity, dict(text=label, json_value=value, children=[], origins=[]))
+    if appendix:
+        root['children'].append(dict(text='供复制', children=list(appendix.values()), origins=[]))
 

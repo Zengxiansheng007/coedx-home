@@ -191,6 +191,9 @@ def aggregate(batch, markdown, source_catalog=None, *, display_case_ids=None, co
     if batch.get('review_layout') == incremental_review.LAYOUT:
         reader_ids = [case['id'] for case in batch['cases']] if display_case_ids is None else display_case_ids
         header, root = incremental_review.project(batch, root, companion_base=companion_base, reader_ids=reader_ids if module_review else None)  # 新版共用准确的业务源行。
+    if input_bindings:
+        from input_reuse import attach_copy_sources
+        attach_copy_sources(root)
     lines = list(header)
     from invocation_input import json_block
     inputs = {d['id']: d for d in batch['data']} if input_bindings else {}
