@@ -12,6 +12,35 @@ from test_scoped_review import catalog
 
 
 class ReaderDeliveryTests(unittest.TestCase):
+    def test_excluded_candidate_stays_saved_and_outside_both_reader_views(self):
+        from module_handoff import write_artifacts
+        from single_case import get_agent_case
+        from source_preparation import render_selection
+        full = catalog()
+        full['cases'][0]['feedback_disposition'] = 'excluded_this_round'
+        excluded = full['cases'][0]['id']
+        kept = full['cases'][1]['id']
+        full['content_version'] = _digest({k:v for k,v in full.items() if k != 'content_version'})
+        with tempfile.TemporaryDirectory() as folder:
+            for stage, requested in [('full', None), ('draft', [excluded, kept]), ('premerge', [excluded, kept])]:
+                dest = Path(folder) / stage
+                dest.mkdir()
+                batch, parent = full, None
+                if stage == 'premerge':
+                    from scoped_review import build_scoped_review
+                    selection = [dict(case_id=cid, action='related', reason='review') for cid in requested]
+                    batch = build_scoped_review(full, 'review-return', selection, review_layout='incremental-v1')['batch']
+                    parent = full
+                result = render_selection(batch, requested, source_catalog=parent)
+                self.assertNotIn('用例编号：' + excluded, result['xmind_markdown'])
+                write_artifacts(result, dest, review_ids=requested, reader_stage=stage, source_catalog=parent)
+                index = json.loads((dest/'agent.json').read_text('utf-8'))
+                self.assertNotIn(excluded, index['case_ids'])
+                self.assertIn(kept, index['case_ids'])
+                self.assertEqual(json.loads((dest/'candidate.json').read_text('utf-8')), batch)
+                with self.assertRaises(ValueError):
+                    get_agent_case(dest/'agent.json', batch['content_version'], excluded)
+
     def test_full_draft_and_premerge_share_version_and_selected_case_ids(self):
         scripts = Path(__file__).resolve().parent
         with tempfile.TemporaryDirectory() as folder:

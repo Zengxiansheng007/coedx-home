@@ -28,6 +28,82 @@ def accept(pending):
 
 
 class InputReturnTest(unittest.TestCase):
+    def test_bound_case_title_context_and_verification_are_editable(self):
+        from aggregation import feedback_topics
+        batch = source()
+        view = render_selection(batch, ['EDIT'])['xmind_markdown']
+        edited = view.replace('P0 Save a notice', 'P0 Rename notice').replace(
+            '角色：editor', '角色：owner').replace('验证点：Read the visible saved message', '验证点：Read receipt')
+        topic = next(t for t in feedback_topics(edited) if t['title'] == 'P0 Rename notice')
+        pending = prepare_feedback(batch, 'markdown', markdown=edited, review_ids=['EDIT'],
+            actual_reply='SIMULATED: edited source', clear_changes=True, case_bindings={
+                'EDIT':dict(returned_digest=topic['returned_digest'], source_version=batch['content_version'],
+                            actual_reply='SIMULATED: this is the edited notice case')})
+        case = accept(pending)['batch']['cases'][0]
+        self.assertEqual(case['title'], 'Rename notice')
+        self.assertEqual(case['context']['role'][0]['text'], 'owner')
+        self.assertEqual(case['steps'][1]['verification'][0]['text'], 'Read receipt')
+
+    def test_authored_test_point_updates_its_own_source_field(self):
+        batch = source()
+        batch['cases'][0]['test_point'] = 'Check the receipt'
+        pending = returned(batch, ['EDIT'], lambda s: s.replace('测试点：Check the receipt', '测试点：Check the final receipt'))
+        self.assertEqual(pending['changes'][0]['path'], ['test_point'])
+
+    def test_older_identical_subtrees_need_a_clarified_owner_even_for_omission(self):
+        from aggregation import feedback_topics
+        batch = source()
+        twin = copy.deepcopy(batch['cases'][0])
+        twin['id'] = 'TWIN'
+        batch['cases'].append(twin)
+        ids = ['EDIT', 'TWIN']
+        view = render_selection(batch, ids)['xmind_markdown']
+        old = '\n'.join(l for l in view.splitlines() if '用例编号：' not in l)
+        edited = old.replace('"typed": 1', '"typed": 7', 1)
+        def read(md, bindings=None):
+            return prepare_feedback(batch, 'markdown', markdown=md, actual_reply='SIMULATED: returned',
+                                    review_ids=ids, clear_changes=True, case_bindings=bindings)
+        with self.assertRaises(ValueError):
+            read(edited)
+        omitted = old[:old.rindex('          - P0 Save a notice')]
+        with self.assertRaises(ValueError):
+            read(omitted)
+        topic = next(t for t in feedback_topics(edited) if t['title'] == 'P0 Save a notice')
+        result = read(edited, {'TWIN':dict(source_version=batch['content_version'],
+                      actual_reply='SIMULATED: second workflow owns that edit', returned_digest=topic['returned_digest'])})
+        self.assertEqual(result['affected_case_ids'], ['TWIN'])
+
+    def test_numbered_cases_can_return_in_a_different_order(self):
+        batch = source()
+        twin = copy.deepcopy(batch['cases'][0])
+        twin['id'] = 'TWIN'
+        batch['cases'].append(twin)
+        ids = ['EDIT', 'TWIN']
+        view = render_selection(batch, ids)['xmind_markdown']
+        start = '          - P0 Save a notice'
+        prefix, first, second = view.split(start)
+        moved = prefix + start + second.replace('"typed": 1', '"typed": 7') + start + first
+        result = prepare_feedback(batch, 'markdown', markdown=moved, review_ids=ids,
+                                  actual_reply='SIMULATED: reordered returned topics')
+        self.assertEqual(result['affected_case_ids'], ['TWIN'])
+
+    def test_omitting_a_numbered_case_needs_a_deletion_decision(self):
+        batch = source()
+        ids = ['EDIT', 'LINK']
+        view = render_selection(batch, ids)['xmind_markdown']
+        omitted = view[:view.index('      - Accounts')]
+        pending = prepare_feedback(batch, 'markdown', markdown=omitted, review_ids=ids,
+                                   actual_reply='SIMULATED: reviewed remaining section', clear_changes=True)
+        self.assertEqual(pending['deletions'], [dict(case_id='LINK', decision=None)])
+
+    def test_older_single_return_has_one_explicit_id_in_its_delivery_and_scope_header(self):
+        batch = source()
+        view = render_selection(batch, ['EDIT'])['xmind_markdown']
+        old = '\n'.join(line for line in view.splitlines() if '用例编号：' not in line)
+        pending = prepare_feedback(batch, 'markdown', markdown=old.replace('"typed": 1', '"typed": 7'),
+            review_ids=['EDIT'], actual_reply='SIMULATED: saved older one-case return')
+        self.assertEqual(pending['affected_case_ids'], ['EDIT'])
+
     def test_local_deletion_from_reuse_text_changes_only_variant_after_confirmation(self):
         batch = source()
         old = copy.deepcopy(batch)
@@ -67,6 +143,15 @@ class InputReturnTest(unittest.TestCase):
                               (lambda s:s.replace(batch['content_version'],'bad-version'),'稿件版本')]:
             with self.subTest(message=message), self.assertRaisesRegex(ValueError, message):
                 returned(batch, ['EDIT','LINK'], edit)
+
+    def test_returned_verbs_must_describe_a_possible_change_from_the_named_p0(self):
+        batch = source()
+        for old, new, path in [
+            ('保留 input.params，值为 {}', '新增 input.params，值为 {"n": 1}', 'input.params'),
+            ('新增 input["new.key"]，值为 [1]', '保留 input["new.key"]，值为 [2]', 'new.key'),
+        ]:
+            with self.subTest(new=new), self.assertRaisesRegex(ValueError, 'LINK/submit.*' + path):
+                returned(batch, ['LINK'], lambda s: s.replace(old, new))
 
     def test_single_case_overlay_for_shared_literal(self):
         batch = source()

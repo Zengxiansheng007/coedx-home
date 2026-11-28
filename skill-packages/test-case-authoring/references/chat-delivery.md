@@ -117,5 +117,7 @@ Use data-record root fields `validity`, `generation_rule`, `reuse_policy`, and
 condition under its bound step. An actual property with one of these names inside a JSON
 input retains its meaning. For a source preparation's data or evidence definition,
 `review_condition` can name the observable business condition at its applicable step.
-Use an explicit empty string when there is no such condition. Older evidence methods retain
+Use an explicit empty string when the timing merely tells the executor to collect evidence.
+Keep a condition such as starting an observation window before submission when that timing
+determines whether the observed result is valid. Older evidence methods retain
 their timing at each bound step. Their detailed collection instructions stay in the Agent source.

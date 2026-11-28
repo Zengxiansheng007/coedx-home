@@ -110,6 +110,8 @@ def get_agent_case(path, version, case_id):
             raise ValueError(case_id + ': ' + blocker['reason'])
     batch = read_json(path.parent / 'candidate.json')
     case = _one(batch['cases'], case_id, 'Case')
+    if case.get('feedback_disposition') == 'excluded_this_round':
+        raise ValueError('Case excluded from this review: ' + case_id)
     if bindings[case_id] != case_references(case):
         raise ValueError('Agent step or data identities differ from the candidate: ' + case_id)
     parent = None

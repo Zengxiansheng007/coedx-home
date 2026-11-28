@@ -33,7 +33,7 @@ def _parse(lines):
     stack = [(-1, root)]
     for index, line in enumerate(lines):
         depth = (len(line) - len(line.lstrip())) // 2  # Two spaces encode one Markdown child level.
-        node = {'text': line.lstrip()[2:], 'children': [], 'origins': [index]}  # 缩进属于树层级，尾部空格属于真实业务值。
+        node = {'text': line.lstrip().removeprefix('- '), 'children': [], 'origins': [index]}
         while stack[-1][0] >= depth:  # Leave completed siblings before attaching this topic.
             stack.pop()  # The remaining stack top is the exact semantic parent.
         stack[-1][1]['children'].append(node)  # Preserve sibling order from the source.
@@ -79,6 +79,8 @@ def projection(batch, markdown, *, handoff=True, common_legacy=False, source_cat
             target = node
             source = source['children'][0]  # Flat source has exactly one path branch per case.
         source['case_id'] = case['id']
+        authored_point = (source['children'][0] if module_review and case.get('test_point')
+                          and not case.get('review_segment') else None)
         path = tuple(case['module_path'])  # Parents without direct cases never reach this branch.
         target['module_path'] = path  # 配套资料按完整模块路径定位。
         for label, group in (('公共前置操作', 'common_preconditions'), ('公共后置操作', 'common_postconditions')):
@@ -170,7 +172,16 @@ def projection(batch, markdown, *, handoff=True, common_legacy=False, source_cat
         if module_review and not any(n.get('segment_test_point') for n in source['children']):
             from authoring import _cell
             point = case.get('test_point') or case.get('title') or '待核对'
-            source['children'].insert(0, dict(text='测试点：' + _cell(point), children=[], origins=[], segment_test_point=True))
+            text = '测试点：' + _cell(point)
+            topic = authored_point
+            if topic is None:
+                topic = dict(text=text, children=[], origins=[])
+            else:
+                source['children'].remove(topic)
+            topic['segment_test_point'] = True
+            source['children'].insert(0, topic)
+        if module_review and batch.get('review_layout') != incremental_review.LAYOUT:
+            source['children'].insert(1, dict(text='用例编号：' + case['id'], children=[], origins=[]))
         target['children'].append(source)  # Keep each individual case after its shared preparation.
     for shared in groups.values():  # Final membership is available after all cases are projected.
         shared['children'].insert(0, {'text': '适用用例：' + '、'.join(case_name(batch, cid) for cid in shared['members']), 'children': [], 'origins': []})  # Display names while preserving internal member IDs.
@@ -186,7 +197,7 @@ def projection(batch, markdown, *, handoff=True, common_legacy=False, source_cat
     return lines[:3], merged
 
 
-def aggregate(batch, markdown, source_catalog=None, *, display_case_ids=None, companion_base=None, module_review=False, input_bindings=None, return_bindings=None, scalar_bindings=None):  # 保留完整范围及资料交付位置。
+def aggregate(batch, markdown, source_catalog=None, *, display_case_ids=None, companion_base=None, module_review=False, input_bindings=None, return_bindings=None):  # 保留完整范围及资料交付位置。
     header, root = projection(batch, markdown, source_catalog=source_catalog, display_case_ids=display_case_ids, module_review=module_review, input_bindings=input_bindings)  # Shared display contract.
     if batch.get('review_layout') == incremental_review.LAYOUT:
         reader_ids = [case['id'] for case in batch['cases']] if display_case_ids is None else display_case_ids
@@ -197,13 +208,14 @@ def aggregate(batch, markdown, source_catalog=None, *, display_case_ids=None, co
     lines = list(header)
     from invocation_input import json_block
     inputs = {d['id']: d for d in batch['data']} if input_bindings else {}
+    if return_bindings is not None:
+        return_bindings['flat'] = markdown
     def visit(node, depth):
         start = len(lines)
         lines.append('  ' * depth + '- ' + node['text'])
-        if return_bindings is not None and len(node['origins']) == 1:
-            scalar = scalar_bindings.get(node['origins'][0])
-            if scalar:
-                return_bindings[start] = dict(kind='scalar', scalar=scalar)
+        if return_bindings is not None:
+            return_bindings[start] = {k: node[k] for k in
+                ('origins', 'case_id', 'directory', 'scope', 'presentation_prefix') if k in node}
         if 'json_value' in node:
             lines.extend(json_block(node['json_value'], '  ' * (depth + 1)))
         elif input_bindings and 'input_call' not in node:
@@ -238,14 +250,17 @@ def feedback_topics(markdown):
     return result
 
 
-def expand_feedback(batch, flat_markdown, incoming, case_bindings=None, *, handoff=True, common_legacy=False, source_catalog=None, _normalize_case=None, _trailing_legacy=False, companion_base=None, module_review=False):  # 交付位置约束材料链接的回传。
+def expand_feedback(batch, flat_markdown, incoming, case_bindings=None, *, handoff=True, common_legacy=False, source_catalog=None, _normalize_case=None, _trailing_legacy=False, companion_base=None, module_review=False, reader_tree=None, read_input=None):  # 交付位置约束材料链接的回传。
     """Expand edits through exact baseline bindings before existing feedback review."""
-    header, expected = projection(batch, flat_markdown, handoff=handoff, common_legacy=common_legacy, source_catalog=source_catalog, _trailing_legacy=_trailing_legacy, module_review=module_review)  # 历史布局仍绑定同版候选及完整原始源偏移。
     lines = incoming.splitlines()
     incremental = batch.get('review_layout') == incremental_review.LAYOUT and incremental_review.is_incremental(incoming)  # 只对已登记的新稿启用新版解释。
-    if incremental:
-        header, expected = incremental_review.project(batch, expected, companion_base=companion_base,
-            reader_ids=[case['id'] for case in batch['cases']] if module_review else None)
+    if reader_tree is not None:
+        header, expected = reader_tree
+    else:
+        header, expected = projection(batch, flat_markdown, handoff=handoff, common_legacy=common_legacy, source_catalog=source_catalog, _trailing_legacy=_trailing_legacy, module_review=module_review)
+        if incremental:
+            header, expected = incremental_review.project(batch, expected, companion_base=companion_base,
+                reader_ids=[case['id'] for case in batch['cases']] if module_review else None)
     if lines[:len(header)] != header:
         raise ValueError('Markdown header/version must match initial display')
     actual = _parse(lines[len(header):])
@@ -276,9 +291,18 @@ def expand_feedback(batch, flat_markdown, incoming, case_bindings=None, *, hando
 
     def match(wanted, got):
         remaining = list(got['children'])
+        unresolved_shapes = {}
+        if reader_tree is not None:
+            for topic in wanted['children']:
+                cid = topic.get('case_id')
+                if cid and cid not in bindings and not any(c['text'] == '用例编号：' + cid for c in topic['children']):
+                    shape = _fingerprint(topic)
+                    unresolved_shapes[shape] = unresolved_shapes.get(shape, 0) + 1
         for child in wanted['children']:
             if child.get('case_id'):
                 binding = bindings.get(child['case_id'])
+                if not binding and unresolved_shapes.get(_fingerprint(child), 0) > 1 and remaining:
+                    raise ValueError('Ambiguous identical cases; clarify the business distinction')
                 normalize = (lambda node: _normalize_case(child['case_id'], node, child)) if _normalize_case else (lambda node: node)  # 按当前已知身份核对可信评审元数据，不按标题猜身份。
                 def normalized_shape(node):  # 扫描其他候选时，对齐失败只表示不是这个准确owner。
                     try:  # 真正选中后仍完整执行严格归一化。
@@ -286,9 +310,12 @@ def expand_feedback(batch, flat_markdown, incoming, case_bindings=None, *, hando
                     except ValueError:  # 不给不相关用例的控制行套用当前owner身份。
                         return None  # 无法对齐的候选不能借机被接受。
                 expected_shape = normalized_shape(child)  # 准确源模板只计算一次。
-                if incremental and not binding:
+                if (incremental or reader_tree is not None) and not binding and any(n['text'] == '用例编号：' + child['case_id'] for n in child['children']):
                     identity = '用例编号：' + child['case_id']  # 同名用例按直属稳定编号找回原记录。
-                    matches = [n for n in remaining if n['children'] and n['children'][0]['text'] == identity]
+                    matches = [n for n in remaining if any(c['text'] == identity for c in n['children'])]
+                elif not binding and child.get('only_reviewed_case'):
+                    grade = child['text'].partition(' ')[0] + ' '
+                    matches = [n for n in remaining if n['text'].startswith(grade)]
                 else:
                     matches = [n for n in remaining if (_fingerprint(n) == binding.get('returned_digest') if binding else n.get('legacy_case_id') == child['case_id'] or (not n.get('legacy_case_id') and expected_shape is not None and normalized_shape(n) == expected_shape))]  # 显式绑定仍先核对原始返回摘要。
                 if len(matches) > 1:
@@ -315,6 +342,10 @@ def expand_feedback(batch, flat_markdown, incoming, case_bindings=None, *, hando
                 found = remaining[0] if remaining else None
             if found is None:
                 raise ValueError('Structural Markdown edit needs explicit chat interpretation')
+            if reader_tree is not None:
+                row = len(header) + found['origins'][0]
+                if not lines[row].startswith(' ' * child['reader_indent'] + '- '):
+                    raise ValueError(f'评审稿第 {row+1} 行：请保留原节点的列表层级')
             remaining.remove(found)
             if child.get('case_id') and _normalize_case:  # 层级匹配后，双方仅移除该用例可信同版评审文字。
                 child, found = normalize(child), normalize(found)  # 保留源行偏移，后续业务叶仍逐项核对。
@@ -338,7 +369,10 @@ def expand_feedback(batch, flat_markdown, incoming, case_bindings=None, *, hando
                             raise ValueError('Priority changes require explicit chat interpretation')
                         text = text[len(grade):]  # Never persist presentation prefix into the name.
                     output[origin + 3] = old[:len(old) - len(old.lstrip())] + '- ' + prefix + text
-            match(child, found)
+            if read_input and child.get('kind') in ('json', 'difference', 'copy'):
+                read_input(child, found, len(header))
+            else:
+                match(child, found)
         if remaining:
             raise ValueError('Unknown Markdown identity or structure')
     match(expected, actual)

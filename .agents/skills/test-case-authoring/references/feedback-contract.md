@@ -40,6 +40,12 @@ Keep unchanged sentences and use bracketed JSON strings for keys containing
 punctuation. An outside P0 copy appendix is read-only. Return that P0's own
 review if its input is to change.
 
+The case number identifies the returned topic within its source directory. A missing whole
+case enters the usual deletion clarification. For a multi-case return from an earlier layout
+without individual numbers, pass the clarified `case_bindings` to `start_reader_feedback`
+as described in [presentation identity](presentation-identity.md). Kept and added keys
+must agree with the indicated P0 input. A contradictory verb requires clarification at that field.
+
 The default edit belongs to the named case and invocation. Explicit shared
 changes pass `shared_input=[p0_case_id, step_id, data_id]` to the same call.
 Read every inherited field and preserved override, including outside the review.

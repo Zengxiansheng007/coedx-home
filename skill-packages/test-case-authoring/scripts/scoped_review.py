@@ -106,7 +106,7 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
     if batch.get('review_layout') == LAYOUT and not _legacy_feedback:
         batch = json.loads(json.dumps(batch, ensure_ascii=False, sort_keys=True))  # 问答保存按键排序；首次出稿和探针使用相同顺序。
     metadata_legacy = _legacy_feedback or _metadata_legacy  # 不改变历史业务身份、原始值或版本。
-    if _expression_baseline is not None:
+    if _expression_baseline is not None and not _skip_preflight:
         from restoration import preflight
         check = preflight(_expression_baseline, source_catalog=reference_batch)  # Probe eligibility uses the actual complete parent.
         ready = set(check['ready_case_ids']) | {b['case_id'] for b in check['blockers'] if b.get('scope_only')}  # Scope-pending actions remain editable; invalid references stay excluded.
@@ -149,7 +149,6 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
                 for ref, entry in data.items()}
     selection = {s['case_id']: s for s in batch['selection']}
     case_prose = {}  # Keep each case bound by stable identity.
-    scalar_bindings = {}
     input_bindings = {}  # A flat source row identifies the exact input through directory projection.
     source_data = {record['id']: record for record in batch['data']}
     case_group_ranges = {}  # 对话表的原分组范围，供显式归属后的同投影替换。
@@ -168,6 +167,8 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
         if module_review:
             point = (case.get('review_segment') or {}).get('test_point') or case.get('test_point') or case['title']
             human.append('测试点：' + _cell(point))
+            if case.get('test_point') and not case.get('review_segment'):
+                tree.append(indent + '- 测试点：' + _cell(point))
         note = selection[case['id']] if _legacy_feedback else displayed('selection', selection[case['id']])
         for key, value in (([('入选用途', str(note.get('action', '')) + '：' + str(note.get('reason', '')))] if note.get('action') or note.get('reason') else []) + [('本轮功能验证', '已单独列入批准范围' if case['id'] in batch['approved_validation_scope'] else '未列入批准范围')] if metadata_legacy else []):  # 新正文不重复编写范围模板。
             tree.append(indent + '- ' + key + '：' + _cell(value))
@@ -273,8 +274,6 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
                         checks = independent_checks(step.get('expected', []), step['verification'],
                             lambda claim: _business_lines(claim if metadata_legacy else business_value(claim, 'claim'), batch=reference_batch or batch, _legacy=metadata_legacy), original)  # 精确旧布局沿旧 claim 投影。
                 operation = step.get('operation', '待核对')
-                if _return_bindings is not None:
-                    scalar_bindings[len(tree) - 3] = (case['id'], [group, i-1, 'operation'], operation)
                 tree.append(indent + f'  - 步骤 {i}：' + _cell(operation))  # Preserve operation and data ownership.
                 if not _legacy_feedback and len(values) == 1 and values != ['无'] and not input_positions:  # One scalar needs no mechanical child level.
                     tree.append(indent + '    - 参数/数据：' + _cell(values[0]))  # Preserve literal and feedback mapping.
@@ -286,10 +285,6 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
                         tree.append(indent + '      - ' + _cell(value))
                 tree.append(indent + '    - 预期')
                 for claim_line in expected:
-                    if _return_bindings is not None:
-                        matches = [j for j, claim in enumerate(step.get('expected', [])) if claim.get('text') == claim_line]
-                        if len(matches) == 1:
-                            scalar_bindings[len(tree) - 3] = (case['id'], [group, i-1, 'expected', matches[0], 'text'], claim_line)
                     tree.append(indent + '      - ' + _cell(claim_line))
                 if checks:  # No empty duplicate assertion node.
                     tree.append(indent + '      - 验证点：' + _cell('；'.join(checks)))
@@ -378,7 +373,7 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
         common_prose(projected, [])
         human = preparation
     return {'artifact_status': 'planned', 'ready_case_ids': [c['id'] for c in batch['cases']], 'blocked_case_ids': [], 'blockers': [], 'clarifications': [], 'batch': copy.deepcopy(batch), 'human_view': '\n'.join(human) + '\n',
-            'xmind_markdown': markdown if flat else aggregate(batch, markdown, source_catalog=reference_batch, display_case_ids=_display_case_ids, companion_base=companion_base, module_review=module_review, input_bindings=input_bindings, return_bindings=_return_bindings, scalar_bindings=scalar_bindings)}  # 两个投影共享请求范围。
+            'xmind_markdown': markdown if flat else aggregate(batch, markdown, source_catalog=reference_batch, display_case_ids=_display_case_ids, companion_base=companion_base, module_review=module_review, input_bindings=input_bindings, return_bindings=_return_bindings)}  # 两个投影共享请求范围。
 
 
 def render_review_batch(batch, *, source_catalog=None, companion_base=None):

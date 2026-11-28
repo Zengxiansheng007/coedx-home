@@ -298,4 +298,4 @@ Track source semantics and technical handoff changes in this category.
 
 ## CR-20261128-184
 
-按同版编号读取完整单例及反馈交接。[详细记录](../entries/2026/2026-11/CR-20261128-184-reader-views.md)
+按同版编号读取完整单例及反馈交接。当轮排除的记录保留于候选，人工稿与 Agent 索引都只交付有效范围。[详细记录](../entries/2026/2026-11/CR-20261128-184-reader-views.md)

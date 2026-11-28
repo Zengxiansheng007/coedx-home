@@ -2,6 +2,11 @@
 import json
 
 
+def visible_review_ids(batch, selected, blocked=()):
+    excluded = {c['id'] for c in batch['cases'] if c.get('feedback_disposition') == 'excluded_this_round'}
+    return [cid for cid in selected if cid not in excluded and cid not in blocked]
+
+
 def case_references(case):
     from scoped_review import GROUPS, _references
 

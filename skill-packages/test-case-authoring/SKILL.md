@@ -35,7 +35,8 @@ Set `design.review_layout` to `incremental-v1` when creating a new P1/P2
 extension. Preserve the layout of a previously saved extension.
 Deliver the same-version `xmind.md` and `agent.json` with the exact candidate and any
 required parent from [reader delivery](references/chat-delivery.md#paired-reader-delivery).
-Keep business conditions at their applicable operation and execution methods in the Agent source. For an explicitly needed selection of
+Keep business conditions at their applicable operation and execution methods in the Agent source.
+For an evidence method, set `review_condition` to the timing or condition that changes how to judge the result, or to `""` when only the collection method is described. For an explicitly needed selection of
 1–9 complete cases, call `presentation.render_chat` and show its returned text
 directly in chat. An independent executor opens the delivered `agent.json` and retrieves one
 listed case by version and ID using [single_case.py --agent](references/chat-delivery.md#independent-case-handoff).
@@ -44,7 +45,7 @@ Keep candidate/Q&A records; human-view tables have no file artifact.
 Before display, rename, same-name feedback or Markdown/native return, read
 [the presentation identity contract](references/presentation-identity.md).
 Use titles `P0 中文用例名`, `P1 中文用例名`, `P2 中文用例名` with one space. Read
-[expectation expression](references/review-expression.md) before presenting repeated checks or named scalar data. Keep stable IDs internal; ask
+[expectation expression](references/review-expression.md) before presenting repeated checks or named scalar data. Each paired review shows its case number below the business title. Ask
 about business role, state, path and intended change when identity is unclear.
 Users never maintain IDs or subtree hashes. Both views use one candidate version.
 

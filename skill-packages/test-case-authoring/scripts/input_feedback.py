@@ -3,8 +3,8 @@ import copy
 import html
 import json
 
-from authoring import _cell, _digest
-from input_reuse import changes_between, format_change, resolve_input
+from authoring import _digest
+from input_reuse import changes_between, field_name, format_change, resolve_input
 
 
 def _object(pairs):
@@ -27,11 +27,6 @@ def _literal(text):
     value = DECODER.decode(text)
     json.dumps(value, allow_nan=False)
     return value
-
-
-def field_name(path):
-    return ''.join((('.' if n else '') + key if key.isidentifier() else
-                    '[' + json.dumps(key, ensure_ascii=False) + ']') for n, key in enumerate(path)) or '整个输入'
 
 
 def _path(text):
@@ -77,6 +72,12 @@ def _command(text, known, baseline):
             if len(found) != 1:
                 raise ValueError('请使用完整字段路径：' + field)
             path = found[0]
+    if path:
+        in_source = path in set(_keys(baseline))
+        if verb == '新增' and in_source:
+            raise ValueError('同版 P0 已含该键，无法新增：' + field_name(path))
+        if verb == '保留' and not in_source:
+            raise ValueError('同版 P0 缺少该键，无法保留：' + field_name(path))
     if verb in ('删除', '省略'):
         if rest:
             if not rest.startswith('（原值 ') or not rest.endswith('）'):
@@ -172,71 +173,85 @@ def reader_ids(markdown):
     return None
 
 
-def read_return(batch, markdown, ids, companion_base, catalog):
+def read_return(batch, markdown, ids, companion_base, catalog, case_bindings=None):
     import incremental_review
-    from source_preparation import render_selection
+    from aggregation import _parse, expand_feedback, feedback_topics
+    from feedback import _decode_scalar_return
+    from source_preparation import render_selection, reader_source
     incoming = markdown.splitlines()
-    version = (incremental_review.version_of(markdown) if incremental_review.is_incremental(markdown)
+    incremental = incremental_review.is_incremental(markdown)
+    header_size = 1 if incremental else 3
+    version = (incremental_review.version_of(markdown) if incremental
                else incoming[1].removeprefix('- 版本：') if len(incoming) > 1 else '')
     if version != batch['content_version']:
         raise ValueError('评审范围 / 稿件版本：请在当前版 ' + batch['content_version'] + ' 重新标注')
-    spans = {}
+    slots = {}
     template = render_selection(batch, ids, companion_base=companion_base, source_catalog=catalog,
-                                _return_bindings=spans)['xmind_markdown'].splitlines()
-    scalars, edits = [], []
+                                _return_bindings=slots)['xmind_markdown'].splitlines()
+    root = _parse(template[header_size:])
+    # The earlier two-reader delivery had no per-case number outside incremental review.
+    # Reconstruct that layout only when the return has no direct case IDs at all.
+    numbers = {'用例编号：' + cid for cid in ids}
+    has_numbers = any(line.strip().removeprefix('- ') in numbers for line in incoming)
+    def bind_origins(node):
+        for child in node['children'][:]:
+            row = header_size + child['origins'][0]
+            if not incremental and not has_numbers and child['text'] in numbers and node.get('case_id'):
+                node['only_reviewed_case'] = ids == [node['case_id']]
+                node['children'].remove(child)
+                continue
+            child.update(origins=[], template_row=row, reader_indent=len(template[row])-len(template[row].lstrip()))
+            child.update(slots.get(row, {}))
+            bind_origins(child)
+    bind_origins(root)
+    if case_bindings:
+        topics = feedback_topics(markdown)
+        if set(case_bindings) - set(ids) or any(sum(t['returned_digest'] == b.get('returned_digest')
+                for t in topics) != 1 for b in case_bindings.values()):
+            raise ValueError('Identity evidence does not uniquely bind the raw return')
     records = {data['id']: data for data in batch['data']}
-    i = j = 0
-    while i < len(template):
+    edits = []
+    def read_input(slot, actual, offset):
+        i = slot['template_row']
+        row = actual['origins'][0] + offset
         wanted = template[i]
-        actual = incoming[j] if j < len(incoming) else None
-        slot = spans.get(i, {})
-        if actual != wanted:
-            if slot.get('kind') != 'scalar':
-                raise ValueError(f'评审稿第 {j+1} 行 / {wanted.strip()}：节点或范围变更须核对')
-            cid, path, before = slot['scalar']
-            suffix = _cell(before)
-            prefix = wanted[:-len(suffix)] if suffix and wanted.endswith(suffix) else None
-            if prefix is None or not actual or not actual.startswith(prefix) or not actual[len(prefix):].strip():
-                raise ValueError(f'{cid} / {path}：请保留原节点并写明新内容')
-            scalars.append(dict(collection='cases', id=cid, path=path, value=html.unescape(actual[len(prefix):])))
-        i += 1
-        j += 1
-        if slot.get('kind') not in ('json','difference','copy'):
-            continue
         call = slot.get('call')
         location = ' / '.join(call) if call else '供复制 / ' + wanted.strip()
         indent = wanted[:len(wanted)-len(wanted.lstrip())] + '  '
-        end = j
+        end = row + 1
         while end < len(incoming) and incoming[end].startswith(indent):
             end += 1
-        block = incoming[j:end]
-        if block != template[i:slot['end']]:
-            try:
-                if slot['kind'] in ('json','copy'):
-                    first, rest = indent + '-     ', indent + '      '
-                    if not block or not block[0].startswith(first) or any(not line.startswith(rest) for line in block[1:]):
-                        raise ValueError('请保留同一输入框的 Markdown JSON 块')
-                    after = _literal('\n'.join([block[0][len(first):], *[line[len(rest):] for line in block[1:]]]))
-                else:
-                    prefix = indent + '- '
-                    if not block or any(not line.startswith(prefix) for line in block):
-                        raise ValueError('请保留该次调用的字段变化列表')
-                    after = _variant_value(batch, slot['call'], [line[len(prefix):] for line in block], catalog)
-                if slot['kind'] == 'copy':
-                    if list(changes_between(slot['value'], after)):
-                        raise ValueError('附录仅供复制，请到原 P0 的对应输入框修改')
-                    i, j = slot['end'], end
-                    continue
-                before = records[call[2]]['value']
-                for delta in changes_between(before, after):
-                    action = {'add':'新增','remove':'删除','replace':'修改'}[delta['op']]
-                    edits.append(dict(call=list(slot['call']), summary='本例'+action+' '+field_name(delta['path']), **delta))
-            except (KeyError, ValueError, TypeError) as error:
-                raise ValueError(f'{location} / 第 {j+1} 行：{error}') from None
-        i, j = slot['end'], end
-    if j != len(incoming):
-        raise ValueError(f'评审稿第 {j+1} 行：未知节点，请核对')
-    return scalars, edits
+        block = incoming[row+1:end]
+        if block == template[i+1:slot['end']]:
+            return
+        try:
+            if slot['kind'] in ('json','copy'):
+                first, rest = indent + '-     ', indent + '      '
+                if not block or not block[0].startswith(first) or any(not line.startswith(rest) for line in block[1:]):
+                    raise ValueError('请保留同一输入框的 Markdown JSON 块')
+                after = _literal('\n'.join([block[0][len(first):], *[line[len(rest):] for line in block[1:]]]))
+            else:
+                prefix = indent + '- '
+                if not block or any(not line.startswith(prefix) for line in block):
+                    raise ValueError('请保留该次调用的字段变化列表')
+                after = _variant_value(batch, slot['call'], [line[len(prefix):] for line in block], catalog)
+            if slot['kind'] == 'copy':
+                if list(changes_between(slot['value'], after)):
+                    raise ValueError('附录仅供复制，请到原 P0 的对应输入框修改')
+                return
+            before = records[call[2]]['value']
+            for delta in changes_between(before, after):
+                action = {'add':'新增','remove':'删除','replace':'修改'}[delta['op']]
+                edits.append(dict(call=list(slot['call']), summary='本例'+action+' '+field_name(delta['path']), **delta))
+        except (KeyError, ValueError, TypeError) as error:
+            raise ValueError(f'{location} / 第 {row+2} 行：{error}') from None
+    flat = slots['flat']
+    expanded = expand_feedback(batch, flat, markdown, case_bindings, reader_tree=(template[:header_size], root),
+                               read_input=read_input)
+    # Use the same eligible source leaves, types and shared-field agreement as existing file feedback.
+    changes, missing = _decode_scalar_return(reader_source(batch), flat.splitlines(), expanded.splitlines(), {}, lambda _: False,
+        source_catalog=catalog, module_review=True, incremental=incremental, display_ids=ids)
+    return changes, edits, missing
 
 
 def _touches(left, right):
@@ -432,7 +447,7 @@ def ordered_candidate(source, layout):
     return visit(source, [])
 
 
-def start_reader_feedback(record, returned_file, agent_file, *, actual_reply, shared_input=None):
+def start_reader_feedback(record, returned_file, agent_file, *, actual_reply, shared_input=None, case_bindings=None):
     """Record a returned Markdown against the original delivery's Agent selection and version."""
     from pathlib import Path
     from qa_record import advance_record, read_record
@@ -450,7 +465,7 @@ def start_reader_feedback(record, returned_file, agent_file, *, actual_reply, sh
             or source['cases'] != batch['cases'] or source['data'] != batch['data']):
         raise ValueError('当前问答记录与原交付候选来源不符')
     ids = index['case_ids']
-    owners = {case['id']:case for case in source['cases']}
+    owners = {case['id']:case for case in source['cases'] if case.get('feedback_disposition') != 'excluded_this_round'}
     if (not isinstance(ids, list) or not ids or not all(isinstance(cid,str) and cid in owners for cid in ids)
             or len(ids) != len(set(ids)) or index['cases'] != {cid:case_references(owners[cid]) for cid in ids}):
         raise ValueError('原交付 Agent 文件的待评清单与步骤或输入定位不符')
@@ -461,6 +476,8 @@ def start_reader_feedback(record, returned_file, agent_file, *, actual_reply, sh
         payload['companion_base'] = str(original.parent.resolve())
     if shared_input is not None:
         payload['shared_input'] = shared_input
+    if case_bindings is not None:
+        payload['case_bindings'] = case_bindings
     if 'source_catalog' in index:
         if index['source_catalog'] != 'source-catalog.json':
             raise ValueError('原交付完整父稿的位置不符')

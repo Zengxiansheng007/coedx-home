@@ -156,6 +156,14 @@ def _markdown_layout_changes(batch, markdown, case_bindings=None, *, legacy=Fals
     incoming = expand_feedback(initial, '\n'.join(original), '\n'.join(incoming), case_bindings,
         handoff=not legacy, common_legacy=common_legacy, source_catalog=source_catalog, _normalize_case=normalize_case, _trailing_legacy=trailing_legacy, companion_base=companion_base, module_review=module_review).splitlines()  # 原始摘要与资料位置先验证。
 
+    return _decode_scalar_return(initial, original, incoming, metadata_bindings, trusted_review,
+        source_catalog=source_catalog, legacy=legacy, data_legacy=data_legacy, metadata_legacy=metadata_legacy,
+        module_review=module_review, incremental=incremental)
+
+
+def _decode_scalar_return(initial, original, incoming, metadata_bindings, trusted_review, *,
+                          source_catalog=None, legacy=False, data_legacy=False, metadata_legacy=False,
+                          module_review=False, incremental=False, display_ids=None):
     source_starts = {}  # 原始 flat 块起点不随回传删除或保留范围移动。
     def blocks(lines):
         headers = []
@@ -179,18 +187,41 @@ def _markdown_layout_changes(batch, markdown, case_bindings=None, *, legacy=Fals
         return result
     before, after = blocks(original), blocks(incoming)
     changes, missing = [], list(before.keys() - after.keys())
+    changed_cases = {cid for cid in after if after[cid] != before[cid]}
+    if not changed_cases:
+        return changes, missing
+    probe_ids = set(changed_cases)
+    probe_data = {ref for case in initial['cases'] if case['id'] in changed_cases for ref in _references(case)}
     all_bindings = {}
     from restoration import feedback_projection as expanded  # Probe inherited visible business leaves without exposing source metadata.
+    resolved = expanded(initial)
+    # The original reader render has already checked eligibility. Probe just the
+    # displayed owners of potentially edited fields, including shared inputs.
+    probe_source = initial
+    if display_ids is not None:
+        affected_owners = [case for case in initial['cases'] if case['id'] in display_ids and
+                           (case['id'] in changed_cases or _references(case) & probe_data)]
+        needed_data = {ref for case in affected_owners for ref in _references(case)}
+        probe_source = dict(initial, cases=affected_owners, data=[d for d in initial['data'] if d['id'] in needed_data])
     for collection in ('cases', 'data'):
-        for index, item in enumerate(expanded(initial)[collection]):
+        indexes = {owner['id']: pos for pos, owner in enumerate(probe_source[collection])}
+        for item in resolved[collection]:
+            if item['id'] not in (probe_ids if collection == 'cases' else probe_data):
+                continue
+            index = indexes[item['id']]
             for path in _leaves(item, data=collection == 'data'):  # data 根身份受保护，真实 value 内业务 id 可定位。
-                probe = copy.deepcopy(initial)
+                probe = dict(probe_source)
+                probe[collection] = list(probe_source[collection])
+                probe[collection][index] = copy.deepcopy(probe[collection][index])
                 marker = 'TCAFEEDBACKLEAFMARKER'
                 if collection == 'cases':
                     from local_step_feedback import materialize  # Probe copy alone may contain an inline step.
                     materialize(probe, probe[collection][index], path)
                 _set(probe[collection][index], path, marker)
-                rendered = blocks(_render(probe, flat=True, reference_batch=source_catalog or initial, _legacy_feedback=legacy, _expression_baseline=initial, _data_legacy=data_legacy, _metadata_legacy=metadata_legacy, module_review=module_review)['xmind_markdown'].splitlines())  # 探针使用同一准确新旧布局。
+                rendered = blocks(_render(probe, flat=True, reference_batch=source_catalog or initial,
+                    _legacy_feedback=legacy, _expression_baseline=initial, _data_legacy=data_legacy,
+                    _metadata_legacy=metadata_legacy, module_review=module_review,
+                    _skip_preflight=display_ids is not None)['xmind_markdown'].splitlines())
                 for cid, lines in rendered.items():
                     for line_index, line in enumerate(lines):
                         if marker in line:
@@ -222,7 +253,7 @@ def _markdown_layout_changes(batch, markdown, case_bindings=None, *, legacy=Fals
     for key, value in seen.items():
         if any(key in values and values[key] != value for values in decoded.values()):
             raise ValueError('Repeated shared data edits disagree')
-        original_value = _get(next(item for item in expanded(initial)[key[0]] if item['id'] == key[1]), key[2])
+        original_value = _get(next(item for item in resolved[key[0]] if item['id'] == key[1]), key[2])
         from data_projection import typed_value  # Parse only against the exact source type.
         changes.append({'collection': key[0], 'id': key[1], 'path': list(key[2]), 'value': typed_value(value, original_value, display_encoded=not (legacy or metadata_legacy) and key[0] == 'data' and key[2] == ('value',), incremental=incremental)})  # 仅新版确切数据值能解码留空。
     return changes, missing
@@ -282,7 +313,8 @@ def prepare_feedback(batch, channel, *, actual_reply, changes=None, markdown=Non
         if reader:
             from input_feedback import ordered_candidate
             original_display = ordered_candidate(batch, reader_order) if reader_order else batch
-            changes, input_edits = read_return(original_display, markdown, displayed, companion_base, source_catalog)
+            changes, input_edits, removed_case_ids = read_return(
+                original_display, markdown, displayed, companion_base, source_catalog, case_bindings)
             from input_feedback import plan_impact
             input_edits, input_impact = plan_impact(batch, input_edits, shared_input, displayed, source_catalog)
         else:

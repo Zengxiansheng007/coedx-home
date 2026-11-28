@@ -653,4 +653,4 @@ CR-20261115-010: Document versioned source bindings and historical retention. De
 
 ## CR-20261128-184
 
-调用输入、复制和评审反馈契约。[详细记录](../entries/2026/2026-11/CR-20261128-184-reader-views.md)
+调用输入、复制和评审反馈契约。明确同版旧稿的身份澄清与可修改字段、证据方法和判定时机。[详细记录](../entries/2026/2026-11/CR-20261128-184-reader-views.md)

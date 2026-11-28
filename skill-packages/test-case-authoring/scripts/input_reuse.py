@@ -122,17 +122,20 @@ def _literal(value):
     return json.dumps(value, ensure_ascii=False, allow_nan=False, separators=(', ', ': '))
 
 
+def field_name(path):
+    return ''.join((('.' if n else '') + key if key.isidentifier() else
+                    '[' + _literal(key) + ']') for n, key in enumerate(path)) or '整个输入'
+
+
 def format_change(change):
-    path = ''
-    for key in change['path']:
-        path += (('.' if path else '') + key) if key.isidentifier() else '[' + _literal(key) + ']'
+    path = field_name(change['path'])
     if change['op'] == 'keep':
         return f'保留 {path}，值为 {_literal(change["after"])}'
     if change['op'] == 'add':
         return f'新增 {path}，值为 {_literal(change["after"])}'
     if change['op'] == 'remove':
         return f'删除 {path}（原值 {_literal(change["before"])}）'
-    subject = '保留 ' + path + '，值' if path else '整个输入'
+    subject = '保留 ' + path + '，值' if change['path'] else path
     return f'{subject}由 {_literal(change["before"])} 改为 {_literal(change["after"])}'
 
 

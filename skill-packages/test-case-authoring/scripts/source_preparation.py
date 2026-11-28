@@ -193,6 +193,13 @@ def project_preparations(definitions, case, source, module, displayed, *, busine
             group['children'] = [n for n in group['children'] if n.get('preparation_step_id') not in slots]
 
 
+def reader_source(batch):
+    selection = {s['case_id']: s for s in batch.get('selection', [])}
+    return dict(batch, approved_validation_scope=batch.get('approved_validation_scope', []),
+                   questions=batch.get('questions', []), selection=[
+        selection.get(cid, dict(case_id=cid, action='related', reason='候选评审')) for cid in (case['id'] for case in batch['cases'])])
+
+
 def render_selection(batch, case_ids=None, *, companion_base=None, blocked_ids=(), source_catalog=None, _return_bindings=None):
     """Render selected cases against the complete assessed candidate and preserve input order."""
     from scoped_review import _render
@@ -201,11 +208,9 @@ def render_selection(batch, case_ids=None, *, companion_base=None, blocked_ids=(
     chosen = ids if case_ids is None else case_ids
     if not chosen or len(chosen) != len(set(chosen)) or set(chosen) - set(ids):
         raise ValueError('Select distinct known case IDs')
-    selection = {s['case_id']: s for s in batch.get('selection', [])}
-    display = dict(batch, approved_validation_scope=batch.get('approved_validation_scope', []),
-                   questions=batch.get('questions', []), selection=[
-        selection.get(cid, dict(case_id=cid, action='related', reason='候选评审')) for cid in ids])
-    visible = [cid for cid in chosen if cid not in blocked_ids]
+    display = reader_source(batch)
+    from reader_delivery import visible_review_ids
+    visible = visible_review_ids(batch, chosen, blocked_ids)
     result = _render(display, reference_batch=source_catalog, _display_case_ids=visible, companion_base=companion_base, module_review=True, _return_bindings=_return_bindings)
     result['batch'] = copy.deepcopy(batch)
     return result

@@ -370,4 +370,4 @@ final-inspection.json under the local task evidence root, outside this repositor
 
 ## CR-20261128-184
 
-两种读者与常规交付入口。[详细记录](../entries/2026/2026-11/CR-20261128-184-reader-views.md)
+两种读者与常规交付入口。双读者稿逐例显示自动生成的编号，取证条件按是否影响判定保留。[详细记录](../entries/2026/2026-11/CR-20261128-184-reader-views.md)

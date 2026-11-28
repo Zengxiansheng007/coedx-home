@@ -254,8 +254,9 @@ def write_artifacts(result, output, *, source_catalog=None, review_ids=None, rea
     from incremental_review import LAYOUT
     selected_ids = review_ids if review_ids is not None else [c['id'] for c in original['cases']]
     blocked = {row['case_id'] for row in checked['blockers'] if not row.get('scope_only')}
-    visible_ids = [cid for cid in selected_ids if cid not in blocked]
-    if reader_stage or review_ids is not None:
+    from reader_delivery import visible_review_ids
+    visible_ids = visible_review_ids(original, selected_ids, blocked)
+    if reader_stage or review_ids is not None or any(c.get('feedback_disposition') == 'excluded_this_round' for c in original['cases']):
         from source_preparation import render_selection
         view = render_selection(original, selected_ids, blocked_ids=blocked, source_catalog=source_catalog,
                                 companion_base=output if original.get('review_layout') == LAYOUT else None)
