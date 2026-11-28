@@ -8,6 +8,7 @@
 
 | Date | Change ID | Section | Change Type | Summary | Status |
 | --- | --- | --- | --- | --- | --- |
+| 2026-11-28 | CR-20261128-195 | 大纲展示与等待 | changed | 入口在缺树、示例或范围不明时转入展示与等待 | validated |
 | 2026-11-28 | CR-20261128-194 | 模块大纲 | changed | 首次调用运行固定程序，聊天和文件共享结果 | validated |
 | 2026-11-28 | CR-20261128-198 | 阶段6编写与自检 | changed | 编写时沿当前大纲恢复输入、差异与执行依据。 | validated |
 | 2026-11-10 | CR-20261110-006 | 共同反馈定义及当前证据 | fixed / validation | 单一来源与CR004/005独立结论 | validated |
@@ -24,6 +25,12 @@
 | 2026-11-09 | CR-20261109-003 | 当前模块集中生成 | fixed | 处置、来源补漏和依赖复核绑定生成 | validated |
 
 ## Detailed Records
+
+### CR-20261128-195 - 大纲展示与等待
+
+- Section changed / After：入口在缺树、示例或范围不明时转入展示与等待。
+- Before / Why：#195 要求把首次阻断接到实际资料和一轮具体的大纲决定。
+- Impact / Validation：[测试结果及作用范围](../entries/2026/2026-11/CR-20261128-195-display-and-wait.md)。
 
 ### CR-20261128-194 - 模块大纲
 

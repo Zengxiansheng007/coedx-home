@@ -33,15 +33,17 @@ def paths(value, missing):
     return seen
 
 
-def transcript_messages(text, suffix):
+def transcript_messages(text, suffix, first_line):
     if suffix == ".jsonl":
-        records = [json.loads(line) for line in text.splitlines() if line.strip()]
+        records = ((number, json.loads(line)) for number, line
+                   in enumerate(text.splitlines(), first_line) if line.strip())
     else:
         value = json.loads(text)
         records = value.get("messages", [value]) if isinstance(value, dict) else value
-    if not isinstance(records, list):
-        raise ValueError("消息记录格式不可读取")
-    for record in records:
+        if not isinstance(records, list):
+            raise ValueError("消息记录格式不可读取")
+        records = enumerate(records, first_line)
+    for number, record in records:
         if not isinstance(record, dict):
             continue
         if record.get("type") == "response_item":
@@ -53,7 +55,7 @@ def transcript_messages(text, suffix):
             content = "\n".join(item["text"] for item in content if isinstance(item, dict)
                                 and isinstance(item.get("text"), str))
         if isinstance(content, str):
-            yield record.get("role"), content
+            yield number, record.get("role"), content
 
 
 def user_quotes_in_markdown(content, quote):
@@ -75,7 +77,7 @@ def user_quotes_in_markdown(content, quote):
     return hits
 
 
-def check_citation(citation, directory, user_reply):
+def check_citation(citation, directory, expected_role=None):
     if not isinstance(citation, dict) or not label(citation.get("path")):
         raise ValueError("缺少可回查的采用依据路径")
     quote = citation.get("quote")
@@ -93,10 +95,14 @@ def check_citation(citation, directory, user_reply):
         raise ValueError("采用依据版本不符，请回查原始记录")
     content = raw.decode("utf-8-sig")
     suffix = source.suffix.lower()
+    position = None
     if suffix in (".json", ".jsonl"):
-        hits = sum(text.count(quote) for role, text in transcript_messages(content, suffix)
-                   if not user_reply or role == "user")
-    elif user_reply:
+        hits = 0
+        for number, role, text in transcript_messages(content, suffix, citation.get("line", 1)):
+            if quote in text and (expected_role is None or role == expected_role):
+                hits += text.count(quote)
+                position = number
+    elif expected_role == "user":
         # Quotations in a historical Q&A are evidence only after the operator
         # verifies their provenance and meaning in the actual conversation.
         hits = user_quotes_in_markdown(content, quote)
@@ -104,6 +110,7 @@ def check_citation(citation, directory, user_reply):
         hits = content.count(quote)
     if hits != 1:
         raise ValueError("原范围或实际用户原话无法唯一回查，请定位原消息或原问答行")
+    return source.resolve(), position
 
 
 def evaluate(request, directory, result):
@@ -140,8 +147,12 @@ def evaluate(request, directory, result):
     for pair in evidence:
         if not isinstance(pair, dict):
             raise ValueError("请配对原大纲与实际用户答复")
-        check_citation(pair.get("basis"), decision_path.parent, user_reply=False)
-        check_citation(pair.get("reply"), decision_path.parent, user_reply=True)
+        display_role = "assistant" if decision["kind"] == "confirm" else None
+        basis_file, shown = check_citation(pair.get("basis"), decision_path.parent, display_role)
+        reply_file, answered = check_citation(pair.get("reply"), decision_path.parent, "user")
+        if (decision["kind"] == "confirm" and basis_file == reply_file
+                and shown is not None and answered <= shown):
+            raise ValueError("确认须来自展示本次大纲后收到的用户答复")
     # Wording may be normalized by the operator, but each source label must
     # remain independently retrievable in the versioned outline/question.
     basis = ["".join(pair["basis"]["quote"].split()).casefold() for pair in evidence]
