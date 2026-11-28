@@ -11,6 +11,8 @@ python -B scripts/source_preparation.py --candidate full.json --assessment asses
 python -B scripts/source_preparation.py --candidate full-review/candidate.json --case CASE-A --case CASE-B --output-dir excerpt
 ```
 
+从已授权的 extension.py 完整新增批次开始时，评估、节选和影响查询均加上 `--source-catalog 原始完整父目录.json`。传入实际生成该批次的同版父候选。归属遍历本批完整新增模块，父 P0 用于核对来源。
+
 交付每个输出目录的 xmind.md。输出 candidate.json 保存完整同版来源；节选范围以 xmind.md 的用例为准。核实模块只出现一次公共前置，节选只包含本次所选的实际适用项。逐例对照独有准备、待核原文、取证对象以及最后业务检查；出现错误时修正全量归属并重新输出。独立验证保留原材料 SHA-256、技能版本、实际调用、两份稿件、逐例归属和仍待核的条件。
 
 ## 公共操作、数据与取证

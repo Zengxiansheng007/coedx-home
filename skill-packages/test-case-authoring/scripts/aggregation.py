@@ -81,6 +81,12 @@ def projection(batch, markdown, *, handoff=True, common_legacy=False, source_cat
         source['case_id'] = case['id']
         path = tuple(case['module_path'])  # Parents without direct cases never reach this branch.
         target['module_path'] = path  # 配套资料按完整模块路径定位。
+        for label, group in (('公共前置操作', 'common_preconditions'), ('公共后置操作', 'common_postconditions')):
+            common = next((node for node in source['children'] if node['text'] == label), None)
+            if common:
+                step_nodes = (node for node in common['children'] if node['text'].startswith('步骤 '))
+                for node, step in zip(step_nodes, case.get(group, [])):
+                    node['preparation_step_id'] = step['id']
         if source_definitions:
             project_preparations(source_definitions, case, source, target, displayed)
         scope_target = target  # Module fallback or the explicitly reviewed ancestor.
@@ -104,7 +110,7 @@ def projection(batch, markdown, *, handoff=True, common_legacy=False, source_cat
             removed = []
             if attributed and handoff and not common_legacy:
                 ids = {step_id for scope in attributed for step_id in scope['step_ids_by_case'][case['id']]}
-                children = [node for node, step in zip([node for node in common['children'] if node['text'].startswith('步骤 ')], case.get(group, [])) if step['id'] in ids]  # 不改源下标、原序或 origins。
+                children = [node for node in common['children'] if node.get('preparation_step_id') in ids]  # 不改源下标、原序或 origins。
                 special_label = '特殊前置操作' if direction == 'pre' else '特殊后置操作'
                 special = next((node for node in source['children'] if node['text'] == special_label), None)
                 if special is None:
@@ -115,8 +121,7 @@ def projection(batch, markdown, *, handoff=True, common_legacy=False, source_cat
                 removed.extend(children)
             for scope in records:
                 ids = scope.get('step_ids_by_case', {}).get(case['id'])
-                children = common['children'] if ids is None else [node for node, step in zip(
-                    [n for n in common['children'] if n['text'].startswith('步骤 ')], case.get(group, [])) if step['id'] in ids]
+                children = common['children'] if ids is None else [node for node in common['children'] if node.get('preparation_step_id') in ids]
                 key = (tuple(case['module_path']), scope['id'])  # Display owner is always the module.
                 if key not in groups:
                     shared = dict(text=label + ' ' + str(1 + sum(k[0] == key[0] for k in groups)),

@@ -6,7 +6,7 @@ from pathlib import Path
 
 from authoring import _credential_guard, _digest
 from preparation_scope import operation_scopes, scope_context
-from restoration import preflight
+from restoration import preflight, validate_executable_step
 from review_segments import checked_range, signature
 from scoped_review import GROUPS, _references
 from source_preparation import current_definitions
@@ -31,8 +31,9 @@ def get_case(batch, version, case_id, *, source_catalog=None, base_path=None):
     segment = case.get('review_segment')
     if segment:
         origin = _one(source['cases'], segment['p0_case_id'], 'P0')
-        if (signature(origin, source['data']) != segment['binding']['source_digest'] or
-                signature(case, batch['data']) != segment['binding']['target_digest']):
+        signature_version = segment['binding'].get('signature_version', 1)
+        if (signature(origin, source['data'], signature_version) != segment['binding']['source_digest'] or
+                signature(case, batch['data'], signature_version) != segment['binding']['target_digest']):
             raise ValueError('Changed assessed segment source: ' + origin['id'])
         checked_range(segment, case, origin)
 
@@ -56,9 +57,7 @@ def get_case(batch, version, case_id, *, source_catalog=None, base_path=None):
             if any(not sid for sid in step_ids) or len(step_ids) != len(set(step_ids)):
                 raise ValueError(f"{owner['id']}/{group}: missing or repeated step identity")
             for step in owner.get(group, []):
-                for key in ('operation', 'expected', 'verification'):
-                    if not step.get(key):
-                        raise ValueError(f"{step['id']}: missing {key}")
+                validate_executable_step(owner['id'], group, step)
                 if 'resolved_case' in step:
                     collect(step['resolved_case'])
     collect(case)

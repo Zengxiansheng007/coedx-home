@@ -118,7 +118,13 @@ class StepReuseTests(unittest.TestCase):
         batch = session['batch']
         session = review(session, dict(approved=True, actual_reply='SIMULATED: reviewed complete source and restored target endpoint', content_version=batch['content_version'], case_ids=['LOW']), source_catalog=args[0])
         batch = session['batch']
-        self.assertIn('整步引用', render_chat(batch, ['LOW'])['human_view'])
+        human = render_chat(batch, ['LOW'])['human_view']
+        self.assertIn('整步引用', human)
+        self.assertIn(args[0]['cases'][0]['title'], human)
+        row = next(line for line in human.splitlines() if '| Enter notice title |' in line)
+        self.assertIn(args[0]['cases'][0]['steps'][0]['expected'][0]['text'], row)
+        self.assertIn(args[0]['data'][0]['value'], row)
+        self.assertNotIn('见引用步骤', human)
         result = merge_reviewed(args[0], batch, dict(kind='merge_instruction', actual_reply='SIMULATED: merge only LOW', content_version=batch['content_version'], baseline_version=args[0]['content_version'], case_ids=['LOW']), target_kind='isolated')
         self.assertEqual(result['cases'][0]['status'], 'applied')
         self.assertTrue(result['catalog']['step_definitions'])

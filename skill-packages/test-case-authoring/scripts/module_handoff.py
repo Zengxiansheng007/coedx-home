@@ -168,6 +168,8 @@ def write_artifacts(result, output, *, source_catalog=None, review_ids=None):
     import re
     import json
     original = result['batch']  # Candidate remains the sole state/history authority.
+    from authoring import _credential_guard
+    _credential_guard([original, source_catalog])
     import os
     output = Path(os.path.abspath(output))
     from restoration import preflight
@@ -251,7 +253,7 @@ def write_artifacts(result, output, *, source_catalog=None, review_ids=None):
     if review_ids is not None:
         from source_preparation import render_selection
         blocked = {row['case_id'] for row in checked['blockers'] if not row.get('scope_only')}
-        view = render_selection(original, review_ids, blocked_ids=blocked)
+        view = render_selection(original, review_ids, blocked_ids=blocked, source_catalog=source_catalog)
         result.update(xmind_markdown=view['xmind_markdown'], human_view=view['human_view'])
     elif original.get('review_layout') == LAYOUT:
         from scoped_review import render_review_batch

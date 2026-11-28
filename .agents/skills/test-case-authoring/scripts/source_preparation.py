@@ -19,11 +19,11 @@ def _bind(case, data):
     return _digest([case, [item for item in data if item['id'] in refs]])
 
 
-def assess_preparations(batch, definitions):
+def assess_preparations(batch, definitions, *, source_catalog=None):
     """Bind the author's source-based assessment to every member of each complete module."""
     from preparation_scope import _authoring_scope
-    _credential_guard(definitions)
-    _authoring_scope(batch, None)
+    _credential_guard([batch, definitions, source_catalog])
+    authoring_scope = _authoring_scope(batch, source_catalog)
     result = copy.deepcopy(batch)
     members = {c['id']: c for c in batch['cases']}
     if len(members) != len(batch['cases']):
@@ -75,6 +75,8 @@ def assess_preparations(batch, definitions):
         records.append(copy.deepcopy(item))
     result['source_preparations'] = dict(definitions=records, bindings={
         cid: _bind(case, batch['data']) for cid, case in members.items()}, sources=_digest(batch.get('sources')))
+    if authoring_scope:
+        result['source_preparations']['authoring_scope'] = authoring_scope
     result['content_version'] = _digest({k: v for k, v in result.items() if k != 'content_version'})
     return result
 
@@ -87,9 +89,14 @@ def current_definitions(batch, source_catalog=None):
     complete, unavailable = scope_context(batch, source_catalog, require_parent=True)
     if unavailable:
         return []
+    authoring_scope = record.get('authoring_scope')
+    if authoring_scope:
+        parent_ids = set(authoring_scope['parent_case_ids'])
+        complete = dict(complete, cases=[c for c in complete['cases'] if c['id'] not in parent_ids])
     original = source_catalog or batch
-    sources = original.get('sources')
-    if record['sources'] != _digest(sources):
+    if authoring_scope and batch.get('initial_copy_baseline', {}).get('catalog_digest') == authoring_scope['catalog_digest']:
+        original = batch
+    if record['sources'] != _digest(original.get('sources')):
         return []
     members = {c['id']: c for c in complete['cases']}
     bindings = {cid: _bind(c, complete['data']) for cid, c in members.items()}
@@ -111,11 +118,11 @@ def current_definitions(batch, source_catalog=None):
     return current
 
 
-def affected_case_ids(batch, module_path, name, version):
+def affected_case_ids(batch, module_path, name, version, *, source_catalog=None):
     """Resolve a proposed definition change against the complete, exact assessed version."""
     if batch.get('content_version') != version or _digest({k: v for k, v in batch.items() if k != 'content_version'}) != version:
         raise ValueError('Use the exact assessed candidate version')
-    matches = [item for item in current_definitions(batch)
+    matches = [item for item in current_definitions(batch, source_catalog)
                if item['module_path'] == module_path and item['name'] == name]
     if len(matches) != 1:
         raise ValueError('Identify a current definition by complete module path and name')
@@ -168,14 +175,13 @@ def project_preparations(definitions, case, source, module, displayed):
                 source['children'] = [n for n in source['children'] if not n['text'].startswith(prefix)]
         group = next((n for n in source['children'] if n['text'] == '公共前置操作'), None)
         if group:
-            group['children'] = [n for n in group['children'] if not (
-                n['text'].startswith('步骤 ') and case['common_preconditions'][
-                    int(n['text'].partition('：')[0].split()[1]) - 1]['id'] in slots)]
+            group['children'] = [n for n in group['children'] if n.get('preparation_step_id') not in slots]
 
 
-def render_selection(batch, case_ids=None, *, companion_base=None, blocked_ids=()):
+def render_selection(batch, case_ids=None, *, companion_base=None, blocked_ids=(), source_catalog=None):
     """Render selected cases against the complete assessed candidate and preserve input order."""
     from scoped_review import _render
+    _credential_guard([batch, source_catalog])
     ids = [c['id'] for c in batch['cases']]
     chosen = ids if case_ids is None else case_ids
     if not chosen or len(chosen) != len(set(chosen)) or set(chosen) - set(ids):
@@ -185,7 +191,7 @@ def render_selection(batch, case_ids=None, *, companion_base=None, blocked_ids=(
                    questions=batch.get('questions', []), selection=[
         selection.get(cid, dict(case_id=cid, action='related', reason='候选评审')) for cid in ids])
     visible = [cid for cid in chosen if cid not in blocked_ids]
-    result = _render(display, _display_case_ids=visible, companion_base=companion_base, module_review=True)
+    result = _render(display, reference_batch=source_catalog, _display_case_ids=visible, companion_base=companion_base, module_review=True)
     result['batch'] = copy.deepcopy(batch)
     return result
 
@@ -193,6 +199,7 @@ def render_selection(batch, case_ids=None, *, companion_base=None, blocked_ids=(
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--candidate', type=Path, required=True)
+    parser.add_argument('--source-catalog', type=Path, help='Exact complete parent for an authorized extension')
     parser.add_argument('--assessment', type=Path)
     parser.add_argument('--case', dest='ids', action='append')
     parser.add_argument('--impact', metavar='NAME', help='Review every current reference to this common definition')
@@ -202,18 +209,19 @@ def main():
     args = parser.parse_args()
     args.output_dir = Path(os.path.abspath(args.output_dir))
     batch = json.loads(args.candidate.read_text(encoding='utf-8-sig'))
+    parent = json.loads(args.source_catalog.read_text(encoding='utf-8-sig')) if args.source_catalog else None
     if args.assessment:
-        batch = assess_preparations(batch, json.loads(args.assessment.read_text(encoding='utf-8-sig')))
+        batch = assess_preparations(batch, json.loads(args.assessment.read_text(encoding='utf-8-sig')), source_catalog=parent)
     if args.impact:
         if args.ids or args.assessment or not args.module_path or not args.version:
             parser.error('--impact needs --module-path and --version on an assessed candidate, without --case or --assessment')
-        args.ids = affected_case_ids(batch, args.module_path, args.impact, args.version)
+        args.ids = affected_case_ids(batch, args.module_path, args.impact, args.version, source_catalog=parent)
     elif args.module_path or args.version:
         parser.error('--version and --module-path require --impact')
-    result = render_selection(batch, args.ids)
+    result = render_selection(batch, args.ids, source_catalog=parent)
     args.output_dir.mkdir(parents=True, exist_ok=False)
     from module_handoff import write_artifacts
-    write_artifacts(result, args.output_dir, review_ids=args.ids or [case['id'] for case in batch['cases']])
+    write_artifacts(result, args.output_dir, source_catalog=parent, review_ids=args.ids or [case['id'] for case in batch['cases']])
 
 
 if __name__ == '__main__':

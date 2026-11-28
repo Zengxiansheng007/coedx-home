@@ -68,3 +68,20 @@ class IndependentCaseTests(unittest.TestCase):
         subset['content_version'] = _digest({k: v for k, v in subset.items() if k != 'content_version'})
         with self.assertRaisesRegex(ValueError, 'Data title'):
             get_case(subset, subset['content_version'], 'EDIT', source_catalog=full)
+
+    def test_every_claim_has_nonblank_business_text(self):
+        from authoring import _digest
+        recording, draft = sample()
+        ok = [{"text": "observed", "source": "recording", "lines": [2, 2]}]
+        draft["steps"][0].update(expected=ok, verification=ok)
+        batch = build_batch(recording, draft)["batch"]
+        case = batch["cases"][0]
+        step = case["steps"][0]
+        for field in ("expected", "verification"):
+            for bad in ([], [{}], [{"text": " "}], "plain text", [None], [{"text": 123}]):
+                with self.subTest(field=field, bad=bad):
+                    step[field] = bad
+                    batch["content_version"] = _digest({k: v for k, v in batch.items() if k != "content_version"})
+                    with self.assertRaisesRegex(ValueError, f"{case['id']}/steps/{step['id']}:.*{field}"):
+                        get_case(batch, batch["content_version"], case["id"])
+            step[field] = ok

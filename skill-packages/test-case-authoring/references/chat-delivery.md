@@ -86,3 +86,8 @@ An explicitly pending applicability keeps its original case condition. The last 
 step and its checks are identified by `endpoint`. Preserve the current case's review and
 execution status. If retrieval reports a missing parent, data, step, or assertion, supply
 the exact missing source and retry. Execution records each assertion against this run.
+
+A single named case expands legacy whole-step references with their original P0 title and step
+number, current input, operation, expected outcome and independent checks. Each executable
+expected or verification item needs nonblank business text. Use the case, group, step and
+claim field from a retrieval error to correct the candidate at its source.

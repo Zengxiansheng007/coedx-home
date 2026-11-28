@@ -57,3 +57,38 @@ class RangeTests(unittest.TestCase):
         self.assertIn('第 1～2 步', render_extension(result['batch'])['xmind_markdown'])
         with self.assertRaisesRegex(ValueError, 'P0 entry blocked'):
             build_extension(args[0], args[1], [], *args[3:], mode='simulation')
+
+    def test_changed_preparation_or_its_data_invalidates_assessed_range(self):
+        from review_segments import bind_segments
+        from source_preparation import render_selection
+        from test_preparation_scope import source
+        full = source()
+        origin, target = full['cases'][:2]
+        target['priority'] = 'P1'
+        baseline = copy.deepcopy(full['data'][0])
+        baseline['id'] = 'setup-only'
+        full['data'].append(baseline)
+        origin['common_preconditions'][0]['data_refs'] = ['setup-only']
+        candidate = bind_segments(full, {target['id']: assessment(origin['id'], 2)})
+        for change in ('source condition', 'target condition', 'preparation data'):
+            edited = copy.deepcopy(candidate)
+            if change == 'preparation data':
+                edited['data'][-1]['value'] = 'different prerequisite'
+            else:
+                case = edited['cases'][0 if change == 'source condition' else 1]
+                case['common_preconditions'][0]['operation'] = 'changed entry'
+            with self.subTest(change=change):
+                self.assertIn('核对原始材料', render_selection(edited, [target['id']])['xmind_markdown'])
+
+    def test_assessed_segment_and_whole_step_reuse_restore_same_version(self):
+        from single_case import get_case
+        from test_step_reuse import reuse_design
+        args = reuse_design()
+        target = args[4]['candidates'][0]
+        target['review_segment'] = assessment(args[0]['cases'][0]['id'], 2)
+        result = build_extension(*args, mode='simulation')
+        batch = result['batch']
+        self.assertIn('step_reference', batch['cases'][0]['steps'][0])
+        packet = get_case(batch, batch['content_version'], target['id'], source_catalog=args[0])
+        self.assertEqual(packet['case']['steps'], target['steps'])
+        self.assertIn('第 1～2 步', result['xmind_markdown'])

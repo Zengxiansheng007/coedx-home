@@ -12,6 +12,8 @@
 - 同版完整候选已存在时，用 `python scripts/review_segments.py --candidate 原候选.json --assessments 逐例比对.json --output-dir 新目录` 生成派生版本。比对 JSON 按目标用例 ID 映射到上述字段，未选用例保留。材料与评审附件沿用现有模块配套文档约定。
 - 后续扩写仍走 `extension.py`，在已授权 design 的完整 `candidates` 中写入相同字段。扩写入口重新检查 P0 报告、人工启动与范围。无合适共同段的候选可省略该字段，旧版整步引用继续按下文规则还原。
 
+新版比对绑定双方的准备、条件、各组步骤及关联数据。业务内容变化或旧版摘要缺少准备校验时，评审稿展开本例原步骤并提示复核。要重新采用压缩展示，按同版材料重新比对并生成新目录。
+
 ## Explicit shared-source changes
 
 Use `prepare_feedback(..., shared_change=...)` only for an actual request to change P0.

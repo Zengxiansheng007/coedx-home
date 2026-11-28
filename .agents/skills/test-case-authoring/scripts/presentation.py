@@ -36,6 +36,7 @@ def render_chat(batch, case_ids=None, *, source_catalog=None):  # Exact original
             sections.append(view['human_view'] + '\n' + packet['evidence_policy'])
         result.update(case_ids=list(case_ids), human_view='\n\n'.join(sections))
         return result
-    view = _render(dict(batch, selection=notes), reference_batch=source_catalog, _display_case_ids=case_ids)  # Assess current membership once with the exact original parent.
+    view = _render(dict(batch, selection=notes), reference_batch=source_catalog, _display_case_ids=case_ids,
+                   _expand_whole_steps=len(case_ids) == 1)  # Assess current membership once with the exact original parent.
     result.update(case_ids=list(case_ids), human_view=view['human_view'])  # Shared definitions appear once per module.
     return result  # No human-view file or secondary business source.

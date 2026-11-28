@@ -93,3 +93,76 @@ class SourcePreparationTests(unittest.TestCase):
                     for ref in re.findall(r'候选来源：\[[^\]]+\]\(([^#]+)#', note.read_text(encoding='utf8')):
                         self.assertNotIn('file:', ref)
                         self.assertTrue((note.parent / unquote(ref)).is_file())
+
+    def test_credentials_in_undisplayed_case_block_both_cli_bundles(self):
+        import json
+        import subprocess
+        import sys
+        import tempfile
+        from pathlib import Path
+        candidate = source()
+        candidate['cases'][-1]['credential_ref'] = 'invalid'
+        with self.assertRaisesRegex(ValueError, 'credential'):
+            render_selection(candidate, [candidate['cases'][0]['id']])
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            (root / 'candidate').write_text(json.dumps(candidate))
+            (root / 'assessment').write_text('{}')
+            for script, args in [('source_preparation.py', ['--case', 'SIM-0']),
+                                 ('review_segments.py', ['--assessments', 'assessment'])]:
+                run = subprocess.run([sys.executable, str(Path(__file__).with_name(script)),
+                    '--candidate', 'candidate', '--output-dir', 'bundle', *args], cwd=root, capture_output=True)
+                self.assertNotEqual(run.returncode, 0)
+                self.assertFalse((root / 'bundle').exists())
+
+    def test_reviewed_and_new_preparations_keep_original_step_owners(self):
+        from preparation_scope import review_preparation_scope
+        full = source()
+        full['cases'] = full['cases'][:2]
+        ids = [c['id'] for c in full['cases']]
+        for c in full['cases']:
+            c['common_preconditions'] = [dict(c['common_preconditions'][0], id=k, operation=k)
+                                         for k in ('FIRST', 'SECOND', 'THIRD')]
+        full = review_preparation_scope(full, scope_kind='module', operation_id='second',
+            step_ids_by_case={cid: ['SECOND'] for cid in ids}, applicable_case_ids=ids,
+            exception_case_ids=[], coverage='vast_majority_few_exceptions', basis='reviewed',
+            actual_reply='verified', version='demo', frequency='each')
+        candidate = assess_preparations(full, [dict(module_path=full['cases'][0]['module_path'],
+            name='entry', timing='each', instruction='first method', source='material',
+            applicable={cid: ['FIRST'] for cid in ids}, pending={}, excluded={})])
+        view = render_selection(candidate)['xmind_markdown']
+        self.assertEqual(view.count('：SECOND'), 1)
+        self.assertEqual(view.count('：THIRD'), 2)
+
+    def test_authorized_delta_assessed_with_exact_parent_via_cli(self):
+        import copy
+        import json
+        import subprocess
+        import sys
+        import tempfile
+        from pathlib import Path
+        from extension import build_extension
+        from test_extension import expansion
+        args = expansion()
+        parent = args[0]
+        delta = build_extension(*args, mode='simulation')['batch']
+        method = dict(module_path=delta['cases'][0]['module_path'], name='独立准备',
+            timing='每例前', instruction='确认当前入口', source='业务材料',
+            applicable={'LOW': ['context/initial_state']}, pending={}, excluded={'HIGH': '独立验证入口'})
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            for filename, value in [('delta', delta), ('parent', parent), ('method', [method])]:
+                (root / filename).write_text(json.dumps(value))
+            subprocess.run([sys.executable, str(Path(__file__).with_name('source_preparation.py')),
+                '--candidate', 'delta', '--source-catalog', 'parent', '--assessment', 'method',
+                '--case', 'LOW', '--output-dir', 'bundle'], cwd=root, check=True)
+            result = json.loads((root / 'bundle' / 'candidate.json').read_text(encoding='utf8'))
+            self.assertEqual(result['extension_entry'], delta['extension_entry'])
+            self.assertEqual(result['cases'], delta['cases'])
+            self.assertIn('确认当前入口', (root / 'bundle' / 'xmind.md').read_text(encoding='utf8'))
+            self.assertNotIn('确认当前入口', render_selection(result, ['HIGH'], source_catalog=parent)['xmind_markdown'])
+        wrong = copy.deepcopy(parent)
+        wrong['cases'].pop()
+        for invalid in (None, wrong):
+            with self.assertRaisesRegex(ValueError, 'source catalog'):
+                assess_preparations(delta, [method], source_catalog=invalid)

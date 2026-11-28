@@ -10,11 +10,22 @@ from authoring import _cell, _credential_guard, _digest
 CHECK = '复用范围待核对：请核对原始材料，本例保留完整步骤'
 
 
-def signature(case, data):
-    refs = {ref for step in case['steps'] for ref in step.get('data_refs', [])}
+def signature(case, data, version=2):
+    from scoped_review import _references
+    if version == 1:
+        refs = {ref for step in case['steps'] for ref in step.get('data_refs', [])}
+    elif version == 2:
+        refs = _references(case)
+    else:
+        raise ValueError(CHECK)
     values = [item for item in data if item['id'] in refs]
     if len(values) != len(refs) or {item['id'] for item in values} != refs:
         raise ValueError(CHECK)
+    if version == 2:
+        derived = {'review_segment', 'review_status', 'rule_status', 'merge_status', 'execution_status',
+                   'semantic_version', 'data_version', 'reuse_assessments', 'reuse_target_digest'}
+        business = {k: v for k, v in case.items() if k not in derived}
+        return _digest([business, sorted(values, key=lambda item: item['id'])])
     return _digest([case['id'], case['priority'], case['title'], case['context'], case['steps'],
                     sorted(values, key=lambda item: item['id'])])
 
@@ -44,7 +55,7 @@ def bind_case(case, assessment, catalog, data):
         raise ValueError(CHECK)
     source = matches[0]
     checked_range(row, case, source)
-    row['binding'] = dict(source_digest=signature(source, catalog['data']), target_digest=signature(case, data),
+    row['binding'] = dict(signature_version=2, source_digest=signature(source, catalog['data']), target_digest=signature(case, data),
                           title=source['title'], review_status=source['review_status'],
                           catalog_version=catalog.get('content_version'))
     case['review_segment'] = row
@@ -53,7 +64,7 @@ def bind_case(case, assessment, catalog, data):
 def bind_segments(batch, assessments, source_catalog=None):
     """Return an independently versioned copy of a complete authored batch."""
     result = copy.deepcopy(batch)
-    _credential_guard(assessments)
+    _credential_guard([batch, assessments, source_catalog])
     indexed = {case['id']: case for case in result['cases']}
     if len(indexed) != len(result['cases']) or assessments.keys() - indexed.keys():
         raise ValueError(CHECK)
@@ -73,6 +84,8 @@ def project_segment(batch, case, node, source_catalog):
         return dict(text=_cell(text), children=[], origins=[])
     try:
         binding = row['binding']
+        if binding.get('signature_version') != 2:
+            raise ValueError(CHECK)
         catalog = source_catalog or batch
         matches = [s for s in catalog['cases'] if s['id'] == row['p0_case_id']]
         baseline = batch.get('initial_copy_baseline') or {}

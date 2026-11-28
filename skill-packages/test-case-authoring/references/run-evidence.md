@@ -21,3 +21,7 @@ report = summarize_case(case, run_id, observations)
 从本次原始记录读出 correlation 和 source_ref（可回看的原始证据位置）。仅当已确认找到同一条请求且相应完整集合可读时，传入其 headers 或 form 字典；完整空集合传 {}，未能读取时省去集合。form 必须取自与本次目标文件相同的请求体。不能把预期标识写成实收标识。记录不可定位时传 None。相同头名出现多个实收值应保留所有值，不能只取第一个值。
 
 整例汇总仅接受同版已展开的 case。执行者核对每个适用的前置、业务和后置步骤；将本例每条 expected 和 verification 的原文分别作为该步 observations 的键，相同原文只记一次，无显式预期的操作记录完成情况。每项通过或失败包含 status、correlation、source_ref 和实际观测；待取证另附 gap。当页成功、文件非空、哈希一致是三个不同断言时，分别留存本次证据。先保存执行原始记录，再做汇总。使用其它关联机制的业务仍按本节前述原则核实实际记录。
+
+通过或失败的每项记录都须有非空白 source_ref 和一个实收字段（observed 或 observed_values）。实际读到的 null、false、空数组均保留原值。省略这两个实收字段时，该项待取证。
+
+依赖用例每调用一次，都要另取该次的前置、步骤、终点和后置观测。先用空 observations 调用汇总，返回的每项 step_path 标明调用位置。将对应原文和观测放入 scoped_observations，例如 `scoped_observations["/steps/call-2/steps/end"]["订单已保存"] = row`，再调用 `summarize_case(case, run_id, observations, scoped_observations=scoped_observations)`。各层按分组名和步骤编号定位，编号中的 ~ 和 / 分别转为 ~0 和 ~1。独立用例根层的唯一步骤编号仍可直接作为 observations 的键；其它位置使用 step_path。每次调用只使用与该位置相符的本次证据。

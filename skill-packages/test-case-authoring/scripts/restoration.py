@@ -6,6 +6,19 @@ from step_reuse import GROUPS, expanded
 from cross_module_references import resolve_case_reference
 
 
+def validate_executable_step(case_id, group, step):
+    location = f"{case_id}/{group}/{step['id']}"
+    if not isinstance(step.get("operation"), str) or not step["operation"].strip():
+        raise ValueError(f"{location}: missing operation")
+    for field in ("expected", "verification"):
+        claims = step.get(field)
+        if not isinstance(claims, list) or not claims:
+            raise ValueError(f"{location}: missing {field} assertions")
+        for index, claim in enumerate(claims):
+            if not isinstance(claim, dict) or not isinstance(claim.get("text"), str) or not claim["text"].strip():
+                raise ValueError(f"{location}: invalid {field}[{index}].text")
+
+
 def preflight(batch, *, source_catalog=None, base_path=None, require_current_sources=False):
     """Read current meaning; keep failed originals and expose only independent ready cases."""
     source = source_catalog if source_catalog is not None else batch  # A caller snapshot is evidence, never an installed/cache authority.
@@ -85,8 +98,11 @@ def preflight(batch, *, source_catalog=None, base_path=None, require_current_sou
                     if edge.get('endpoint') != edge.get('required_state'):
                         raise ValueError('Inapplicable reference endpoint: ' + str(target_id))
                     restored_target = restore(target, chain)  # Resolve valid whole-step references before judging completeness.
-                    if not restored_target.get('steps') or any(not item.get(k) for g in GROUPS for item in restored_target.get(g, []) for k in ('operation', 'expected', 'verification')):
+                    if not restored_target.get('steps'):
                         raise ValueError('Incomplete referenced operations or assertions: ' + str(target_id))
+                    for target_group in GROUPS:
+                        for item in restored_target.get(target_group, []):
+                            validate_executable_step(target_id, target_group, item)
                     step['resolved_case'] = restored_target  # Transient nested complete operations/assertions/endpoint.
         if case['id'] in scope_pending:
             raise ValueError(scope_pending[case['id']])  # Display scope-pending actions only after all references resolve.
