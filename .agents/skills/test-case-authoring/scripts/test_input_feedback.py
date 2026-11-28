@@ -95,3 +95,44 @@ class InputReturnTest(unittest.TestCase):
         result = accept(returned(batch, ['EDIT'], edit))
         self.assertEqual(result['batch']['cases'][0]['steps'][1]['expected'][0]['text'],'Fresh visible outcome')
         self.assertIn('Fresh visible outcome', result['xmind_markdown'])
+
+    def test_return_scope_is_checked_against_original_selection(self):
+        batch = source()
+        view = render_selection(batch, ['EDIT'])['xmind_markdown']
+        for options in ({}, {'review_ids':['LINK']}):
+            with self.assertRaisesRegex(ValueError, '待评用例清单'):
+                prepare_feedback(batch, 'markdown', markdown=view, actual_reply='SIMULATED: return', **options)
+
+    def test_shared_p0_reports_direct_literal_consumers_without_an_assessment(self):
+        batch = source()
+        batch['cases'][2]['steps'][0]['data_refs'] = ['EDIT/json']
+        pending = returned(batch,['EDIT'], lambda v:v.replace('"typed": 1','"typed": 9'),
+                           shared_input=['EDIT','EDIT/submit','EDIT/json'])
+        self.assertIn('OTHER', pending['affected_case_ids'])
+        result = accept(pending)['batch']
+        self.assertEqual(result['cases'][2]['steps'][0]['data_refs'], ['EDIT/json'])
+        self.assertEqual(next(d for d in result['data'] if d['id']=='EDIT/json')['value']['input']['typed'],9)
+
+    def test_qa_return_binds_delivered_manifest_and_records_exact_fields(self):
+        from pathlib import Path
+        from tempfile import TemporaryDirectory
+        from qa_record import start_record
+        from module_handoff import write_artifacts
+        from input_feedback import start_reader_feedback
+        batch = source()
+        with TemporaryDirectory() as tmp:
+            out = Path(tmp)
+            qa = out/'replies.md'
+            start_record(qa, 'synthetic-return', batch, [])
+            ids = ['LINK']
+            write_artifacts(render_selection(batch, ids), out, review_ids=ids)
+            returned = out/'returned.md'
+            returned.write_text(render_selection(batch, ['EDIT'])['xmind_markdown'], encoding='utf8')
+            original = qa.read_bytes()
+            with self.assertRaisesRegex(ValueError,'待评用例清单'):
+                start_reader_feedback(qa, returned, out/'agent.json', actual_reply='SIMULATED: returned')
+            self.assertEqual(qa.read_bytes(), original)
+            returned.write_text((out/'xmind.md').read_text('utf8').replace('保留 input.params，值为 {}','省略 input.params'),encoding='utf8')
+            pending = start_reader_feedback(qa, returned, out/'agent.json', actual_reply='SIMULATED: returned')['feedback_pending']
+            self.assertEqual(pending['affected_case_ids'], ['LINK'])
+            self.assertIn('本例删除 input.params', qa.read_text('utf8'))

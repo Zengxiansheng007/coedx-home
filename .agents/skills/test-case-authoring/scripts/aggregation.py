@@ -212,6 +212,8 @@ def aggregate(batch, markdown, source_catalog=None, *, display_case_ids=None, co
                 lines.extend(json_block(inputs[ref]['value'], '  ' * (depth + 1)))
         for child in node['children']:
             visit(child, depth + 1)
+        if return_bindings is not None and 'json_value' in node and 'input_call' not in node:
+            return_bindings[start] = dict(kind='copy', value=node['json_value'], end=len(lines))
         if return_bindings is not None and 'input_call' in node:
             return_bindings[start] = dict(kind='json' if 'json_value' in node else 'difference',
                                           call=node['input_call'], end=len(lines))

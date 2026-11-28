@@ -250,13 +250,15 @@ def _data_owners(batch, data_ids, source_catalog):
 
 def prepare_feedback(batch, channel, *, actual_reply, changes=None, markdown=None,
                      removed_case_ids=None, deletion_decisions=None, source_version=None, case_bindings=None,
-                     clear_changes=False, questions=None, shared_change=None, companion_base=None, source_catalog=None, review_ids=None, shared_input=None):  # Shared impact uses the same review boundary.
+                     clear_changes=False, questions=None, shared_change=None, companion_base=None, source_catalog=None, review_ids=None, shared_input=None, reader_order=None):  # Shared impact uses the same review boundary.
     """Locate proposed changes against first display and later accepted content."""
     _credential_guard([batch, actual_reply, changes, markdown, deletion_decisions, case_bindings])  # Binding replies follow the same credential boundary.
     if not actual_reply or channel not in ('chat', 'markdown'):
         raise ValueError('Actual feedback and supported channel required')
     from input_feedback import reader_ids, read_return
     displayed = reader_ids(markdown) if channel == 'markdown' and markdown else None
+    if displayed is not None and review_ids is None:
+        review_ids = [case['id'] for case in batch['cases'] if case.get('feedback_disposition') != 'excluded_this_round']
     if review_ids is not None and list(review_ids) != displayed:
         raise ValueError('评审范围 / 待评用例清单与原稿不符')
     reader = displayed is not None
@@ -278,7 +280,9 @@ def prepare_feedback(batch, channel, *, actual_reply, changes=None, markdown=Non
         if changes or removed_case_ids or markdown is None:
             raise ValueError('Read Markdown itself, not a substituted interpretation')
         if reader:
-            changes, input_edits = read_return(batch, markdown, displayed, companion_base, source_catalog)
+            from input_feedback import ordered_candidate
+            original_display = ordered_candidate(batch, reader_order) if reader_order else batch
+            changes, input_edits = read_return(original_display, markdown, displayed, companion_base, source_catalog)
             from input_feedback import plan_impact
             input_edits, input_impact = plan_impact(batch, input_edits, shared_input, displayed, source_catalog)
         else:
@@ -582,10 +586,16 @@ def apply_feedback(pending, confirmation, deletion_decisions=None, *, source_cat
     # existing grill can reuse identical decisions on later feedback rounds.
     batch['questions'] = [copy.deepcopy(q) for q in pending['grill']['questions']
                           if pending.get('persisted_feedback') or q['id'].startswith('existing-')]  # Same-task feedback retains the complete stable graph.
+    if 'review_ids' in pending:
+        from input_feedback import retire_changed_segments
+        retired = retire_changed_segments(batch, affected, source_catalog)
+        if retired:
+            batch['feedback_history'][-1]['retired_review_segments'] = retired
     batch['content_version'] = _digest({k: v for k, v in batch.items() if k != 'content_version'})
     if 'review_ids' in pending:
         from source_preparation import render_selection
         result = render_selection(batch, pending['review_ids'], source_catalog=source_catalog)
+        result['review_ids'] = list(pending['review_ids'])
     else:
         result = _views(batch, source_catalog)
     result['batch'] = batch
@@ -607,7 +617,11 @@ def review_feedback(result, final_review, *, source_catalog=None):
         raise ValueError('Excluded content is outside this round review')
     session = review(result['review_session'], final_review, source_catalog=source_catalog)
     updated = copy.deepcopy(result)
-    updated.update(_views(session['batch'], source_catalog))
+    if 'review_ids' in result:
+        from source_preparation import render_selection
+        updated.update(render_selection(session['batch'], result['review_ids'], source_catalog=source_catalog))
+    else:
+        updated.update(_views(session['batch'], source_catalog))
     updated['batch'] = session['batch']
     updated['review_session'] = session
     updated['next_step'] = 'Candidate review recorded. Formal mapping remains pending; user starts execution or merge separately.'

@@ -168,6 +168,8 @@ def write_artifacts(result, output, *, source_catalog=None, review_ids=None, rea
     import re
     import json
     original = result['batch']  # Candidate remains the sole state/history authority.
+    if review_ids is None:
+        review_ids = result.get('review_ids')  # An agreed reader return retains its original selection.
     from authoring import _credential_guard
     _credential_guard([original, source_catalog])
     import os

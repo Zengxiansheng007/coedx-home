@@ -186,7 +186,7 @@ def projection(batch, markdown, *, handoff=True, common_legacy=False, source_cat
     return lines[:3], merged
 
 
-def aggregate(batch, markdown, source_catalog=None, *, display_case_ids=None, companion_base=None, module_review=False, input_bindings=None):  # 保留完整范围及资料交付位置。
+def aggregate(batch, markdown, source_catalog=None, *, display_case_ids=None, companion_base=None, module_review=False, input_bindings=None, return_bindings=None, scalar_bindings=None):  # 保留完整范围及资料交付位置。
     header, root = projection(batch, markdown, source_catalog=source_catalog, display_case_ids=display_case_ids, module_review=module_review, input_bindings=input_bindings)  # Shared display contract.
     if batch.get('review_layout') == incremental_review.LAYOUT:
         reader_ids = [case['id'] for case in batch['cases']] if display_case_ids is None else display_case_ids
@@ -198,7 +198,12 @@ def aggregate(batch, markdown, source_catalog=None, *, display_case_ids=None, co
     from invocation_input import json_block
     inputs = {d['id']: d for d in batch['data']} if input_bindings else {}
     def visit(node, depth):
+        start = len(lines)
         lines.append('  ' * depth + '- ' + node['text'])
+        if return_bindings is not None and len(node['origins']) == 1:
+            scalar = scalar_bindings.get(node['origins'][0])
+            if scalar:
+                return_bindings[start] = dict(kind='scalar', scalar=scalar)
         if 'json_value' in node:
             lines.extend(json_block(node['json_value'], '  ' * (depth + 1)))
         elif input_bindings and 'input_call' not in node:
@@ -207,6 +212,11 @@ def aggregate(batch, markdown, source_catalog=None, *, display_case_ids=None, co
                 lines.extend(json_block(inputs[ref]['value'], '  ' * (depth + 1)))
         for child in node['children']:
             visit(child, depth + 1)
+        if return_bindings is not None and 'json_value' in node and 'input_call' not in node:
+            return_bindings[start] = dict(kind='copy', value=node['json_value'], end=len(lines))
+        if return_bindings is not None and 'input_call' in node:
+            return_bindings[start] = dict(kind='json' if 'json_value' in node else 'difference',
+                                          call=node['input_call'], end=len(lines))
     for node in root['children']:
         visit(node, 0)
     return '\n'.join(lines) + '\n'

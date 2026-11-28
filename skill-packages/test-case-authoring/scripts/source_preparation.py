@@ -193,7 +193,7 @@ def project_preparations(definitions, case, source, module, displayed, *, busine
             group['children'] = [n for n in group['children'] if n.get('preparation_step_id') not in slots]
 
 
-def render_selection(batch, case_ids=None, *, companion_base=None, blocked_ids=(), source_catalog=None):
+def render_selection(batch, case_ids=None, *, companion_base=None, blocked_ids=(), source_catalog=None, _return_bindings=None):
     """Render selected cases against the complete assessed candidate and preserve input order."""
     from scoped_review import _render
     _credential_guard([batch, source_catalog])
@@ -206,7 +206,7 @@ def render_selection(batch, case_ids=None, *, companion_base=None, blocked_ids=(
                    questions=batch.get('questions', []), selection=[
         selection.get(cid, dict(case_id=cid, action='related', reason='候选评审')) for cid in ids])
     visible = [cid for cid in chosen if cid not in blocked_ids]
-    result = _render(display, reference_batch=source_catalog, _display_case_ids=visible, companion_base=companion_base, module_review=True)
+    result = _render(display, reference_batch=source_catalog, _display_case_ids=visible, companion_base=companion_base, module_review=True, _return_bindings=_return_bindings)
     result['batch'] = copy.deepcopy(batch)
     return result
 

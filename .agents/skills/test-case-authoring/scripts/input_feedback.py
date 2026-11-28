@@ -201,10 +201,10 @@ def read_return(batch, markdown, ids, companion_base, catalog):
             scalars.append(dict(collection='cases', id=cid, path=path, value=html.unescape(actual[len(prefix):])))
         i += 1
         j += 1
-        if slot.get('kind') not in ('json','difference'):
+        if slot.get('kind') not in ('json','difference','copy'):
             continue
-        cid, sid, did = slot['call']
-        location = ' / '.join((cid, sid, did))
+        call = slot.get('call')
+        location = ' / '.join(call) if call else '供复制 / ' + wanted.strip()
         indent = wanted[:len(wanted)-len(wanted.lstrip())] + '  '
         end = j
         while end < len(incoming) and incoming[end].startswith(indent):
@@ -212,7 +212,7 @@ def read_return(batch, markdown, ids, companion_base, catalog):
         block = incoming[j:end]
         if block != template[i:slot['end']]:
             try:
-                if slot['kind'] == 'json':
+                if slot['kind'] in ('json','copy'):
                     first, rest = indent + '-     ', indent + '      '
                     if not block or not block[0].startswith(first) or any(not line.startswith(rest) for line in block[1:]):
                         raise ValueError('请保留同一输入框的 Markdown JSON 块')
@@ -222,7 +222,12 @@ def read_return(batch, markdown, ids, companion_base, catalog):
                     if not block or any(not line.startswith(prefix) for line in block):
                         raise ValueError('请保留该次调用的字段变化列表')
                     after = _variant_value(batch, slot['call'], [line[len(prefix):] for line in block], catalog)
-                before = records[did]['value']
+                if slot['kind'] == 'copy':
+                    if list(changes_between(slot['value'], after)):
+                        raise ValueError('附录仅供复制，请到原 P0 的对应输入框修改')
+                    i, j = slot['end'], end
+                    continue
+                before = records[call[2]]['value']
                 for delta in changes_between(before, after):
                     action = {'add':'新增','remove':'删除','replace':'修改'}[delta['op']]
                     edits.append(dict(call=list(slot['call']), summary='本例'+action+' '+field_name(delta['path']), **delta))
@@ -236,6 +241,15 @@ def read_return(batch, markdown, ids, companion_base, catalog):
 
 def _touches(left, right):
     return left[:len(right)] == right or right[:len(left)] == left
+
+
+def _invocations(batch):
+    from step_reuse import GROUPS
+    for case in batch['cases']:
+        for group in GROUPS:
+            for pos, step in enumerate(case.get(group, [])):
+                for ref in step.get('step_reference', step).get('data_refs', []):
+                    yield (case['id'], step['id'], ref), (group, pos)
 
 
 def plan_impact(batch, edits, shared, displayed, catalog):
@@ -270,6 +284,14 @@ def plan_impact(batch, edits, shared, displayed, catalog):
                 applied.append(delta['path'])
                 projected.append(dict(delta, call=call, summary='随共享 P0 '+delta['summary'][2:]))
             impact.append(dict(call=call, outside_review=cid not in displayed, inherited=applied, preserved=retained))
+    bound = {tuple(row['call']) for row in impact} | {source}
+    for call, _ in _invocations(context):
+        if call in bound or call[2] != source[2]:
+            continue
+        bound.add(call)
+        impact.append(dict(call=list(call), outside_review=call[0] not in displayed,
+                           inherited=[e['path'] for e in edits], preserved=[]))
+        projected.extend(dict(e, call=list(call), summary='随共享 P0 '+e['summary'][2:]) for e in edits)
     return projected, impact
 
 
@@ -277,7 +299,6 @@ def apply_inputs(batch, edits, catalog):
     from collections import defaultdict
     from local_step_feedback import materialize, refresh
     from preparation_scope import scope_context
-    from step_reuse import GROUPS
     from input_reuse import _describe
     calls = defaultdict(list)
     for edit in edits:
@@ -290,22 +311,29 @@ def apply_inputs(batch, edits, catalog):
         raise ValueError('请提供完整同版父稿以核对输入所有者')
     # Use the ownership snapshot before splitting any literals or updating bindings.
     owners = defaultdict(list)
-    for case in context['cases']:
-        for group in GROUPS:
-            for step in case.get(group, []):
-                for ref in step.get('step_reference', step).get('data_refs', []):
-                    owners[ref].append((case['id'], group, step['id']))
+    positions = {}
+    for call, position in _invocations(context):
+        owners[call[2]].append(call)
+        if call in positions and call in calls:
+            raise ValueError('输入框定位不唯一：' + ' / '.join(call))
+        positions[call] = position
     records = {d['id']:d for d in batch['data']}
     renamed = {}
+    changed = set()
+    for call in calls:
+        group, pos = positions[call]
+        materialize(batch, cases[call[0]], [group, pos, 'data_refs'])
     for call, deltas in calls.items():
         cid, sid, ref = call
-        owner, = [(group, i) for group in GROUPS for i, s in enumerate(cases[cid].get(group, []))
-                  if s['id'] == sid and ref in s.get('step_reference', s).get('data_refs', [])]
-        group, pos = owner
-        materialize(batch, cases[cid], [group, pos, 'data_refs'])
+        group, pos = positions[call]
         step = cases[cid][group][pos]
         record = records[ref]
-        if len(owners[ref]) > 1:
+        def field_edits(owner):
+            return [{k:v for k,v in e.items() if k not in ('summary','call')} for e in calls.get(owner, [])]
+        together = all(_digest(field_edits(call)) == _digest(field_edits(owner)) for owner in owners[ref])
+        if together and ref in changed:
+            continue
+        if not together:
             new_ref = ref + '/review-' + _digest([call, batch['content_version']])[:16]
             if new_ref in records:
                 raise ValueError('本例输入编号冲突：' + new_ref)
@@ -314,11 +342,13 @@ def apply_inputs(batch, edits, catalog):
             batch['data'].append(record)
             step['data_refs'] = [new_ref if item == ref else item for item in step['data_refs']]
             renamed[call] = new_ref
+        changed.add(record['id'])
         for delta in deltas:
             if 'before' in delta:
                 _verify_old(record['value'], delta['path'], delta['before'])
             record['value'] = _write(record['value'], delta['path'], delta)
         record['source'] = 'user_decision'
+    for cid in {call[0] for call in calls}:
         refresh(batch, cases[cid])
     for cid, rows in batch.get('input_reuse', {}).items():
         for row in rows:
@@ -328,3 +358,111 @@ def apply_inputs(batch, edits, catalog):
                 row['data_id'] = renamed.get(target, row['data_id'])
                 row['p0_data_id'] = renamed.get(source, row['p0_data_id'])
                 row['binding'] = _describe(batch, cid, row, catalog)['binding']
+
+
+def describe_proposal(pending):
+    lines = []
+    for edit in pending['input_edits']:
+        before, after = [json.dumps(edit[k], ensure_ascii=False) if k in edit else '（键不存在）'
+                         for k in ('before', 'after')]
+        lines.append(' / '.join(edit['call']) + '：' + edit['summary'] + '；' + before + ' → ' + after)
+    for impact in pending['input_impact']:
+        lines.append(' / '.join(impact['call']) + ('（范围外）' if impact['outside_review'] else '（范围内）') +
+                     ' 随共享修改：' + ('、'.join(map(field_name, impact['inherited'])) or '无') +
+                     '；保留本例差异：' + ('、'.join(map(field_name, impact['preserved'])) or '无'))
+    if pending['input_edits']:
+        for case in pending['batch']['cases']:
+            if case['id'] in {e['call'][0] for e in pending['input_edits']}:
+                lines.append(f"需人工复核 {case['id']}「{case['title']}」的测试点、操作和业务预期与新入参是否一致。")
+    return '\n'.join(lines)
+
+
+def retire_changed_segments(batch, affected, catalog):
+    """Use complete authored steps when an accepted edit invalidates an old compact summary."""
+    from review_segments import signature
+    sources = {c['id']:c for c in (catalog or batch)['cases']}
+    retired = []
+    for case in batch['cases']:
+        row = case.get('review_segment')
+        if not row or not {case['id'], row['p0_case_id']} & affected:
+            continue
+        binding = row['binding']
+        version = binding.get('signature_version', 1)
+        origin = sources.get(row['p0_case_id'])
+        changed_source = origin and signature(origin, (catalog or batch)['data'], version) != binding['source_digest']
+        if changed_source or signature(case, batch['data'], version) != binding['target_digest']:
+            retired.append(dict(case_id=case['id'], original_binding=binding))
+            del case['review_segment']
+            case['semantic_version'] = _digest({k:v for k,v in case.items() if k != 'semantic_version'})
+    return retired
+
+
+def _key_order(source):
+    # Q&A replay sorts object keys. Preserve only presentation order from the
+    # original delivered candidate, sharing common shapes across the batch.
+    orders, exceptions = {}, {}
+    def visit(value, path):
+        if isinstance(value, dict):
+            keys = tuple(sorted(value))
+            order = orders.setdefault(keys, list(value))
+            if list(value) != order:
+                exceptions[json.dumps(path, ensure_ascii=False)] = list(value)
+            for key, child in value.items():
+                visit(child, [*path, key])
+        elif isinstance(value, list):
+            for i, child in enumerate(value):
+                visit(child, [*path, i])
+    visit(source, [])
+    return dict(orders=[order for keys, order in orders.items() if list(keys) != order], exceptions=exceptions)
+
+
+def ordered_candidate(source, layout):
+    orders = {tuple(sorted(order)):order for order in layout['orders']}
+    exceptions = layout['exceptions']
+    def visit(value, path):
+        if isinstance(value, dict):
+            keys = tuple(sorted(value))
+            order = exceptions.get(json.dumps(path, ensure_ascii=False), orders.get(keys, keys))
+            if set(order) != set(value) or len(order) != len(value):
+                raise ValueError('原交付字段顺序与当前来源不同')
+            return {k:visit(value[k], [*path,k]) for k in order}
+        if isinstance(value, list):
+            return [visit(child,[*path,i]) for i, child in enumerate(value)]
+        return value
+    return visit(source, [])
+
+
+def start_reader_feedback(record, returned_file, agent_file, *, actual_reply, shared_input=None):
+    """Record a returned Markdown against the original delivery's Agent selection and version."""
+    from pathlib import Path
+    from qa_record import advance_record, read_record
+    from reader_delivery import case_references
+    from single_case import read_json
+    file = Path(returned_file)
+    original = Path(agent_file)
+    index = read_json(original)
+    batch = read_record(record)['batch']
+    if (index.get('format') != 'tca.agent-review.v1' or index.get('candidate') != 'candidate.json'
+            or index.get('content_version') != batch['content_version']):
+        raise ValueError('原交付 Agent 文件的格式、候选或稿件版本不符')
+    source = read_json(original.parent / 'candidate.json')
+    if (_digest({k:v for k,v in source.items() if k != 'content_version'}) != batch['content_version']
+            or source['cases'] != batch['cases'] or source['data'] != batch['data']):
+        raise ValueError('当前问答记录与原交付候选来源不符')
+    ids = index['case_ids']
+    owners = {case['id']:case for case in source['cases']}
+    if (not isinstance(ids, list) or not ids or not all(isinstance(cid,str) and cid in owners for cid in ids)
+            or len(ids) != len(set(ids)) or index['cases'] != {cid:case_references(owners[cid]) for cid in ids}):
+        raise ValueError('原交付 Agent 文件的待评清单与步骤或输入定位不符')
+    payload = dict(channel='markdown', actual_reply=actual_reply, source_ref=str(file.resolve()),
+                   source_version=batch['content_version'], markdown=file.read_text(encoding='utf-8-sig'),
+                   review_ids=ids, reader_order=_key_order(source), clear_changes=True)
+    if source.get('review_layout') == 'incremental-v1':
+        payload['companion_base'] = str(original.parent.resolve())
+    if shared_input is not None:
+        payload['shared_input'] = shared_input
+    if 'source_catalog' in index:
+        if index['source_catalog'] != 'source-catalog.json':
+            raise ValueError('原交付完整父稿的位置不符')
+        payload['source_catalog'] = read_json(original.parent / 'source-catalog.json')
+    return advance_record(record, 'start_feedback', payload)
