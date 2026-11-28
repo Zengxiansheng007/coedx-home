@@ -9,6 +9,7 @@
 | Date | Change ID | Section | Change Type | Summary | Status |
 | --- | --- | --- | --- | --- | --- |
 | 2026-11-28 | CR-20261128-197 | 已采用范围的修订 | changed | 同一 CLI 支持明确待删旧叶、变更复核及原叶内细化 | validated |
+| 2026-11-28 | CR-20261128-196 | 原问答范围回查 | changed | 支持原始连续行范围；测试保留追加后的有效引用并拒绝原文改写。 | validated |
 | 2026-11-28 | CR-20261128-195 | 大纲展示与等待 | changed | 会话确认校验助手展示、用户角色与消息顺序 | validated |
 | 2026-11-28 | CR-20261128-194 | 模块大纲 | changed | 只读标准库校验器、合成负例与 CI | validated |
 | 2026-11-28 | CR-20261128-198 | 编写回归 | changed | 增加合成请求及事后评审条件，使用本机既有材料核对实际局部稿。 | validated |
@@ -32,6 +33,15 @@
 - Section changed / After：同一 CLI 支持明确待删旧叶、变更复核及原叶内细化。
 - Before / Why：整棵树的变更会连带阻断未变分支，原入口未绑定删除旧稿的动作。
 - Impact / Validation：[变更详情与演练证据](../entries/2026/2026-11/CR-20261128-197-outline-revisions.md)。
+
+### CR-20261128-196 - 原问答范围回查
+
+- Section changed：原问答范围回查。
+- Before：追加问答使依靠多行上下文的整文件引用失效。
+- After：支持原始连续行范围；测试保留追加后的有效引用并拒绝原文改写。
+- Why：#196 要求接续时复用仍有效的大纲。
+- Impact：阶段6的原记录恢复、出稿和阻断。
+- Validation / Detail record：[CR-20261128-196](../entries/2026/2026-11/CR-20261128-196-stage-six-resume.md)。
 
 ### CR-20261128-195 - 大纲展示与等待
 
