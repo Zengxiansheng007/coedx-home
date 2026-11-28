@@ -70,3 +70,26 @@ class CopyAppendixTests(unittest.TestCase):
             self.assertIn('输入复用待核对', pending)
             self.assertNotIn('\n- 供复制\n', pending)
             self.assertNotIn('stale-source', pending)
+
+    def test_distinct_boxes_with_the_same_label_in_one_operation(self):
+        full, assessments = fixture()
+        source, target = full['cases'][:2]
+        for case in (source, target):
+            refs = case['steps'][0]['data_refs']
+            data = next(d for d in full['data'] if d['id'] == refs[0])
+            second = dict(data, id=data['id'] + '-2', value={'order': 2})
+            full['data'].append(second)
+            refs.append(second['id'])
+        row = assessments[target['id']][0]
+        assessments[target['id']].append(dict(row, data_id=row['data_id']+'-2',
+                                              p0_data_id=row['p0_data_id']+'-2'))
+        batch = bind_inputs(full, assessments)
+        md = render_selection(batch, [target['id']])['xmind_markdown']
+        body, appendix = md.split('\n- 供复制\n')
+        for label in ('请求（同名框 1）', '请求（同名框 2）'):
+            self.assertIn(label, body)
+            self.assertIn(label, appendix)
+        self.assertEqual(copy_blocks(appendix)[1], {'order': 2})
+        full_md = render_selection(batch, [target['id'], source['id']])['xmind_markdown']
+        for label in ('请求（同名框 1）', '请求（同名框 2）'):
+            self.assertIn(label + '（完整 JSON）', full_md)

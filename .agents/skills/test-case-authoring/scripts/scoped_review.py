@@ -215,7 +215,7 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
                     original = owner.get(group, [])[i - 1]
                     if 'step_reference' in original:
                         _, definition = resolve_step(_expression_baseline, owner, group, original)  # Only visible action is mapped; source label stays immutable.
-                from invocation_input import json_input
+                from invocation_input import input_label, json_input
                 if definition:
                     group_label = dict(zip(GROUPS, ('公共前置操作', '特殊前置操作', '测试步骤', '特殊后置操作', '公共后置操作')))[group]
                     label = 'P0 ' + definition['title'] + '，' + group_label + '步骤 ' + str(definition['step_number'])
@@ -226,7 +226,7 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
                             for ref in step.get('data_refs', []):
                                 if json_input(source_data[ref]):
                                     input_bindings[len(tree) - 3] = (case['id'], step['id'], ref)
-                                    box = source_data[ref].get('object_ref') or '输入参数'
+                                    box = input_label(source_data[ref], step, source_data)
                                     tree.append(indent + '    - ' + _cell(box) + '（完整 JSON）')
                         current_data = [line for ref in step.get('data_refs', []) if data[ref].get('generation_rule') for line in _business_lines(data[ref], batch=reference_batch or batch)]  # Dynamic values belong to this case.
                         for line in current_data:
@@ -238,7 +238,7 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
                     record = data[ref]
                     if module_review and json_input(source_data[ref]):
                         input_positions[len(values)] = ref
-                        values.append(str(record.get('object_ref') or '输入参数') + '（完整 JSON）')
+                        values.append(input_label(source_data[ref], step, source_data) + '（完整 JSON）')
                         record = {k: v for k, v in record.items() if k not in ('value', 'object_ref', 'input_format')}
                     values.extend(data_lines(record, lambda value: _business_lines(value, batch=reference_batch or batch, _legacy=metadata_legacy),
                                              legacy=_legacy_feedback or _data_legacy, metadata_legacy=metadata_legacy,
