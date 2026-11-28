@@ -83,12 +83,13 @@ def check_citation(citation, directory, user_reply):
         raise ValueError("缺少当时展示的范围或用户原话")
     source = directory / citation["path"]
     raw = source.read_bytes()
-    if "line" in citation:
-        number = citation["line"]
-        lines = raw.splitlines()
-        if type(number) is not int or not 1 <= number <= len(lines):
-            raise ValueError("采用依据的行号不可回查")
-        raw = lines[number - 1]
+    if "line" in citation or "end_line" in citation:
+        start = citation.get("line")
+        end = citation.get("end_line", start)
+        lines = raw.splitlines(keepends=True)
+        if type(start) is not int or type(end) is not int or not 1 <= start <= end <= len(lines):
+            raise ValueError("采用依据的行号范围不可回查")
+        raw = b"".join(lines[start - 1:end - 1]) + lines[end - 1].rstrip(b"\r\n")
     if digest(raw) != citation.get("sha256"):
         raise ValueError("采用依据版本不符，请回查原始记录")
     content = raw.decode("utf-8-sig")

@@ -141,6 +141,20 @@ class OutlineGateTest(unittest.TestCase):
                     "reply": dict(cite, quote=reply)}])
                 self.assertEqual(self.check()["status"], "allow")
 
+    def test_resume_uses_original_multiline_qa_after_later_rounds_are_appended(self):
+        basis = "借阅大纲包括登记和柜台归还"
+        reply = "按展示的大纲继续"
+        section = ("## V1 的用户回复\r\n- 来源：用户对 V1 的答复。\r\n1、" + reply).encode()
+        original = basis.encode() + b"\r\n" + section
+        qa = self.root / "conversation.md"
+        qa.write_bytes(original + "\r\n## 阶段5覆盖复核\r\n".encode())
+        basis_cite = dict(self.cite, line=1, sha256=hashlib.sha256(basis.encode()).hexdigest(), quote=basis)
+        reply_cite = dict(self.cite, line=2, end_line=4, sha256=hashlib.sha256(section).hexdigest(), quote=reply)
+        self.decision.update(kind="confirm", evidence=[{"basis": basis_cite, "reply": reply_cite}])
+        self.assertEqual(self.check()["status"], "allow")
+        qa.write_bytes(original.replace("答复。".encode(), "答复（修订）。".encode()))
+        self.assertEqual(self.check()["status"], "block")
+
     def test_unreadable_request_returns_a_block_result(self):
         run = subprocess.run([sys.executable, "-X", "utf8", str(CHECK), str(self.root / "missing.json")],
                              capture_output=True)

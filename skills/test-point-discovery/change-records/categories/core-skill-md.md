@@ -8,6 +8,7 @@
 
 | Date | Change ID | Section | Change Type | Summary | Status |
 | --- | --- | --- | --- | --- | --- |
+| 2026-11-28 | CR-20261128-196 | 阶段6接续入口 | changed | SKILL 接入原问答恢复、固定程序和编写前提。 | validated |
 | 2026-11-28 | CR-20261128-194 | 模块大纲 | changed | 首次调用运行固定程序，聊天和文件共享结果 | validated |
 | 2026-11-28 | CR-20261128-198 | 阶段6编写与自检 | changed | 编写时沿当前大纲恢复输入、差异与执行依据。 | validated |
 | 2026-11-10 | CR-20261110-006 | 共同反馈定义及当前证据 | fixed / validation | 单一来源与CR004/005独立结论 | validated |
@@ -24,6 +25,15 @@
 | 2026-11-09 | CR-20261109-003 | 当前模块集中生成 | fixed | 处置、来源补漏和依赖复核绑定生成 | validated |
 
 ## Detailed Records
+
+### CR-20261128-196 - 阶段6接续入口
+
+- Section changed：阶段6接续入口。
+- Before：入口核对阶段3与5，未明确重跑大纲校验。
+- After：SKILL 接入原问答恢复、固定程序和编写前提。
+- Why：#196 要求接续时复用仍有效的大纲。
+- Impact：阶段6的原记录恢复、出稿和阻断。
+- Validation / Detail record：[CR-20261128-196](../entries/2026/2026-11/CR-20261128-196-stage-six-resume.md)。
 
 ### CR-20261128-194 - 模块大纲
 
