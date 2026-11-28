@@ -157,10 +157,38 @@ def project_inputs(batch, case, node, origins, source_catalog):
                     continue
                 source, label = detail['source_case'], detail['source_data'].get('object_ref') or '输入参数'
                 target_label = detail['target_data'].get('object_ref') or '输入参数'
-                child['text'] = _cell(f'本例第 {detail["target_number"]} 步「{target_label}」复用同版 P0「{source["title"]}」（{source["id"]}）第 {detail["source_number"]} 步「{label}」')
+                source_label = f'P0「{source["title"]}」（{source["id"]}）第 {detail["source_number"]} 步「{label}」'
+                source_call = (source['id'], row['p0_step_id'], row['p0_data_id'])
+                child['copy_source'] = (source_call, _cell(source_label), detail['source_data']['value'])
+                child['text'] = _cell(f'本例第 {detail["target_number"]} 步「{target_label}」复用同版 {source_label}')
                 child.pop('json_value')
                 changes = [format_change(change) for change in detail['changes']] or ['输入完全相同，直接复制']
                 changes.extend(format_change(item) for item in detail['retained'])
                 child['children'] = [dict(text=_cell(line), children=[], origins=[]) for line in changes]
     visit(node)
+
+
+def attach_copy_sources(root):
+    """Link only visible references to inputs present in the final layout or its appendix."""
+    displayed, references = set(), []
+
+    def collect(node):
+        if 'copy_source' in node:
+            references.append(node)
+        elif 'input_call' in node and 'json_value' in node:
+            displayed.add(node['input_call'])
+        for child in node['children']:
+            collect(child)
+
+    collect(root)
+    appendix = {}
+    for node in references:
+        identity, label, value = node['copy_source']
+        if identity in displayed:
+            node['text'] += '（见该用例正文）'
+        else:
+            node['text'] += '（见文末“供复制”）'
+            appendix.setdefault(identity, dict(text=label, json_value=value, children=[], origins=[]))
+    if appendix:
+        root['children'].append(dict(text='供复制', children=list(appendix.values()), origins=[]))
 
