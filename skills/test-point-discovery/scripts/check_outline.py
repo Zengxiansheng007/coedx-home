@@ -30,6 +30,8 @@ def paths(value, missing):
         if key in seen:
             raise ValueError("存在重复的业务分支路径")
         seen.add(key)
+    if any(branch[:depth] in seen for branch in seen for depth in range(1, len(branch))):
+        raise ValueError("仅列完整叶路径；同一路径不能既是叶又是父分支")
     return seen
 
 
@@ -113,32 +115,33 @@ def check_citation(citation, directory, expected_role=None):
     return source.resolve(), position
 
 
-def evaluate(request, directory, result):
-    if not isinstance(request, dict):
-        raise ValueError("请求应为 JSON 对象")
-    result.update({key: request.get(key) for key in ("task", "module", "scope")})
-    if not label(result["task"]) or not label(result["module"]):
-        raise ValueError("请定位当前任务与模块")
-    outline = request.get("outline")
-    if not isinstance(outline, dict):
-        raise ValueError("缺少当前模块的大纲，请核对资料并展示大纲")
-    if outline.get("module") != result["module"]:
-        raise ValueError("大纲与当前模块不符")
-    branches = paths(outline.get("branches"), "大纲缺少具体业务分支")
-    scope = paths(result["scope"], "缺少当前拟写的具体业务范围")
-    if not scope.issubset(branches):
-        raise ValueError("拟写范围含当前模块大纲以外的分支")
+def version(outline):
     encoded = json.dumps(outline, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
-    result["version"] = digest(encoded.encode("utf-8"))
-    if not label(request.get("decision")):
+    return digest(encoded.encode("utf-8"))
+
+
+def revision_summary(module, previous_version, current_version, diff):
+    lines = [f"{module}大纲调整（{previous_version[:12]} → {current_version[:12]}）"]
+    for key, caption in (("added", "新增"), ("removed", "移除")):
+        for branch in diff[key]:
+            lines.append(caption + "：" + " → ".join(branch))
+    return "\n".join(lines)
+
+
+def verify_decision(directory, filename, task, module, expected_outline=None, retirement=False):
+    if not label(filename):
         raise ValueError("等待用户明确采用或确认当前版本的大纲")
-    decision_path = directory / request["decision"]
+    decision_path = directory / filename
     decision_bytes = decision_path.read_bytes()
     decision = json.loads(decision_bytes.decode("utf-8-sig"))
-    if not isinstance(decision, dict) or decision.get("task") != result["task"]:
+    if not isinstance(decision, dict) or decision.get("task") != task:
         raise ValueError("采用记录与当前任务不符")
-    if decision.get("outline") != outline:
+    outline = decision.get("outline")
+    if not isinstance(outline, dict) or outline.get("module") != module:
+        raise ValueError("采用记录与当前模块不符")
+    if expected_outline is not None and expected_outline != outline:
         raise ValueError("采用记录与当前模块或大纲版本不符")
+    branches = set() if retirement else paths(outline.get("branches"), "采用记录缺少具体业务分支")
     if decision.get("kind") not in ("adopt", "confirm"):
         raise ValueError("缺少用户明确采用或确认的决定")
     evidence = decision.get("evidence")
@@ -164,7 +167,63 @@ def evaluate(request, directory, result):
         original = aliases.get(name, name)
         if not label(original) or not any("".join(original.split()).casefold() in text for text in basis):
             raise ValueError("原大纲或原问题中找不到业务分支：" + name)
-    result.update(status="allow", kind=decision["kind"], decision_sha256=digest(decision_bytes))
+    return decision, digest(decision_bytes)
+
+
+def evaluate(request, directory, result):
+    if not isinstance(request, dict):
+        raise ValueError("请求应为 JSON 对象")
+    result.update({key: request.get(key) for key in ("task", "module", "scope")})
+    task, module = result["task"], result["module"]
+    if not label(task) or not label(module):
+        raise ValueError("请定位当前任务与模块")
+    outline = request.get("outline")
+    if not isinstance(outline, dict):
+        raise ValueError("缺少当前模块的大纲，请核对资料并展示大纲")
+    if outline.get("module") != module:
+        raise ValueError("大纲与当前模块不符")
+    remove = request.get("remove_scope", [])
+    removed_text = set() if remove == [] else paths(remove, "待删除正文须列出旧叶路径")
+    retirement = ("previous_decision" in request and bool(removed_text) and
+                  result["scope"] == [] and outline.get("branches") == [])
+    branches = set() if retirement else paths(outline.get("branches"), "大纲缺少具体业务分支")
+    result["version"] = version(outline)
+    scope = (set() if removed_text and result["scope"] == [] else
+             paths(result["scope"], "缺少当前拟写的具体业务范围"))
+    if not scope.issubset(branches):
+        raise ValueError("拟写范围含当前模块大纲以外的分支")
+    if "previous_decision" in request:
+        previous, previous_sha = verify_decision(directory, request["previous_decision"], task, module)
+        old = previous["outline"]
+        old_branches = set(map(tuple, old["branches"]))
+        unchanged = old_branches & branches
+        removed = old_branches - branches
+        diff = {"added": sorted(branches - old_branches), "removed": sorted(removed),
+                "unchanged": sorted(unchanged)}
+        result.update(previous_version=version(old), previous_decision_sha256=previous_sha,
+                      remove_scope=remove, diff=diff)
+        if diff["added"] or diff["removed"]:
+            result["review_text"] = revision_summary(module, result["previous_version"],
+                                                     result["version"], diff)
+        if not removed_text.issubset(removed):
+            raise ValueError("待删除正文须属于本次移除的旧分支")
+        if scope <= unchanged and not removed_text:
+            result.update(status="allow", kind=previous["kind"], decision_sha256=previous_sha,
+                          decision_version=result["previous_version"])
+            return
+        if scope & unchanged:
+            raise ValueError("本次变更只修订变化分支；仍有效的分支请单独按原范围提交")
+        if not label(request.get("decision")):
+            raise ValueError("展示范围差异并取得针对本次变更的答复后，再处理变化分支")
+    elif removed_text:
+        raise ValueError("删除旧正文须提供旧版采用记录")
+    decision, sha = verify_decision(directory, request.get("decision"), task, module, outline, retirement)
+    if "review_text" in result:
+        if decision["kind"] != "confirm" or not any(
+                result["review_text"] in pair["basis"]["quote"] for pair in decision["evidence"]):
+            raise ValueError("请定位向用户展示的本版范围差异及其明确答复")
+    result.update(status="allow", kind=decision["kind"], decision_sha256=sha,
+                  decision_version=result["version"])
 
 
 def main():

@@ -8,6 +8,7 @@
 
 | Date | Change ID | Section | Change Type | Summary | Status |
 | --- | --- | --- | --- | --- | --- |
+| 2026-11-28 | CR-20261128-197 | 已采用范围的修订 | changed | 同一 CLI 支持明确待删旧叶、变更复核及原叶内细化 | validated |
 | 2026-11-28 | CR-20261128-195 | 大纲展示与等待 | changed | 会话确认校验助手展示、用户角色与消息顺序 | validated |
 | 2026-11-28 | CR-20261128-194 | 模块大纲 | changed | 只读标准库校验器、合成负例与 CI | validated |
 | 2026-11-28 | CR-20261128-198 | 编写回归 | changed | 增加合成请求及事后评审条件，使用本机既有材料核对实际局部稿。 | validated |
@@ -25,6 +26,12 @@
 | 2026-11-09 | CR-20261109-003 | 当前模块集中生成 | fixed | 处置、来源补漏和依赖复核绑定生成 | validated |
 
 ## Detailed Records
+
+### CR-20261128-197 - 已采用范围的修订
+
+- Section changed / After：同一 CLI 支持明确待删旧叶、变更复核及原叶内细化。
+- Before / Why：整棵树的变更会连带阻断未变分支，原入口未绑定删除旧稿的动作。
+- Impact / Validation：[变更详情与演练证据](../entries/2026/2026-11/CR-20261128-197-outline-revisions.md)。
 
 ### CR-20261128-195 - 大纲展示与等待
 
