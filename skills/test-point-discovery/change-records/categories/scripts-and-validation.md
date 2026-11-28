@@ -9,6 +9,7 @@
 | Date | Change ID | Section | Change Type | Summary | Status |
 | --- | --- | --- | --- | --- | --- |
 | 2026-11-28 | CR-20261128-196 | 原问答范围回查 | changed | 支持原始连续行范围；测试保留追加后的有效引用并拒绝原文改写。 | validated |
+| 2026-11-28 | CR-20261128-195 | 大纲展示与等待 | changed | 会话确认校验助手展示、用户角色与消息顺序 | validated |
 | 2026-11-28 | CR-20261128-194 | 模块大纲 | changed | 只读标准库校验器、合成负例与 CI | validated |
 | 2026-11-28 | CR-20261128-198 | 编写回归 | changed | 增加合成请求及事后评审条件，使用本机既有材料核对实际局部稿。 | validated |
 | 2026-11-10 | CR-20261110-006 | 共同反馈定义及当前证据 | fixed / validation | 单一来源与CR004/005独立结论 | validated |
@@ -34,6 +35,12 @@
 - Why：#196 要求接续时复用仍有效的大纲。
 - Impact：阶段6的原记录恢复、出稿和阻断。
 - Validation / Detail record：[CR-20261128-196](../entries/2026/2026-11/CR-20261128-196-stage-six-resume.md)。
+
+### CR-20261128-195 - 大纲展示与等待
+
+- Section changed / After：会话确认校验助手展示、用户角色与消息顺序。
+- Before / Why：#195 要求把首次阻断接到实际资料和一轮具体的大纲决定。
+- Impact / Validation：[测试结果及作用范围](../entries/2026/2026-11/CR-20261128-195-display-and-wait.md)。
 
 ### CR-20261128-194 - 模块大纲
 

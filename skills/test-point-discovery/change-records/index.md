@@ -5,6 +5,7 @@
 | Date | Change ID | Summary | Status |
 | --- | --- | --- | --- |
 | 2026-11-28 | [CR-20261128-196](entries/2026/2026-11/CR-20261128-196-stage-six-resume.md) | 阶段6接续回查原决定，重跑当前范围并复核问题及来源 | validated |
+| 2026-11-28 | [CR-20261128-195](entries/2026/2026-11/CR-20261128-195-display-and-wait.md) | 缺树或整理后展示当前模块大纲，等待该版真实答复 | validated |
 | 2026-11-28 | [CR-20261128-194](entries/2026/2026-11/CR-20261128-194-module-outline-check.md) | 首次调用逐模块核对实际采用依据和大纲版本 | validated |
 | 2026-11-28 | [CR-20261128-198](entries/2026/2026-11/CR-20261128-198-outline-writing.md) | 沿已确认大纲写可判定的短节点，保留每种输入的执行材料映射 | validated |
 | 2026-11-10 | [CR-20261110-006](entries/2026/2026-11/CR-20261110-006-shared-feedback-definition.md) | 共同反馈单一来源及最终独立技术证据 | validated |

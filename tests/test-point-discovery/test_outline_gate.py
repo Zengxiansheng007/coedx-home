@@ -97,6 +97,30 @@ class OutlineGateTest(unittest.TestCase):
             "reply": dict(cite, quote="1、保留。3、确认")}])
         self.assertEqual(self.check()["status"], "allow")
 
+    def test_reply_must_follow_the_displayed_outline_in_the_conversation(self):
+        shown = "本次借阅大纲：登记；归还下设柜台"
+        answer = "确认按这版写"
+        display = {"role": "assistant", "content": shown}
+        reply = {"role": "user", "content": answer}
+        for turns, expected in [([reply, display], "block"), ([display, reply], "allow")]:
+            for suffix, pin_lines in [("json", False), ("jsonl", False), ("jsonl", True)]:
+                with self.subTest(expected=expected, suffix=suffix, pin_lines=pin_lines):
+                    name = "chat." + suffix
+                    lines = [json.dumps(t, ensure_ascii=False).encode() for t in turns]
+                    raw = (b"\n".join(lines) if suffix == "jsonl" else
+                           json.dumps(turns, ensure_ascii=False).encode())
+                    (self.root / name).write_bytes(raw)
+                    references = {}
+                    for key, turn in [("basis", display), ("reply", reply)]:
+                        index = turns.index(turn)
+                        citation = {"path": name, "quote": turn["content"],
+                                    "sha256": hashlib.sha256(lines[index] if pin_lines else raw).hexdigest()}
+                        if pin_lines:
+                            citation["line"] = index + 1
+                        references[key] = citation
+                    self.decision.update(kind="confirm", evidence=[references])
+                    self.assertEqual(self.check()["status"], expected)
+
     def test_host_transcript_uses_original_message_role(self):
         for role, expected in [("assistant", "block"), ("user", "allow")]:
             with self.subTest(role=role):
@@ -108,6 +132,17 @@ class OutlineGateTest(unittest.TestCase):
                 self.cite.update(path="chat.jsonl", sha256=hashlib.sha256(raw).hexdigest(),
                                  quote="按借阅大纲写：登记、归还（柜台）")
                 self.assertEqual(self.check()["status"], expected)
+
+    def test_internal_tool_output_is_not_a_displayed_outline(self):
+        shown = "借阅：登记、归还（柜台）"
+        answer = "确认本次大纲"
+        raw = json.dumps([{"role": "tool", "content": shown},
+                          {"role": "user", "content": answer}], ensure_ascii=False).encode()
+        (self.root / "chat.json").write_bytes(raw)
+        cite = {"path": "chat.json", "sha256": hashlib.sha256(raw).hexdigest()}
+        self.decision.update(kind="confirm", evidence=[{
+            "basis": dict(cite, quote=shown), "reply": dict(cite, quote=answer)}])
+        self.assertEqual(self.check()["status"], "block")
 
     def test_unsupported_decision_cannot_release_outline(self):
         self.decision["kind"] = "example"

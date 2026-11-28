@@ -45,6 +45,7 @@
 | --- | --- | --- | --- |
 | RED → GREEN | 实际 CLI，向包含多行归属和原答复的问答追加一轮 | 修复前 block；修复后 allow；改写段内来源后再次 block | test_resume_uses_original_multiline_qa_after_later_rounds_are_appended |
 | 命令回归 | python -B -m unittest discover -s tests/test-point-discovery | 本票分支 20 项通过 | 17 个大纲测试、3 个已有 XMind 测试 |
+| 集成复核 | 合入包含 #195 的集成版本 d5c6205 后重复测试并比对八份实际请求 | 22 项通过，八份输出分别与原记录相符 | 同一命令重新读取追加过恢复记录的原问答 |
 | 包及记录 | validate_create_skill.py skills/test-point-discovery --require-change-records | validated-candidate，P0=0、P1=0、P2=1 | 既有 description 的英文触发措辞提醒 |
 | 实际 Skill 入口模拟 | 主持发送明确指定、收到待确认答复后另发确认；执行者读取 Skill、问答、原资料和同一 CLI 返回，并分别在聊天和文件执行 | 下表 | 本票实现者执行，主持身份为模拟用户 |
 
