@@ -51,7 +51,7 @@ def _shape(node):  # Source offsets can combine only when their rendered descend
     return [node['text'], [_shape(child) for child in node['children']]]
 
 
-def projection(batch, markdown, *, handoff=True, common_legacy=False, source_catalog=None, display_case_ids=None, _trailing_legacy=False, module_review=False):  # 旧投影模式仅用于精确复原历史生成布局。
+def projection(batch, markdown, *, handoff=True, common_legacy=False, source_catalog=None, display_case_ids=None, _trailing_legacy=False, module_review=False, input_bindings=None):  # 旧投影模式仅用于精确复原历史生成布局。
     from module_handoff import TITLE, module_notes  # Generated nodes never acquire business edit origins.
     instructions = module_notes(dict(batch, cases=[c for c in batch['cases'] if display_case_ids is None or c['id'] in display_case_ids]))  # Companion notes cannot resolve undisplayed blocked references.
     attached = set()  # Attach exactly once per complete module path.
@@ -161,6 +161,9 @@ def projection(batch, markdown, *, handoff=True, common_legacy=False, source_cat
                         source['children'].insert(0, dict(text='前置操作未提供，待核对', children=[], origins=[]))
             elif records:
                 common['children'] = [{'text': '适用：' + shared['text'] + '（执行时仍须完成）', 'children': [], 'origins': []}]  # Historical feedback retains its explicit reference layout.
+        if input_bindings:
+            from input_reuse import project_inputs
+            project_inputs(batch, case, source, input_bindings, source_catalog)
         if handoff and not common_legacy and case.get('review_segment'):
             from review_segments import project_segment
             project_segment(batch, case, source, source_catalog)
@@ -184,7 +187,7 @@ def projection(batch, markdown, *, handoff=True, common_legacy=False, source_cat
 
 
 def aggregate(batch, markdown, source_catalog=None, *, display_case_ids=None, companion_base=None, module_review=False, input_bindings=None):  # 保留完整范围及资料交付位置。
-    header, root = projection(batch, markdown, source_catalog=source_catalog, display_case_ids=display_case_ids, module_review=module_review)  # Shared display contract.
+    header, root = projection(batch, markdown, source_catalog=source_catalog, display_case_ids=display_case_ids, module_review=module_review, input_bindings=input_bindings)  # Shared display contract.
     if batch.get('review_layout') == incremental_review.LAYOUT:
         reader_ids = [case['id'] for case in batch['cases']] if display_case_ids is None else display_case_ids
         header, root = incremental_review.project(batch, root, companion_base=companion_base, reader_ids=reader_ids if module_review else None)  # 新版共用准确的业务源行。
@@ -193,8 +196,10 @@ def aggregate(batch, markdown, source_catalog=None, *, display_case_ids=None, co
     inputs = {d['id']: d for d in batch['data']} if input_bindings else {}
     def visit(node, depth):
         lines.append('  ' * depth + '- ' + node['text'])
-        if input_bindings:
-            refs = dict.fromkeys(input_bindings[row] for row in node['origins'] if row in input_bindings)
+        if 'json_value' in node:
+            lines.extend(json_block(node['json_value'], '  ' * (depth + 1)))
+        elif input_bindings and 'input_call' not in node:
+            refs = dict.fromkeys(input_bindings[row][2] for row in node['origins'] if row in input_bindings)
             for ref in refs:
                 lines.extend(json_block(inputs[ref]['value'], '  ' * (depth + 1)))
         for child in node['children']:
