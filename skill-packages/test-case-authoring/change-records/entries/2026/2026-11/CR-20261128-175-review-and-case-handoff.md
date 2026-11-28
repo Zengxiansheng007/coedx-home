@@ -10,6 +10,10 @@
 | Baseline | `460cb6ee782b9c52a7110933089e327fc5adf1a7`，技能 Git 树 `bd74a909c705f0da8670b0f1425cd1a7aa2ec938` |
 | Author | Codex |
 
+## Summary
+
+批量阅读与单独执行共用候选版本和用例身份。评审稿标明同版 P0 的共用段、目标用例自己的变更及分叉后的步骤。
+
 ## Context And Problem
 
 完整候选保存执行所需的输入、动作和逐步判据。批量评审需要在一条用例内辨认实际测试点、相对同版 P0 的差异、异常分叉与本例终点。独立执行者需要取得本次用例的全部操作和取证要求。
@@ -29,3 +33,16 @@
 ## Safety And Privacy
 
 用例运行由执行环境注入接收地址。验收记录使用合成数据与脱敏观测。
+
+## Sections Changed
+
+| 位置 | 职责 |
+| --- | --- |
+| SKILL.md 及其编写、范围与交接参考 | 进入来源评估、批量评审和点名单例 |
+| scripts/review_segments.py | 以候选和源数据绑定连续 P0 段，保留本例的完整业务步骤 |
+| scripts/source_preparation.py | 核对全模块适用关系，输出公共定义、例外和受影响用例 |
+| scripts/run_evidence.py | 按本次可关联的证据区分业务失败与待取证 |
+
+## Risks And Follow-up
+
+XMind 桌面导入需要人工核对。真实设备的判定依赖本次页面和接收端观测。历史基线的三个负向测试文件会触发 create-skill 扫描器的模拟凭据模式，基线与交付版分别记录扫描结果。

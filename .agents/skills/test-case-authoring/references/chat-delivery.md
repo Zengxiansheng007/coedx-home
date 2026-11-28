@@ -65,3 +65,24 @@ parents remain pending. Rendering preserves the candidate version and source
 records and cannot stand in for fresh generation or user review.
 
 模块展示顺序固定为：公共前置定义、原业务分组及具体用例、公共后置定义。各区内保留原有顺序；没有公共后置时不创建空项。聊天与 Markdown 共用该顺序；旧稿回传保留原来源映射，排序变化不作为业务修改。
+
+## Independent case handoff
+
+For a named case from an assessed review, use the same candidate that supplied the XMind copy.
+Call `presentation.render_chat(batch, [case_id], source_catalog=parent_if_scoped)` for chat.
+For a portable JSON attachment run:
+
+```shell
+python scripts/single_case.py --candidate candidate.json --version <content_version> --case <case_id> --output case.json
+```
+
+For a partial catalog copy, add `--source-catalog <exact-parent.json>`. The output path must be new.
+Read the current case's context, ordered preparation and steps, and any postconditions.
+Each step's `data_refs` names records in the attachment's `data` object. Use their actual values,
+preserving omitted keys, empty strings and objects. Replace only existing placeholders with
+this environment's values; preserve the remaining path, query and per-run identity.
+Each method specifies its timing and original step, context or data slots in `applies_at`.
+An explicitly pending applicability keeps its original case condition. The last business
+step and its checks are identified by `endpoint`. Preserve the current case's review and
+execution status. If retrieval reports a missing parent, data, step, or assertion, supply
+the exact missing source and retry. Execution records each assertion against this run.

@@ -102,7 +102,7 @@ def _rule_lines(case, batch, *, original_case=None):  # 原始决定只负责身
     return lines  # Source dictionaries remain untouched.
 
 
-def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, _expression_baseline=None, _data_legacy=False, _skip_preflight=False, _display_case_ids=None, _metadata_legacy=False, _metadata_bindings=None, companion_base=None):  # 资料路径只影响交付显示，源行仍为反馈保留。
+def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, _expression_baseline=None, _data_legacy=False, _skip_preflight=False, _display_case_ids=None, _metadata_legacy=False, _metadata_bindings=None, companion_base=None, _independent_case=None, module_review=False):  # 资料路径只影响交付显示，源行仍为反馈保留。
     if batch.get('review_layout') == LAYOUT and not _legacy_feedback:
         batch = json.loads(json.dumps(batch, ensure_ascii=False, sort_keys=True))  # 问答保存按键排序；首次出稿和探针使用相同顺序。
     metadata_legacy = _legacy_feedback or _metadata_legacy  # 不改变历史业务身份、原始值或版本。
@@ -118,7 +118,7 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
         if check['blockers']:
             visible_ids = set(check['ready_case_ids']) | {b['case_id'] for b in check['blockers'] if b.get('scope_only')}  # Keep unaffected operations and unresolved source actions visible.
             visible_ids = [cid for cid in (_display_case_ids if _display_case_ids is not None else [c['id'] for c in batch['cases']]) if cid in visible_ids]  # Keep caller order and omit blocked references.
-            result = _render(batch, flat=flat, reference_batch=reference_batch, _legacy_feedback=_legacy_feedback, _data_legacy=_data_legacy, _skip_preflight=True, _display_case_ids=visible_ids, _metadata_legacy=_metadata_legacy, _metadata_bindings=_metadata_bindings, companion_base=companion_base)  # 同一交付位置仍绑定缩小后的可见范围。
+            result = _render(batch, flat=flat, reference_batch=reference_batch, _legacy_feedback=_legacy_feedback, _data_legacy=_data_legacy, _skip_preflight=True, _display_case_ids=visible_ids, _metadata_legacy=_metadata_legacy, _metadata_bindings=_metadata_bindings, companion_base=companion_base, module_review=module_review)  # 同一交付位置仍绑定缩小后的可见范围。
             result.update({k: v for k, v in check.items() if k != 'complete_batch'})
             result['batch'] = copy.deepcopy(batch)  # Unshown never means deleted.
             return result
@@ -129,6 +129,9 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
     note_batch = dict(note_source, cases=[c for c in note_source['cases'] if c['id'] in {case['id'] for case in displayed_cases}])  # Notes cannot resolve blocked or unrequested references.
     tree = ['# 本轮范围副本（非全量）', '- 版本：' + batch['content_version'],
             '- 未展示不表示删除；关联展示不扩大功能验证范围']
+    if module_review and batch.get('kind') != 'scoped_review_copy' and len(displayed_cases) == len(batch['cases']):
+        tree[0] = '# 完整候选用例评审'
+        tree[2] = '- 展示本版全部候选用例'
     from module_handoff import entrance  # One entrance, direct links to necessary documents.
     if not _legacy_feedback:
         tree[2] += '；' + entrance(note_batch)  # Display-only note selection has no role in applicability validation.
@@ -153,6 +156,9 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
         indent += '  '
         human.extend(['# ' + _cell(title(case)),
                       '版本：' + batch['content_version'], '模块：' + ' / '.join(map(_cell, case['module_path']))])
+        if module_review:
+            point = (case.get('review_segment') or {}).get('test_point') or case.get('test_point') or case['title']
+            human.append('测试点：' + _cell(point))
         note = selection[case['id']] if _legacy_feedback else displayed('selection', selection[case['id']])
         for key, value in (([('入选用途', str(note.get('action', '')) + '：' + str(note.get('reason', '')))] if note.get('action') or note.get('reason') else []) + [('本轮功能验证', '已单独列入批准范围' if case['id'] in batch['approved_validation_scope'] else '未列入批准范围')] if metadata_legacy else []):  # 新正文不重复编写范围模板。
             tree.append(indent + '- ' + key + '：' + _cell(value))
@@ -160,7 +166,7 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
         excluded_rules = () if _legacy_feedback else RULE_FIELDS  # Reconstruct only the known pre-repair audit layout for feedback probes.
         from module_handoff import CASE_AGENT_FIELDS  # 已知审计/过程契约单处声明，未知业务条件完整保留。
         metadata = {key: (business_value(value, 'context') if key == 'context' and not metadata_legacy else value) for key, value in visible_case.items()
-                    if key not in (*GROUPS, *excluded_rules, *(() if _legacy_feedback else PROCESS_FIELDS), *(() if metadata_legacy else (*CASE_AGENT_FIELDS, *TECHNICAL_FIELDS, 'priority')), 'id', 'title', 'module_path', 'common_preconditions_note', 'common_postconditions_note')}  # 仅已知审计控制字段外置。
+                    if key not in (*GROUPS, *(('test_point',) if module_review else ()), *excluded_rules, *(() if _legacy_feedback else PROCESS_FIELDS), *(() if metadata_legacy else (*CASE_AGENT_FIELDS, *TECHNICAL_FIELDS, 'priority')), 'id', 'title', 'module_path', 'common_preconditions_note', 'common_postconditions_note')}  # 仅已知审计控制字段外置。
         for key, value in metadata.items():  # 每行保留实际根字段 owner，不从显示文字倒猜职责。
             for line in _business_lines({key: value}, batch=reference_batch or batch, _legacy=metadata_legacy):  # 顺序和原显示保持一致。
                 if _metadata_bindings is not None and key in ('review_status', 'final_review', 'review_history'):  # 仅准确用例直属控制字段。
@@ -170,6 +176,11 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
         for line in ([] if _legacy_feedback else _rule_lines(visible_case, reference_batch or batch, original_case=case)):  # Historical rule rows already appear in metadata.
             tree.append(indent + '- ' + _cell(line))  # Keep rules within their owning case.
             human.append(_cell(line))  # Never expose raw updates or repeated histories.
+        if _independent_case:
+            for method in _independent_case['methods']:
+                human.append(f"- {method['name']}（{method['timing']}）：{method['instruction']}")
+            for pending in _independent_case['applicability_pending']:
+                human.append(f"- 适用范围待核对：{pending['name']}。{pending['reason']}")
         for group, label in zip(GROUPS, ('公共前置操作', '特殊前置操作', '测试步骤', '特殊后置操作', '公共后置操作')):
             group_human_start = len(human)  # Shared preparation is rendered once after business projection.
             if (group.startswith('special_') or group == 'common_postconditions') and not visible_case.get(group) and not visible_case.get(group + '_note'):
@@ -208,6 +219,11 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
                     continue  # Shared data, expectation and assertion remain maintained in P0.
                 values = [line for ref in step.get('data_refs', [])
                           for line in data_lines(data[ref], lambda value: _business_lines(value, batch=reference_batch or batch, _legacy=metadata_legacy), legacy=_legacy_feedback or _data_legacy, metadata_legacy=metadata_legacy, incremental=batch.get('review_layout') == LAYOUT)] or ['无']  # 只有新版显示明确空输入。
+                if _independent_case:
+                    for ref in step.get('data_refs', []):
+                        entry = _independent_case['data'][ref]
+                        if 'value' in entry:
+                            values.append(ref + ' = ' + json.dumps(entry['value'], ensure_ascii=False))
                 extensions = {k: v for k, v in step.items()
                               if k not in ('id', 'operation', 'data_refs', 'expected', 'verification', *(() if metadata_legacy else (*TECHNICAL_FIELDS, 'source_ref')))}
                 business_conditions = _business_lines(extensions, batch=reference_batch or batch, _legacy=metadata_legacy)  # 旧 metadata 逐字复原而非忽略新增字段。
@@ -238,7 +254,7 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
                     tree.append(indent + '      - 验证点：' + _cell('；'.join(checks)))
                 check_text = '；验证点：' + _cell('；'.join(checks)) if checks else ''  # Same visible meaning in chat.
                 human.append(f'| {i} | {_cell(operation)} | {_cell("；".join(values))} | 预期：{_cell("；".join(expected))}{check_text} |')
-            if group.startswith('common_') and not _legacy_feedback:
+            if group.startswith('common_') and not _legacy_feedback and _independent_case is None:
                 human[group_human_start:] = []  # Module projection below supplies common or unresolved preparation.
             elif group in ('steps', 'special_preconditions', 'special_postconditions'):
                 group_ranges[group] = (group_human_start - case_start, len(human) - case_start)  # 只用于当前对话片段位置。
@@ -254,7 +270,7 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
     markdown = '\n'.join(tree) + '\n'  # Retain scalar-source offsets for feedback.
     if not _legacy_feedback and not flat:
         from aggregation import projection
-        _, projected = projection(batch, markdown, source_catalog=reference_batch, display_case_ids=_display_case_ids)  # Full context, selected branches.
+        _, projected = projection(batch, markdown, source_catalog=reference_batch, display_case_ids=_display_case_ids, module_review=module_review)  # Full context, selected branches.
         preparation = [entrance(note_batch)]  # Reuse identical applicability and source-bound operations in chat.
         def common_prose(node, path):
             if node.get('case_id'):  # Project case prose at its stable module position.
@@ -263,7 +279,8 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
                     if child['text'].startswith('待核对：') and '前置' in child['text']:
                         common_prose(child, path + [node['text']])
                 if not case.get('common_preconditions'):
-                    preparation.extend(_business_lines(case.get('common_preconditions_note', {}), batch=batch) or ['前置操作未提供，待核对'])
+                    preparation.extend(_business_lines(case.get('common_preconditions_note', {}), batch=batch))
+                    preparation.extend(child['text'] for child in node['children'] if child['text'] == '前置操作未提供，待核对')
                 prose = case_prose[node['case_id']]
                 ranges = case_group_ranges[node['case_id']]
                 replacements = []  # 来源步骤仍留原组，只替换显示为特殊的真实节点。
@@ -317,7 +334,7 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
         common_prose(projected, [])
         human = preparation
     return {'artifact_status': 'planned', 'ready_case_ids': [c['id'] for c in batch['cases']], 'blocked_case_ids': [], 'blockers': [], 'clarifications': [], 'batch': copy.deepcopy(batch), 'human_view': '\n'.join(human) + '\n',
-            'xmind_markdown': markdown if flat else aggregate(batch, markdown, source_catalog=reference_batch, display_case_ids=_display_case_ids, companion_base=companion_base)}  # 两个投影共享请求范围。
+            'xmind_markdown': markdown if flat else aggregate(batch, markdown, source_catalog=reference_batch, display_case_ids=_display_case_ids, companion_base=companion_base, module_review=module_review)}  # 两个投影共享请求范围。
 
 
 def render_review_batch(batch, *, source_catalog=None, companion_base=None):

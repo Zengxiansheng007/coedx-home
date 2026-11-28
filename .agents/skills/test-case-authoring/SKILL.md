@@ -33,7 +33,9 @@ Set `design.review_layout` to `incremental-v1` when creating a new P1/P2
 extension. Preserve the layout of a previously saved extension.
 Deliver the same-version XMind scope copy. For an explicitly needed selection of
 1–9 complete cases, call `presentation.render_chat` and show its returned text
-directly in chat. Keep candidate/Q&A records; human-view tables have no file artifact.
+directly in chat. For an independent execution handoff, export one checked candidate
+version and case ID with [the single-case entry](references/chat-delivery.md#independent-case-handoff).
+Keep candidate/Q&A records; human-view tables have no file artifact.
 
 Before display, rename, same-name feedback or Markdown/native return, read
 [the presentation identity contract](references/presentation-identity.md).

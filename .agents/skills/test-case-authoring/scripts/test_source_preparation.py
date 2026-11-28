@@ -25,3 +25,71 @@ class SourcePreparationTests(unittest.TestCase):
         self.assertNotIn('检查订单', render_selection(candidate, [cases[7]['id']])['xmind_markdown'])
         self.assertEqual(candidate['cases'], full['cases'])
         self.assertEqual(render_selection(candidate)['xmind_markdown'].count('检查订单'), 1)
+
+    def test_missing_preparation_uses_assessed_starting_state_or_case_setup(self):
+        batch = source()
+        for case in batch['cases'][:3]:
+            case['common_preconditions'] = []
+            case.pop('common_preconditions_note', None)
+            case['context']['initial_state'] = '已进入订单列表'
+        first, second, unknown = batch['cases'][:3]
+        second['special_preconditions'] = [second['steps'][0]]
+        definition = dict(name='订单列表', timing='每例前', instruction='打开订单列表', source='需求 §1',
+                          module_path=first['module_path'], applicable={first['id']: ['context/initial_state']},
+                          pending={}, excluded={c['id']: '另有入口' for c in batch['cases'][1:]})
+        candidate = assess_preparations(batch, [definition])
+        for case in (first, second, unknown):
+            rendered = render_selection(candidate, [case['id']])
+            for view in ('human_view', 'xmind_markdown'):
+                self.assertEqual('前置操作未提供，待核对' in rendered[view], case is unknown)
+
+    def test_cli_full_and_excerpt_can_move_with_their_companion(self):
+        import copy
+        import json
+        import re
+        import shutil
+        import subprocess
+        import sys
+        import tempfile
+        from pathlib import Path
+        from urllib.parse import unquote
+        from authoring import build_handwritten_batch
+        from test_handwritten import handwritten_sample
+
+        candidate = build_handwritten_batch(*handwritten_sample())['batch']
+        first = candidate['cases'][0]
+        first['technical_handoff'] = {'reuse_policy': '复用前核对有效期'}
+        second = copy.deepcopy(first)
+        second.update(id='ANOTHER', title='另一独立用例')
+        second['test_point'] = '核实第二项业务条件'
+        candidate['cases'].append(second)
+        script = Path(__file__).resolve().parent
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            (root / 'input.json').write_text(json.dumps(candidate), encoding='utf8')
+            (root / 'segments.json').write_text('{}', encoding='utf8')
+            for directory, args in (
+                ('full', ['source_preparation.py']),
+                ('excerpt', ['source_preparation.py', '--case', second['id']]),
+                ('segments', ['review_segments.py', '--assessments', 'segments.json']),
+            ):
+                subprocess.run([sys.executable, str(script / args[0]), *args[1:], '--candidate', 'input.json',
+                                '--output-dir', 'bundle/' + directory], cwd=root, check=True)
+            moved = Path(shutil.move(str(root / 'bundle'), str(root / 'relocated')))
+            for directory in ('full', 'excerpt', 'segments'):
+                view = (moved / directory / 'xmind.md').read_text(encoding='utf8')
+                self.assertEqual('非全量' in view.splitlines()[0], directory == 'excerpt')
+                self.assertEqual(first['title'] in view, directory != 'excerpt')
+                for case in (second,) if directory == 'excerpt' else (first, second):
+                    rows = view.splitlines()
+                    heading = next(i for i, row in enumerate(rows) if row.rstrip().endswith(' ' + case['title']))
+                    self.assertEqual(rows[heading + 1].strip(), '- 测试点：' + case.get('test_point', case['title']))
+                links = re.findall(r'\[Agent说明 [^\]]+\]\(([^)]+)\)', view)
+                self.assertTrue(links)
+                for link in links:
+                    self.assertNotIn('file:', link)
+                    note = moved / directory / unquote(link)
+                    self.assertTrue(note.is_file())
+                    for ref in re.findall(r'候选来源：\[[^\]]+\]\(([^#]+)#', note.read_text(encoding='utf8')):
+                        self.assertNotIn('file:', ref)
+                        self.assertTrue((note.parent / unquote(ref)).is_file())

@@ -173,7 +173,7 @@ def project_preparations(definitions, case, source, module, displayed):
                     int(n['text'].partition('：')[0].split()[1]) - 1]['id'] in slots)]
 
 
-def render_selection(batch, case_ids=None, *, companion_base=None):
+def render_selection(batch, case_ids=None, *, companion_base=None, blocked_ids=()):
     """Render selected cases against the complete assessed candidate and preserve input order."""
     from scoped_review import _render
     ids = [c['id'] for c in batch['cases']]
@@ -184,7 +184,8 @@ def render_selection(batch, case_ids=None, *, companion_base=None):
     display = dict(batch, approved_validation_scope=batch.get('approved_validation_scope', []),
                    questions=batch.get('questions', []), selection=[
         selection.get(cid, dict(case_id=cid, action='related', reason='候选评审')) for cid in ids])
-    result = _render(display, _display_case_ids=chosen, companion_base=companion_base)
+    visible = [cid for cid in chosen if cid not in blocked_ids]
+    result = _render(display, _display_case_ids=visible, companion_base=companion_base, module_review=True)
     result['batch'] = copy.deepcopy(batch)
     return result
 
@@ -209,13 +210,10 @@ def main():
         args.ids = affected_case_ids(batch, args.module_path, args.impact, args.version)
     elif args.module_path or args.version:
         parser.error('--version and --module-path require --impact')
-    result = render_selection(batch, args.ids, companion_base=args.output_dir)
+    result = render_selection(batch, args.ids)
     args.output_dir.mkdir(parents=True, exist_ok=False)
     from module_handoff import write_artifacts
-    write_artifacts(result, args.output_dir)
-    if args.ids:
-        tree = render_selection(batch, args.ids, companion_base=args.output_dir)['xmind_markdown']
-        (args.output_dir / 'xmind.md').write_text(tree, encoding='utf-8')
+    write_artifacts(result, args.output_dir, review_ids=args.ids or [case['id'] for case in batch['cases']])
 
 
 if __name__ == '__main__':

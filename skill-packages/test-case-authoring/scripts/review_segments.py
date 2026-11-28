@@ -110,15 +110,14 @@ def main():
     for option in ('candidate', 'assessments', 'output-dir'):
         parser.add_argument('--' + option, type=Path, required=True)
     args = parser.parse_args()
-    from authoring import render_batch
+    from source_preparation import render_selection
     from module_handoff import write_artifacts
     def read(path):
         return json.loads(path.read_text(encoding='utf-8-sig'))
     batch = bind_segments(read(args.candidate), read(args.assessments))
-    result = render_batch(batch)
+    result = render_selection(batch)
     args.output_dir.mkdir(parents=True, exist_ok=False)
-    write_artifacts(result, args.output_dir)
-    (args.output_dir / 'xmind.md').write_text(result['xmind_markdown'], encoding='utf-8')
+    write_artifacts(result, args.output_dir, review_ids=[case['id'] for case in batch['cases']])
 
 
 if __name__ == '__main__':
