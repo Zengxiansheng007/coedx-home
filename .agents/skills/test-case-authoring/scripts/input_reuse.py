@@ -105,7 +105,7 @@ def bind_inputs(batch, assessments, *, source_catalog=None):
             seen.add(key)
             bound.append(dict(copy.deepcopy(row), binding=detail['binding']))
         relations[case_id] = bound
-    result['content_version'] = _digest({k:v for k,v in result.items() if k != 'content_version'})
+    result['content_version'] = _digest({key: value for key, value in result.items() if key != 'content_version'})
     return result
 
 
@@ -137,6 +137,8 @@ def format_change(change):
 def project_inputs(batch, case, node, origins, source_catalog):
     rows = {(r['step_id'], r['data_id']): r for r in batch.get('input_reuse', {}).get(case['id'], [])}
     data = {item['id']: item for item in batch['data']}
+    seen = set()
+
     def visit(parent):
         for child in parent['children']:
             visit(child)
@@ -150,6 +152,7 @@ def project_inputs(batch, case, node, origins, source_catalog):
                 row = rows.get((step_id, ref))
                 if row is None:
                     continue
+                seen.add((step_id, ref))
                 try:
                     detail = resolve_input(batch, case['id'], row, source_catalog=source_catalog)
                 except ValueError as error:
@@ -163,4 +166,7 @@ def project_inputs(batch, case, node, origins, source_catalog):
                 changes.extend(format_change(item) for item in detail['retained'])
                 child['children'] = [dict(text=_cell(line), children=[], origins=[]) for line in changes]
     visit(node)
+    for step_id, ref in sorted(rows.keys() - seen):
+        node['children'].append(dict(text=_cell(f'输入复用待核对：本例调用或输入已变化 {step_id} / {ref}'),
+                                     children=[], origins=[]))
 

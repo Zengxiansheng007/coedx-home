@@ -215,18 +215,24 @@ def _render(batch, *, flat=False, reference_batch=None, _legacy_feedback=False, 
                     original = owner.get(group, [])[i - 1]
                     if 'step_reference' in original:
                         _, definition = resolve_step(_expression_baseline, owner, group, original)  # Only visible action is mapped; source label stays immutable.
+                from invocation_input import json_input
                 if definition:
                     group_label = dict(zip(GROUPS, ('公共前置操作', '特殊前置操作', '测试步骤', '特殊后置操作', '公共后置操作')))[group]
                     label = 'P0 ' + definition['title'] + '，' + group_label + '步骤 ' + str(definition['step_number'])
                     if not _expand_whole_steps:
                         tree.append(indent + f'  - 步骤 {i}：' + _cell(step['operation']))
                         tree.append(indent + '    - 整步引用：' + _cell(label))
+                        if module_review:
+                            for ref in step.get('data_refs', []):
+                                if json_input(source_data[ref]):
+                                    input_bindings[len(tree) - 3] = (case['id'], step['id'], ref)
+                                    box = source_data[ref].get('object_ref') or '输入参数'
+                                    tree.append(indent + '    - ' + _cell(box) + '（完整 JSON）')
                         current_data = [line for ref in step.get('data_refs', []) if data[ref].get('generation_rule') for line in _business_lines(data[ref], batch=reference_batch or batch)]  # Dynamic values belong to this case.
                         for line in current_data:
                             tree.append(indent + '    - 本例数据：' + _cell(line))
                         human.append(f'| {i} | {_cell(step["operation"])} | 整步引用：{_cell(label)}；{_cell("；".join(current_data))} | 见引用步骤 |')
                         continue  # Shared data, expectation and assertion remain maintained in P0.
-                from invocation_input import json_input
                 values, input_positions = [], {}
                 for ref in step.get('data_refs', []):
                     record = data[ref]
