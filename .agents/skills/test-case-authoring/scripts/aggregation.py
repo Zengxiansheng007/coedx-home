@@ -183,14 +183,20 @@ def projection(batch, markdown, *, handoff=True, common_legacy=False, source_cat
     return lines[:3], merged
 
 
-def aggregate(batch, markdown, source_catalog=None, *, display_case_ids=None, companion_base=None, module_review=False):  # 保留完整范围及资料交付位置。
+def aggregate(batch, markdown, source_catalog=None, *, display_case_ids=None, companion_base=None, module_review=False, input_bindings=None):  # 保留完整范围及资料交付位置。
     header, root = projection(batch, markdown, source_catalog=source_catalog, display_case_ids=display_case_ids, module_review=module_review)  # Shared display contract.
     if batch.get('review_layout') == incremental_review.LAYOUT:
         reader_ids = [case['id'] for case in batch['cases']] if display_case_ids is None else display_case_ids
         header, root = incremental_review.project(batch, root, companion_base=companion_base, reader_ids=reader_ids if module_review else None)  # 新版共用准确的业务源行。
     lines = list(header)
+    from invocation_input import json_block
+    inputs = {d['id']: d for d in batch['data']} if input_bindings else {}
     def visit(node, depth):
         lines.append('  ' * depth + '- ' + node['text'])
+        if input_bindings:
+            refs = dict.fromkeys(input_bindings[row] for row in node['origins'] if row in input_bindings)
+            for ref in refs:
+                lines.extend(json_block(inputs[ref]['value'], '  ' * (depth + 1)))
         for child in node['children']:
             visit(child, depth + 1)
     for node in root['children']:
